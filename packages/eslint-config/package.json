@@ -1,0 +1,13 @@
+{
+  "name": "@scrap-it/eslint-config",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./expo": "./expo.js"
+  },
+  "dependencies": {
+    "eslint-config-expo": "~10.0.0"
+  }
+}

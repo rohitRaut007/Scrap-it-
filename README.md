@@ -1,50 +1,63 @@
-# Welcome to your Expo app 👋
+# Scrap-it monorepo
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Turborepo workspace for the Scrap-it logistics platform: **Expo mobile**, **Next.js admin**, **NestJS backend**, and shared TypeScript packages.
 
-## Get started
+## Prerequisites
 
-1. Install dependencies
+- Node 20+
+- [pnpm](https://pnpm.io/) 9 (`corepack enable && corepack prepare pnpm@9.15.9 --activate`)
 
-   ```bash
-   npm install
-   ```
+## Structure
 
-2. Start the app
+| Path | Description |
+|------|-------------|
+| `apps/mobile` | React Native (Expo SDK 54) — product app |
+| `apps/admin` | Next.js admin dashboard (Tailwind + shadcn/ui) |
+| `apps/backend` | NestJS REST API, Prisma, Supabase JWT + Storage |
+| `packages/types` | Shared API-facing TypeScript types |
+| `packages/constants` | Shared enums/constants |
+| `packages/api-client` | Typed fetch wrapper for clients |
+| `packages/tsconfig` | Shared TS bases (Nest, Next, generic) |
+| `packages/eslint-config` | Shared ESLint (Expo flat config) |
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Commands
 
 ```bash
-npm run reset-project
+pnpm install
+
+# Dev (all apps that define `dev`)
+pnpm dev
+
+# Per app
+pnpm --filter @scrap-it/mobile dev
+pnpm --filter @scrap-it/admin dev
+pnpm --filter @scrap-it/backend dev
+
+# Build shared packages + backend + admin
+pnpm build
+
+# Lint
+pnpm lint
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Environment
 
-## Learn more
+- Root [`.env.example`](./.env.example) lists variable names only.
+- Copy per-app examples: `apps/mobile/.env.example`, `apps/admin/.env.example`, `apps/backend/.env.example`.
+- **Never commit secrets.** Use Supabase dashboard for JWT secret, anon key, service role, and Postgres URLs.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Database (backend)
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Set `DATABASE_URL` (pooled) and `DIRECT_URL` (direct) from Supabase, then from `apps/backend`:
 
-## Join the community
+```bash
+pnpm prisma migrate deploy
+```
 
-Join our community of developers creating universal apps.
+Initial SQL lives under `apps/backend/prisma/migrations/`.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Mobile + Supabase
+
+The Expo app reads `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`. The client is [`apps/mobile/src/lib/supabase.ts`](apps/mobile/src/lib/supabase.ts).
+
+For product architecture notes, see [`apps/mobile/ARCHITECTURE.md`](apps/mobile/ARCHITECTURE.md).

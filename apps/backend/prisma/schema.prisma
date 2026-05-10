@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  customer
+  collector
+  admin
+}
+
+enum OrderStatus {
+  scheduled
+  assigned
+  en_route
+  arriving
+  completed
+  cancelled
+}
+
+enum NotificationChannel {
+  push
+  email
+  sms
+  in_app
+}
+
+model User {
+  id               String   @id @db.Uuid
+  email            String   @unique
+  name             String?
+  phone            String?
+  role             UserRole @default(customer)
+  defaultAddressId String?  @unique @db.Uuid
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  addresses        Address[]
+  defaultAddress   Address? @relation("UserDefaultAddress", fields: [defaultAddressId], references: [id], onDelete: SetNull)
+  pickupOrders     PickupOrder[] @relation("CustomerOrders")
+  collector        Collector?
+  notifications    Notification[]
+  idempotencyRecords IdempotencyRecord[]
+}
+
+model Address {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  label       String?
+  line1       String
+  line2       String?
+  city        String
+  region      String?
+  postalCode  String?
+  country     String    @default("IN")
+  latitude    Float?
+  longitude   Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pickupOrders    PickupOrder[]
+  defaultedByUser User?          @relation("UserDefaultAddress")
+}
+
+model Category {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique
+  rateLabel String
+  iconKey   String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pickupOrders PickupOrderCategory[]
+}
+
+model Collector {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @unique @db.Uuid
+  vehicleInfo String?
+  rating    Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pickupOrders  PickupOrder[]
+}
+
+model PickupOrder {
+  id             String       @id @default(uuid()) @db.Uuid
+  customerId     String       @db.Uuid
+  status         OrderStatus  @default(scheduled)
+  scheduledAt    DateTime
+  addressId      String       @db.Uuid
+  collectorId    String?      @db.Uuid
+  etaMinutes     Int?
+  totalWeightKg  Float?
+  notes          String?
+  cancelledAt    DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  customer    User      @relation("CustomerOrders", fields: [customerId], references: [id], onDelete: Cascade)
+  address     Address   @relation(fields: [addressId], references: [id])
+  collector   Collector? @relation(fields: [collectorId], references: [id])
+  categories  PickupOrderCategory[]
+  timeline    PickupTimeline[]
+  photos      PickupOrderPhoto[]
+
+  @@index([customerId, createdAt])
+  @@index([customerId, status])
+}
+
+model PickupOrderCategory {
+  pickupOrderId String @db.Uuid
+  categoryId    String @db.Uuid
+
+  pickupOrder PickupOrder @relation(fields: [pickupOrderId], references: [id], onDelete: Cascade)
+  category    Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([pickupOrderId, categoryId])
+}
+
+model PickupTimeline {
+  id          String   @id @default(uuid()) @db.Uuid
+  orderId     String   @db.Uuid
+  eventType   String
+  occurredAt  DateTime @default(now())
+  metadata    Json?
+
+  order PickupOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, occurredAt])
+}
+
+model PickupOrderPhoto {
+  id          String      @id @default(uuid()) @db.Uuid
+  orderId     String      @db.Uuid
+  storageKey  String      @unique
+  contentType String
+  createdAt   DateTime    @default(now())
+
+  order PickupOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+model IdempotencyRecord {
+  userId       String   @db.Uuid
+  key          String
+  responseJson Json
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, key])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String               @id @default(uuid()) @db.Uuid
+  userId    String               @db.Uuid
+  channel   NotificationChannel  @default(in_app)
+  title     String?
+  body      String?
+  payload   Json?
+  readAt    DateTime?
+  createdAt DateTime             @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
