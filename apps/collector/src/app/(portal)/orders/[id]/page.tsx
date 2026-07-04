@@ -202,12 +202,14 @@ export default function OrderDetailPage({
           <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
           <p className="flex-1 text-sm">{order.addressLine}</p>
         </div>
-        <Button variant="secondary" className="mt-3 w-full gap-2" asChild>
-          <a href={mapsUrl} target="_blank" rel="noopener noreferrer">
-            <Navigation className="h-4 w-4" />
-            Open in Google Maps
-          </a>
-        </Button>
+        {order.city && (
+          <Button variant="secondary" className="mt-3 w-full gap-2" asChild>
+            <a href={mapsUrl} target="_blank" rel="noopener noreferrer">
+              <Navigation className="h-4 w-4" />
+              Open in Google Maps
+            </a>
+          </Button>
+        )}
       </div>
 
       {/* Materials */}

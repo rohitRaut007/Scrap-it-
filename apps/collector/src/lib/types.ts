@@ -32,6 +32,8 @@ export interface CollectorOrder {
   customerPhone: string | null;
   timeline: { eventType: string; occurredAt: string }[];
   isAvailable: boolean;
+  /** "manual" = logged by the collector for their own customer, not sourced from the app. */
+  source: "app" | "manual";
 }
 
 export interface OrderListResponse {
@@ -85,4 +87,13 @@ export interface CollectorEarnings {
   totalWeightKg: number;
   days: EarningsDay[];
   recentOrders: CollectorOrder[];
+}
+
+/** Category + today's platform rate, for the "Log a Pickup" weight entry screen. */
+export interface RateCardItem {
+  id: string;
+  name: string;
+  rateLabel: string;
+  baseRateInr: number;
+  iconKey: string;
 }

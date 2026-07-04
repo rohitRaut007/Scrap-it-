@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
 import { Button } from "@/components/ui/button";
 import { OrderCard } from "@/components/orders/order-card";
+import { LogPickupButton } from "@/components/orders/log-pickup-button";
 import { useAvailableOrders, useMyOrders } from "@/hooks/use-portal";
 import { cn } from "@/lib/utils";
 import type { OrderListResponse } from "@/lib/types";
@@ -55,7 +56,10 @@ function OrdersContent() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold tracking-tight">Pickups</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold tracking-tight">Pickups</h1>
+        <LogPickupButton />
+      </div>
 
       {/* Segmented tabs */}
       <div className="grid grid-cols-3 gap-1 rounded-xl bg-secondary p-1">

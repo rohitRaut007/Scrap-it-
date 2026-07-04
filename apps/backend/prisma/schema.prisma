@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {
@@ -79,7 +80,8 @@ model Category {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  pickupOrders PickupOrderCategory[]
+  pickupOrders        PickupOrderCategory[]
+  pickupLogCategories PickupLogCategory[]
 }
 
 model Collector {
@@ -95,6 +97,49 @@ model Collector {
 
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   pickupOrders  PickupOrder[]
+  pickupLogs    PickupLog[]
+}
+
+/// A pickup a collector logs for their own existing customer, found
+/// outside the app (phone call, walk-up, WhatsApp) — never assigned,
+/// claimable, or visible to any other collector. Always "completed";
+/// has no counterpart marketplace workflow and no FK to a real
+/// customer User, so it structurally cannot be pointed at by the
+/// (future) customer-rating feature.
+model PickupLog {
+  id            String   @id @default(uuid()) @db.Uuid
+  collectorId   String   @db.Uuid
+  customerName  String
+  customerPhone String?
+  /// Free text — no geocoding, no Address FK.
+  addressText   String?
+  notes         String?
+  totalWeightKg Float?
+  /// Σ weightKg × category.baseRateInr, computed at save time.
+  payoutInr     Float?
+  /// When the collector says the pickup happened — drives day-bucketing in earnings.
+  loggedAt      DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  collector  Collector           @relation(fields: [collectorId], references: [id], onDelete: Cascade)
+  categories PickupLogCategory[]
+
+  @@index([collectorId, loggedAt])
+}
+
+model PickupLogCategory {
+  pickupLogId  String @db.Uuid
+  categoryId   String @db.Uuid
+  weightKg     Float
+  /// Rate snapshot at save time.
+  rateInrPerKg Float
+  payoutInr    Float
+
+  pickupLog PickupLog @relation(fields: [pickupLogId], references: [id], onDelete: Cascade)
+  category  Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([pickupLogId, categoryId])
 }
 
 model PickupOrder {

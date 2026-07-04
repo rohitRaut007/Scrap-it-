@@ -33,6 +33,8 @@ export interface CollectorOrderDto {
   timeline: { eventType: string; occurredAt: string }[];
   /** True when the order is claimable from the available feed. */
   isAvailable: boolean;
+  /** "manual" = logged by the collector for their own customer, not sourced from the app. */
+  source: "app" | "manual";
 }
 
 export interface CollectorOrderListResponse {
@@ -87,4 +89,13 @@ export interface CollectorEarningsDto {
   totalWeightKg: number;
   days: EarningsDayDto[];
   recentOrders: CollectorOrderDto[];
+}
+
+/** Category + today's platform rate, for the "Log a Pickup" weight entry screen. */
+export interface CollectorRateCardItemDto {
+  id: string;
+  name: string;
+  rateLabel: string;
+  baseRateInr: number;
+  iconKey: string;
 }

@@ -6,6 +6,7 @@ import type {
   CollectorProfile,
   CollectorSummary,
   OrderListResponse,
+  RateCardItem,
 } from "./types";
 
 const BASE_URL =
@@ -109,4 +110,13 @@ export const collectorApi = {
     ),
   earnings: (days = 30) =>
     request<CollectorEarnings>(`/collectors/me/earnings?days=${days}`),
+  rateCard: () => request<RateCardItem[]>("/collectors/me/rate-card"),
+  logPickup: (data: {
+    customerName: string;
+    customerPhone?: string;
+    addressText?: string;
+    notes?: string;
+    items: { categoryId: string; weightKg: number }[];
+  }) =>
+    request<CollectorOrder>("/collectors/me/pickup-logs", jsonInit("POST", data)),
 };

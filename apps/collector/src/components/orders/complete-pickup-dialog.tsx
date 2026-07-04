@@ -63,7 +63,7 @@ export function CompletePickupDialog({
     setSubmitting(true);
     try {
       const updated = await collectorApi.complete(order.id, items);
-      await revalidateCollectorData();
+      await revalidateCollectorData("earnings");
       onOpenChange(false);
       onCompleted(updated.payoutInr);
     } catch (err) {
@@ -77,8 +77,8 @@ export function CompletePickupDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !submitting && onOpenChange(o)}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[85dvh] flex-col gap-0 p-0 sm:max-w-md">
+        <DialogHeader className="shrink-0 space-y-1 border-b px-5 py-4">
           <DialogTitle className="flex items-center gap-2">
             <Scale className="h-5 w-5 text-primary" />
             Weigh &amp; complete
@@ -89,7 +89,7 @@ export function CompletePickupDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3">
+        <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
           {order.categories.length === 0 && (
             <p className="rounded-lg bg-signal/20 p-3 text-sm text-ink">
               This booking has no materials listed. Contact support if the
@@ -120,7 +120,7 @@ export function CompletePickupDialog({
                   min="0"
                   step="0.1"
                   placeholder="0.0"
-                  className="h-10 w-20 text-right"
+                  className="h-11 w-24 text-right"
                   value={weights[line.categoryId] ?? ""}
                   onChange={(e) =>
                     setWeights((w) => ({
@@ -134,36 +134,35 @@ export function CompletePickupDialog({
               </div>
             </div>
           ))}
-
-          {/* Live total */}
-          <div className="flex items-center justify-between rounded-xl bg-cash/10 px-4 py-3">
-            <div>
-              <p className="font-mono text-xs text-muted-foreground">
-                {totalWeight > 0 ? `${Math.round(totalWeight * 100) / 100} kg total` : "Customer payout"}
-              </p>
-              <p className="font-mono text-xl font-semibold text-cash">
-                {formatInr(totalPayout)}
-              </p>
-            </div>
-            <p className="max-w-36 text-right text-[11px] text-muted-foreground">
-              Pay this amount to the customer in cash or UPI
-            </p>
-          </div>
         </div>
 
-        <DialogFooter className="gap-2">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={submitting}
-          >
-            Back
-          </Button>
-          <Button onClick={handleSubmit} disabled={!hasWeight || submitting}>
-            {submitting
-              ? "Completing…"
-              : `Complete · ${formatInr(totalPayout)}`}
-          </Button>
+        {/* Sticky footer — running total always visible, no scrolling to find it */}
+        <DialogFooter className="shrink-0 flex-col gap-3 border-t px-5 py-4 sm:flex-col">
+          <div className="flex items-center justify-between">
+            <p className="font-mono text-xs text-muted-foreground">
+              {totalWeight > 0 ? `${Math.round(totalWeight * 100) / 100} kg total` : "Customer payout"}
+            </p>
+            <p className="font-mono text-lg font-semibold text-cash">
+              {formatInr(totalPayout)}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => onOpenChange(false)}
+              disabled={submitting}
+            >
+              Back
+            </Button>
+            <Button
+              className="flex-1"
+              onClick={handleSubmit}
+              disabled={!hasWeight || submitting}
+            >
+              {submitting ? "Completing…" : "Complete"}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

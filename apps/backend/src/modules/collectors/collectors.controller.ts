@@ -20,6 +20,7 @@ import { CollectorPortalService } from "./collector-portal.service";
 import { CollectorOrdersQueryDto } from "./dto/collector-orders-query.dto";
 import { CollectorUpdateStatusDto } from "./dto/collector-update-status.dto";
 import { CompleteOrderDto } from "./dto/complete-order.dto";
+import { LogPickupDto } from "./dto/log-pickup.dto";
 import { UpdateCollectorProfileDto } from "./dto/update-collector-profile.dto";
 
 @Controller("collectors")
@@ -108,5 +109,15 @@ export class CollectorsController {
   ) {
     const clamped = Math.min(Math.max(days ?? 30, 7), 90);
     return this.portal.getEarnings(user, clamped);
+  }
+
+  @Post("me/pickup-logs")
+  logPickup(@CurrentUser() user: AuthUser, @Body() dto: LogPickupDto) {
+    return this.portal.logPickup(user, dto);
+  }
+
+  @Get("me/rate-card")
+  rateCard(@CurrentUser() user: AuthUser) {
+    return this.portal.getRateCard(user);
   }
 }

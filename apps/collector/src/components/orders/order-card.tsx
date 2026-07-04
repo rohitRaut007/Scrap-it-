@@ -58,9 +58,16 @@ export function OrderCard({ order }: OrderCardProps) {
           {formatScheduledAt(order.scheduledAt)}
         </div>
         {isDone && order.payoutInr != null ? (
-          <span className="font-mono text-sm font-semibold text-cash">
-            {formatInr(order.payoutInr)}
-          </span>
+          <div className="flex items-center gap-1.5">
+            {order.source === "manual" && (
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                Logged
+              </span>
+            )}
+            <span className="font-mono text-sm font-semibold text-cash">
+              {formatInr(order.payoutInr)}
+            </span>
+          </div>
         ) : (
           <StatusBadge status={order.status} />
         )}

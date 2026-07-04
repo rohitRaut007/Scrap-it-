@@ -13,6 +13,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
 import { OrderCard } from "@/components/orders/order-card";
+import { LogPickupButton } from "@/components/orders/log-pickup-button";
 import { useProfile, useSummary } from "@/hooks/use-portal";
 import { firstName, formatInr } from "@/lib/format";
 
@@ -30,17 +31,20 @@ export default function DashboardPage() {
   return (
     <div className="space-y-5">
       {/* Greeting */}
-      <div>
-        <p className="text-sm text-muted-foreground">
-          {new Date().toLocaleDateString("en-IN", {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-          })}
-        </p>
-        <h1 className="text-2xl font-bold tracking-tight">
-          {greeting()}, {firstName(profile?.name)}
-        </h1>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm text-muted-foreground">
+            {new Date().toLocaleDateString("en-IN", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+            })}
+          </p>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {greeting()}, {firstName(profile?.name)}
+          </h1>
+        </div>
+        <LogPickupButton variant="default" className="mt-1 shrink-0" />
       </div>
 
       {error && !summary && <ErrorState onRetry={() => mutate()} />}

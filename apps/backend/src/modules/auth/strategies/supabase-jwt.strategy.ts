@@ -46,6 +46,14 @@ export interface AuthUser {
 
 @Injectable()
 export class SupabaseJwtStrategy extends PassportStrategy(Strategy, "jwt") {
+  // In-memory fingerprint of the last (email, role) we synced per user, so
+  // we don't pay a DB write round trip on every single authenticated
+  // request — only when a user is seen for the first time in this process
+  // or their email/role actually changed. This directly affects every
+  // route in the app (all requests pass through here), so it's the
+  // highest-leverage place to cut a redundant round trip.
+  private readonly syncedFingerprint = new Map<string, string>();
+
   constructor(
     config: ConfigService,
     private readonly prisma: PrismaService,
@@ -71,11 +79,15 @@ export class SupabaseJwtStrategy extends PassportStrategy(Strategy, "jwt") {
     }
     const role = resolveUserRole(payload);
 
-    await this.prisma.user.upsert({
-      where: { id: payload.sub },
-      update: { email, role },
-      create: { id: payload.sub, email, role },
-    });
+    const fingerprint = `${email}:${role}`;
+    if (this.syncedFingerprint.get(payload.sub) !== fingerprint) {
+      await this.prisma.user.upsert({
+        where: { id: payload.sub },
+        update: { email, role },
+        create: { id: payload.sub, email, role },
+      });
+      this.syncedFingerprint.set(payload.sub, fingerprint);
+    }
 
     return {
       id: payload.sub,

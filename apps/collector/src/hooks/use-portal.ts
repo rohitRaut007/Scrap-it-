@@ -43,3 +43,8 @@ export function useEarnings(days = 30) {
     collectorApi.earnings(days),
   );
 }
+
+/** Rates change daily, not live — no polling. */
+export function useRateCard() {
+  return useSWR("collector/rate-card", () => collectorApi.rateCard());
+}
