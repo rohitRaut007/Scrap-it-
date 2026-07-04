@@ -2,6 +2,9 @@
   "name": "@scrap-it/collector",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "pnpm exec next dev --port 3004",
     "build": "pnpm exec next build",
