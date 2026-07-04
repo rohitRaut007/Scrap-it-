@@ -56,7 +56,7 @@ export function ThemeToggle({ className, ...props }: ThemeToggleProps) {
       <View
         className={cn(
           "h-7 w-12 rounded-full p-0.5",
-          isDark ? "bg-emerald-400" : "bg-muted"
+          isDark ? "bg-rust" : "bg-muted"
         )}
       >
         <View

@@ -51,7 +51,7 @@ export function SegmentedControl<TValue extends string>({
             style={
               active
                 ? {
-                    backgroundColor: isDark ? "#0a0a0a" : colors.card,
+                    backgroundColor: colors.background,
                     ...Platform.select({
                       ios: {
                         shadowColor: "#000",

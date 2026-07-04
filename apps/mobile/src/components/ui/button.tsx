@@ -32,18 +32,19 @@ const sizes: Record<Size, string> = {
   lg: "px-5 py-4",
 };
 
+// Scrap-it Paper: primary = rust on paper, secondary = paper-2 with ink.
 const variants: Record<Variant, string> = {
-  primary: "bg-primary dark:bg-emerald-400",
-  secondary: "bg-secondary dark:bg-neutral-800",
+  primary: "bg-rust",
+  secondary: "bg-paper-2 border border-ink",
   ghost: "bg-transparent",
-  outline: "border border-border bg-transparent dark:border-neutral-700",
+  outline: "border border-border bg-transparent",
 };
 
 const textColors: Record<Variant, string> = {
-  primary: "text-primary-foreground font-semibold dark:text-emerald-950",
-  secondary: "text-secondary-foreground font-semibold dark:text-neutral-100",
-  ghost: "text-foreground font-semibold dark:text-neutral-100",
-  outline: "text-foreground font-semibold dark:text-neutral-100",
+  primary: "text-paper font-semibold",
+  secondary: "text-ink font-semibold",
+  ghost: "text-ink font-semibold",
+  outline: "text-ink font-semibold",
 };
 
 const textSizes: Record<Size, string> = {
@@ -65,7 +66,8 @@ function variantIconColor(
 ): string {
   switch (variant) {
     case "primary":
-      return isDark ? "#052e1d" : themeColors.primaryForeground;
+      // Light-only palette (dark deferred): paper foreground on rust.
+      return themeColors.primaryForeground;
     case "secondary":
     case "ghost":
     case "outline":

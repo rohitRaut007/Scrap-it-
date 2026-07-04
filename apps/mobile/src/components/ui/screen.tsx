@@ -33,7 +33,7 @@ export function Screen({
     children
   );
 
-  const wrapClass = cn("flex-1 bg-background dark:bg-neutral-950", className);
+  const wrapClass = cn("flex-1 bg-background", className);
 
   if (safe) {
     return (

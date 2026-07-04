@@ -1,0 +1,11 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/favicon.ico/route": "/favicon.ico",
+  "/page": "/",
+  "/login/page": "/login",
+  "/(portal)/orders/[id]/page": "/orders/[id]",
+  "/(portal)/dashboard/page": "/dashboard",
+  "/(portal)/orders/page": "/orders",
+  "/(portal)/earnings/page": "/earnings",
+  "/(portal)/profile/page": "/profile"
+}

@@ -102,8 +102,8 @@ export function ReviewStep({ draft, categories }: ReviewStepProps) {
         </View>
       </Card>
 
-      <View className="mt-4 flex-row gap-3 rounded-2xl border border-amber-200/80 bg-amber-50/80 p-3 dark:border-amber-500/30 dark:bg-amber-500/10">
-        <View className="size-9 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-500/20">
+      <View className="mt-4 flex-row gap-3 rounded-2xl border border-signal/40 bg-signal/15 p-3">
+        <View className="size-9 items-center justify-center rounded-full bg-signal/30">
           <Ionicons
             name="warning-outline"
             size={20}

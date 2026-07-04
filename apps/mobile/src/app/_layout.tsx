@@ -4,11 +4,20 @@ import { useEffect } from "react";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
+import { RozhaOne_400Regular } from "@expo-google-fonts/rozha-one";
 import {
-  PlusJakartaSans_400Regular,
-  PlusJakartaSans_600SemiBold,
-  PlusJakartaSans_700Bold,
-} from "@expo-google-fonts/plus-jakarta-sans";
+  Hind_300Light,
+  Hind_400Regular,
+  Hind_500Medium,
+  Hind_600SemiBold,
+  Hind_700Bold,
+} from "@expo-google-fonts/hind";
+import {
+  IBMPlexMono_400Regular,
+  IBMPlexMono_500Medium,
+  IBMPlexMono_600SemiBold,
+  IBMPlexMono_700Bold,
+} from "@expo-google-fonts/ibm-plex-mono";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { ThemeProvider, useAppTheme } from "@/lib/theme";
@@ -17,9 +26,16 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded] = useFonts({
-    PlusJakartaSans_400Regular,
-    PlusJakartaSans_600SemiBold,
-    PlusJakartaSans_700Bold,
+    RozhaOne_400Regular,
+    Hind_300Light,
+    Hind_400Regular,
+    Hind_500Medium,
+    Hind_600SemiBold,
+    Hind_700Bold,
+    IBMPlexMono_400Regular,
+    IBMPlexMono_500Medium,
+    IBMPlexMono_600SemiBold,
+    IBMPlexMono_700Bold,
   });
 
   useEffect(() => {

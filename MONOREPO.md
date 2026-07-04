@@ -18,7 +18,7 @@ This is a **pnpm workspace** + **Turborepo** monorepo. The root contains very li
 | `.env.example` | Env var names (no values) that exist across apps — mostly documentation. |
 | `node_modules/` | Hoisted shared dependencies (pnpm hoists here; per-package `node_modules` symlink in). |
 | `dist-web/` | Build output (e.g. web build artifact — possibly Expo Web or admin output). |
-| `apps/` | The three runnable applications. |
+| `apps/` | The four runnable applications (mobile, backend, admin, collector). |
 | `packages/` | Shared libraries used by the apps. |
 | `.vscode/` | Workspace VS Code settings. |
 
@@ -206,7 +206,7 @@ Nest pattern: `<name>.module.ts` + `<name>.controller.ts` (+ services, DTOs as n
 | `users/` | User CRUD. | Stub |
 | `pickups/` | Create / list / cancel pickups. | Stub |
 | `orders/` | Status, lifecycle. | Stub |
-| `collectors/` | Collector profile, vehicle. | Stub |
+| `collectors/` | Collector portal API (`@Roles('collector')`): profile + booking slug, available-orders feed, accept/decline, status updates, weigh-and-complete with payout calculation, earnings summary/series. | Implemented |
 | `categories/` | Waste categories + pricing. | Stub |
 | `notifications/` | In-app / email / SMS / push. | Stub |
 | `analytics/` | Reports, KPIs. | Stub |
@@ -224,7 +224,7 @@ Nest pattern: `<name>.module.ts` + `<name>.controller.ts` (+ services, DTOs as n
 
 ## `apps/admin/` — Next.js admin dashboard
 
-Mostly default `create-next-app` — no real admin features yet.
+Operations dashboard: order list/detail, collector assignment, status updates, stats. Admin-role gated (Supabase JWT `app_metadata.role`).
 
 | Folder / file | Purpose |
 |---------------|---------|
@@ -238,6 +238,23 @@ Mostly default `create-next-app` — no real admin features yet.
 | `tsconfig.json` | TypeScript. |
 | `eslint.config.mjs` | Lint. |
 | `.env.example` | Admin env template. |
+
+---
+
+## `apps/collector/` — Next.js collector portal
+
+Mobile-first web portal for collectors (kabadiwalas), gated to `role=collector`. Runs on port **3004** (`pnpm --filter @scrap-it/collector dev`).
+
+| Route | Purpose |
+|-------|---------|
+| `/login` | Collector sign-in (Supabase password auth + role check). |
+| `/dashboard` | Today's earnings hero, week/month stats, next pickup, available-orders banner. |
+| `/orders` | Segmented feed — New (claimable) / Active / Done — with one-tap Accept. |
+| `/orders/[id]` | Detail: status stepper, customer card (call/WhatsApp), Google Maps link, materials with rates, weigh-and-complete dialog that computes the customer payout live. |
+| `/earnings` | Today/week/month totals, 14-day bar chart, lifetime stats, recent pickups. |
+| `/profile` | Editable details + personal booking QR code (`scrapit.app/book/<slug>`) with copy/share. |
+
+Structure mirrors `apps/admin` (App Router, Tailwind v4, shadcn/ui, SWR, same brand tokens in `globals.css`). API calls hit the `/collectors/me/*` backend endpoints via `src/lib/api.ts`.
 
 ---
 
@@ -276,6 +293,7 @@ packages/<name>/
 | Add a reusable RN UI primitive | `apps/mobile/src/components/ui/` |
 | Add a Nest guard / decorator / interceptor | `apps/backend/src/common/<kind>/` |
 | Add an admin page | `apps/admin/src/app/<route>/page.tsx` |
+| Add a collector portal page | `apps/collector/src/app/(portal)/<route>/page.tsx` |
 | Wire a mobile env var | `apps/mobile/.env` — must be `EXPO_PUBLIC_*` for JS |
 | Wire a backend env var | `apps/backend/.env` + `config/configuration.ts` |
 

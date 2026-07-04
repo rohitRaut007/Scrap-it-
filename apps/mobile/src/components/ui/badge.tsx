@@ -11,17 +11,20 @@ export interface BadgeProps extends ViewProps {
 }
 
 const tones: Record<BadgeTone, string> = {
-  default: "bg-primary/15 dark:bg-emerald-400/15",
-  success: "bg-emerald-500/15",
-  warning: "bg-amber-500/15",
-  neutral: "bg-muted dark:bg-neutral-800",
+  // Scrap-it Paper tones — match apps/admin + apps/collector order-utils:
+  // default (scheduled/assigned) → rust, warning (en route) → signal,
+  // success (completed) → cash, neutral (cancelled) → muted.
+  default: "bg-rust/15",
+  success: "bg-cash/15",
+  warning: "bg-signal/30",
+  neutral: "bg-muted",
 };
 
 const textTones: Record<BadgeTone, string> = {
-  default: "text-primary dark:text-emerald-300",
-  success: "text-emerald-700 dark:text-emerald-300",
-  warning: "text-amber-800 dark:text-amber-300",
-  neutral: "text-muted-foreground dark:text-neutral-300",
+  default: "text-rust",
+  success: "text-cash",
+  warning: "text-ink",
+  neutral: "text-muted-foreground",
 };
 
 export function Badge({

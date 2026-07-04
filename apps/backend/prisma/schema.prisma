@@ -69,24 +69,29 @@ model Address {
 }
 
 model Category {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String   @unique
-  rateLabel String
-  iconKey   String
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  rateLabel   String
+  /// Platform payout rate in ₹ per kg — used to compute order payouts at completion.
+  baseRateInr Float    @default(0)
+  iconKey     String
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   pickupOrders PickupOrderCategory[]
 }
 
 model Collector {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @unique @db.Uuid
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @unique @db.Uuid
   vehicleInfo String?
-  rating    Float?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  rating      Float?
+  /// Permanent personal booking link slug, e.g. scrapit.app/book/<slug>
+  bookingSlug String?  @unique
+  serviceArea String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   pickupOrders  PickupOrder[]
@@ -101,7 +106,10 @@ model PickupOrder {
   collectorId    String?      @db.Uuid
   etaMinutes     Int?
   totalWeightKg  Float?
+  /// Total ₹ payout to the customer, computed at completion (Σ weightKg × baseRateInr).
+  payoutInr      Float?
   notes          String?
+  completedAt    DateTime?
   cancelledAt    DateTime?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -120,6 +128,12 @@ model PickupOrder {
 model PickupOrderCategory {
   pickupOrderId String @db.Uuid
   categoryId    String @db.Uuid
+  /// Weight logged by the collector at completion.
+  weightKg      Float?
+  /// Rate snapshot (₹/kg) at the moment of completion — rates change daily.
+  rateInrPerKg  Float?
+  /// weightKg × rateInrPerKg, frozen at completion.
+  payoutInr     Float?
 
   pickupOrder PickupOrder @relation(fields: [pickupOrderId], references: [id], onDelete: Cascade)
   category    Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)

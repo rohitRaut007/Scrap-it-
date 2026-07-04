@@ -95,13 +95,13 @@ export function MapScreen() {
               key={`agent-${index}`}
               coordinate={{ latitude, longitude }}
               title={`Agent ${index + 1}`}
-              pinColor="#4a9f7a"
+              pinColor="#B84E1C"
             />
           ))}
           {routeCoordinates.length > 1 ? (
             <Polyline
               coordinates={routeCoordinates}
-              strokeColor="#4a9f7a"
+              strokeColor="#B84E1C"
               strokeWidth={4}
             />
           ) : null}

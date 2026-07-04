@@ -14,12 +14,15 @@
     "clean": "node ./scripts/clean-caches.mjs"
   },
   "dependencies": {
-    "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
+    "@expo-google-fonts/hind": "^0.4.1",
+    "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
+    "@expo-google-fonts/rozha-one": "^0.4.1",
     "@expo/vector-icons": "^15.0.3",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
+    "@scrap-it/design-tokens": "workspace:*",
     "@supabase/supabase-js": "^2.49.1",
     "clsx": "^2.1.1",
     "expo": "~54.0.33",

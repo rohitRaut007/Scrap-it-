@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
     "scheme": "scrapit",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
@@ -20,7 +20,7 @@
       "usesCleartextTraffic": true,
       "package": "com.scrapit.app",
       "adaptiveIcon": {
-        "backgroundColor": "#000000",
+        "backgroundColor": "#F3EEDF",
         "foregroundImage": "./assets/images/logo.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
@@ -31,8 +31,16 @@
         "ACCESS_FINE_LOCATION"
       ]
     },
+    "androidStatusBar": {
+      "backgroundColor": "#1A1918",
+      "barStyle": "light-content"
+    },
+    "androidNavigationBar": {
+      "backgroundColor": "#F3EEDF",
+      "barStyle": "dark-content"
+    },
     "web": {
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/logo.png"
     },
     "plugins": [
@@ -49,9 +57,9 @@
           "image": "./assets/images/logo.png",
           "imageWidth": 220,
           "resizeMode": "contain",
-          "backgroundColor": "#000000",
+          "backgroundColor": "#F3EEDF",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#F3EEDF"
           }
         }
       ]

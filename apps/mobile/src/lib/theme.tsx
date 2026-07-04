@@ -38,33 +38,28 @@ type ThemeContextValue = {
   toggleTheme: () => Promise<void>;
 };
 
+// Scrap-it Paper palette — source of truth: packages/design-tokens.
+const SCRAP_IT_PAPER: ThemeColors = {
+  background: "#F3EEDF", // paper
+  card: "#EAE4D2", // paper-2
+  foreground: "#1A1918", // ink
+  mutedForeground: "#4A4744", // ink-soft
+  border: "#C9C1AB", // rule
+  input: "#C9C1AB",
+  primary: "#B84E1C", // rust
+  primaryForeground: "#F3EEDF", // paper on rust
+  destructive: "#8F3D15", // rust-dark
+  icon: "#1A1918",
+  subtleIcon: "#4A4744",
+};
+
+// v1 ships light-only. Dark mode is DEFERRED TO v1.1 — the newsprint
+// aesthetic doesn't auto-invert, so a dark palette needs explicit design
+// sign-off. Until then "dark" resolves to the same paper palette so the
+// existing toggle/persistence plumbing keeps working without a dark UI.
 const THEME_COLORS: Record<AppTheme, ThemeColors> = {
-  light: {
-    background: "#fafaf9",
-    card: "#ffffff",
-    foreground: "#1c1c1c",
-    mutedForeground: "#737373",
-    border: "#eaeaea",
-    input: "#eaeaea",
-    primary: "#4a9f7a",
-    primaryForeground: "#fafafa",
-    destructive: "#dc2626",
-    icon: "#1c1c1c",
-    subtleIcon: "#737373",
-  },
-  dark: {
-    background: "#0a0a0a",
-    card: "#171717",
-    foreground: "#f5f5f5",
-    mutedForeground: "#a3a3a3",
-    border: "#2a2a2a",
-    input: "#333333",
-    primary: "#63c096",
-    primaryForeground: "#052e1d",
-    destructive: "#f87171",
-    icon: "#f5f5f5",
-    subtleIcon: "#a3a3a3",
-  },
+  light: SCRAP_IT_PAPER,
+  dark: SCRAP_IT_PAPER,
 };
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
@@ -99,7 +94,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         }
 
         setThemeState(nextTheme);
-        setColorScheme(nextTheme);
+        // v1 is light-only (dark deferred) — never activate `dark:` classes.
+        setColorScheme("light");
       } catch (error) {
         if (!mounted) {
           return;
@@ -107,7 +103,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
         const fallbackTheme = getInitialTheme();
         setThemeState(fallbackTheme);
-        setColorScheme(fallbackTheme);
+        setColorScheme("light");
         console.warn("Unable to restore saved theme preference.", error);
       } finally {
         if (mounted) {
@@ -123,7 +119,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const setTheme = useCallback(async (nextTheme: AppTheme) => {
     setThemeState(nextTheme);
-    setColorScheme(nextTheme);
+    // v1 is light-only (dark deferred) — never activate `dark:` classes.
+    setColorScheme("light");
 
     try {
       await AsyncStorage.setItem(STORAGE_KEYS.themePreference, nextTheme);
@@ -141,7 +138,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       theme,
       isDark: theme === "dark",
       colors: THEME_COLORS[theme],
-      statusBarStyle: theme === "dark" ? "light" : "dark",
+      // Paper background in both modes (dark deferred) → dark status icons.
+      statusBarStyle: "dark",
       setTheme,
       toggleTheme,
     }),
