@@ -39,11 +39,14 @@ yarn-error.*
 # turborepo
 .turbo
 
+# vercel
+.vercel
+
 # typescript
 *.tsbuildinfo
 
 app-example
 
 # generated native folders
-/ios
-/android
+# /ios
+# /android
