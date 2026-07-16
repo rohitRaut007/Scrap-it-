@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
@@ -30,42 +31,12 @@ import type { MeResponse } from "@/api/auth";
 
 type Mode = "signin" | "signup";
 
-const MODE_OPTIONS: ReadonlyArray<SegmentedControlOption<Mode>> = [
-  { value: "signin", label: "Sign in" },
-  { value: "signup", label: "Sign up" },
-];
-
-const COPY: Record<
-  Mode,
-  { title: string; lead: string; cta: string; switchPrefix: string; switchAction: string }
-> = {
-  signin: {
-    title: "Welcome back",
-    lead: "Sign in to schedule pickups and track your impact.",
-    cta: "Sign in",
-    switchPrefix: "New to Scrap-it?",
-    switchAction: "Create an account",
-  },
-  signup: {
-    title: "Create your account",
-    lead: "Join Scrap-it and turn your scrap into impact.",
-    cta: "Create account",
-    switchPrefix: "Already have an account?",
-    switchAction: "Sign in",
-  },
-};
-
 const MIN_PASSWORD_LENGTH = 6;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function describeError(err: unknown): string {
-  if (err instanceof ApiError) return `Backend ${err.status}: ${err.message}`;
-  if (err instanceof Error) return err.message;
-  return "Something went wrong. Please try again.";
-}
-
 export function LoginScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { colors } = useAppTheme();
   const passwordRef = useRef<TextInput>(null);
 
@@ -74,6 +45,37 @@ export function LoginScreen() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const describeError = (err: unknown): string => {
+    if (err instanceof ApiError) return `Backend ${err.status}: ${err.message}`;
+    if (err instanceof Error) return err.message;
+    return t("auth.login.genericError");
+  };
+
+  const MODE_OPTIONS: ReadonlyArray<SegmentedControlOption<Mode>> = [
+    { value: "signin", label: t("auth.login.modeOptions.signin") },
+    { value: "signup", label: t("auth.login.modeOptions.signup") },
+  ];
+
+  const COPY: Record<
+    Mode,
+    { title: string; lead: string; cta: string; switchPrefix: string; switchAction: string }
+  > = {
+    signin: {
+      title: t("auth.login.signin.title"),
+      lead: t("auth.login.signin.lead"),
+      cta: t("auth.login.signin.cta"),
+      switchPrefix: t("auth.login.signin.switchPrefix"),
+      switchAction: t("auth.login.signin.switchAction"),
+    },
+    signup: {
+      title: t("auth.login.signup.title"),
+      lead: t("auth.login.signup.lead"),
+      cta: t("auth.login.signup.cta"),
+      switchPrefix: t("auth.login.signup.switchPrefix"),
+      switchAction: t("auth.login.signup.switchAction"),
+    },
+  };
 
   const copy = COPY[mode];
 
@@ -110,7 +112,7 @@ export function LoginScreen() {
         accessToken: auth.accessToken,
       });
       if (!me.user?.id) {
-        throw new Error("We couldn't load your profile. Please try again.");
+        throw new Error(t("auth.login.profileLoadError"));
       }
       router.replace("/home");
     } catch (e) {
@@ -156,13 +158,13 @@ export function LoginScreen() {
             value={mode}
             options={MODE_OPTIONS}
             onChange={switchMode}
-            accessibilityLabel="Authentication mode"
+            accessibilityLabel={t("auth.login.accessibilityLabel")}
           />
 
           <View className="gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm shadow-black/5 dark:border-neutral-800 dark:bg-neutral-900 dark:shadow-black/20">
             <TextField
-              label="Email"
-              placeholder="you@example.com"
+              label={t("auth.login.emailLabel")}
+              placeholder={t("auth.login.emailPlaceholder")}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
@@ -177,8 +179,8 @@ export function LoginScreen() {
             />
             <TextField
               ref={passwordRef}
-              label="Password"
-              placeholder={`At least ${MIN_PASSWORD_LENGTH} characters`}
+              label={t("auth.login.passwordLabel")}
+              placeholder={t("auth.login.passwordPlaceholder", { count: MIN_PASSWORD_LENGTH })}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -192,7 +194,7 @@ export function LoginScreen() {
               leftIcon="lock-closed-outline"
               hint={
                 mode === "signup"
-                  ? `Use at least ${MIN_PASSWORD_LENGTH} characters with letters and numbers.`
+                  ? t("auth.login.passwordHint", { count: MIN_PASSWORD_LENGTH })
                   : undefined
               }
               reserveAccessoryHeight={mode === "signin" ? 40 : undefined}
@@ -222,7 +224,7 @@ export function LoginScreen() {
               rightIcon={!busy ? "arrow-forward" : undefined}
               accessibilityLabel={copy.cta}
             >
-              {busy ? "Please wait…" : copy.cta}
+              {busy ? t("auth.login.pleaseWait") : copy.cta}
             </Button>
 
             <View className="min-h-[40px] items-center justify-center">
@@ -232,7 +234,7 @@ export function LoginScreen() {
                     variant="small"
                     className="font-medium text-primary dark:text-emerald-300"
                   >
-                    Forgot password?
+                    {t("auth.login.forgotPassword")}
                   </Text>
                 </Pressable>
               ) : null}
@@ -246,7 +248,7 @@ export function LoginScreen() {
               color={colors.subtleIcon}
             />
             <Text variant="small" className="max-w-[90%] text-center leading-5">
-              Encrypted sign-in. We never share your data.
+              {t("auth.login.encryptedNotice")}
             </Text>
           </View>
 
@@ -265,7 +267,7 @@ export function LoginScreen() {
               </Text>
             </Pressable>
             <Text variant="small" className="text-center leading-5">
-              By continuing you agree to our Terms and Privacy Policy.
+              {t("auth.login.termsNotice")}
             </Text>
           </View>
         </View>

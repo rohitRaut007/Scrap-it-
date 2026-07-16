@@ -3,6 +3,7 @@
 import { use, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   ArrowLeft,
   IndianRupee,
@@ -39,6 +40,7 @@ export default function OrderDetailPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const t = useTranslations("orders");
   const { data: order, isLoading, mutate } = useOrder(id);
   const [busy, setBusy] = useState(false);
   const [completeOpen, setCompleteOpen] = useState(false);
@@ -51,7 +53,7 @@ export default function OrderDetailPage({
       await Promise.all([mutate(), revalidateCollectorData()]);
       if (successMsg) toast.success(successMsg);
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "Something went wrong.");
+      toast.error(err instanceof ApiError ? err.message : t("toastGenericError"));
       await mutate();
     } finally {
       setBusy(false);
@@ -73,18 +75,19 @@ export default function OrderDetailPage({
     return (
       <div className="rounded-2xl border border-dashed p-10 text-center">
         <XCircle className="mx-auto h-9 w-9 text-muted-foreground/50" />
-        <p className="mt-3 text-sm font-medium">Pickup not found</p>
+        <p className="mt-3 text-sm font-medium">{t("notFoundTitle")}</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          It may have been taken by another collector or cancelled.
+          {t("notFoundHint")}
         </p>
         <Button variant="outline" size="sm" className="mt-4" asChild>
-          <Link href="/orders">Back to pickups</Link>
+          <Link href="/orders">{t("backToPickups")}</Link>
         </Button>
       </div>
     );
   }
 
   const action = nextAction(order.status, order.isAvailable);
+  const actionLabel = action ? t(action.actionKey) : null;
   const mapsUrl =
     order.latitude != null && order.longitude != null
       ? `https://www.google.com/maps/dir/?api=1&destination=${order.latitude},${order.longitude}`
@@ -95,19 +98,19 @@ export default function OrderDetailPage({
     if (action.next === "assigned") {
       return runAction(
         () => collectorApi.accept(order.id),
-        "Pickup accepted — it's yours!",
+        t("toastAccepted"),
       );
     }
     if (action.next === "en_route") {
       return runAction(
         () => collectorApi.updateStatus(order.id, "en_route"),
-        "Marked as on the way. Drive safe!",
+        t("toastEnRoute"),
       );
     }
     if (action.next === "arriving") {
       return runAction(
         () => collectorApi.updateStatus(order.id, "arriving"),
-        "Customer can see you're arriving.",
+        t("toastArriving"),
       );
     }
     setCompleteOpen(true);
@@ -117,7 +120,7 @@ export default function OrderDetailPage({
     runAction(async () => {
       await collectorApi.decline(order.id);
       router.push("/orders?tab=new");
-    }, "Pickup returned to the pool.");
+    }, t("toastDeclined"));
 
   return (
     <div className="space-y-4 pb-24 md:pb-0">
@@ -126,7 +129,7 @@ export default function OrderDetailPage({
         <Button variant="ghost" size="sm" className="-ml-2 gap-1.5" asChild>
           <Link href="/orders">
             <ArrowLeft className="h-4 w-4" />
-            Pickups
+            {t("title")}
           </Link>
         </Button>
         <StatusBadge status={order.status} />
@@ -137,13 +140,15 @@ export default function OrderDetailPage({
         <div className="rounded-2xl border border-cash/25 bg-cash/10 p-5 text-center">
           <PartyPopper className="mx-auto h-7 w-7 text-cash" />
           <p className="mt-2 text-sm font-medium text-cash">
-            Pickup completed
+            {t("completedBannerTitle")}
           </p>
           <p className="font-mono text-2xl font-semibold text-cash">
             {formatInr(celebratedPayout ?? order.payoutInr)}
           </p>
           <p className="mt-0.5 text-xs text-ink-soft">
-            paid to customer · {formatWeight(order.totalWeightKg)} collected
+            {t("completedBannerSubtitle", {
+              weight: formatWeight(order.totalWeightKg),
+            })}
           </p>
         </div>
       )}
@@ -158,7 +163,7 @@ export default function OrderDetailPage({
         )}
         {order.status === "cancelled" && (
           <p className="mt-1 text-sm text-muted-foreground">
-            This pickup was cancelled.
+            {t("cancelledNotice")}
           </p>
         )}
       </div>
@@ -170,15 +175,15 @@ export default function OrderDetailPage({
             <User className="h-5 w-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold">{order.customerName ?? "Customer"}</p>
+            <p className="font-semibold">{order.customerName ?? t("customerFallback")}</p>
             <p className="text-xs text-muted-foreground">
-              {order.customerPhone ?? "Phone visible after you accept"}
+              {order.customerPhone ?? t("phoneHidden")}
             </p>
           </div>
           {order.customerPhone && (
             <div className="flex gap-2">
               <Button size="icon" variant="outline" className="rounded-full" asChild>
-                <a href={`tel:${order.customerPhone.replace(/\s/g, "")}`} aria-label="Call customer">
+                <a href={`tel:${order.customerPhone.replace(/\s/g, "")}`} aria-label={t("callCustomer")}>
                   <Phone className="h-4 w-4" />
                 </a>
               </Button>
@@ -187,7 +192,7 @@ export default function OrderDetailPage({
                   href={`https://wa.me/${order.customerPhone.replace(/[^\d]/g, "")}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="WhatsApp customer"
+                  aria-label={t("whatsappCustomer")}
                 >
                   <MessageCircle className="h-4 w-4" />
                 </a>
@@ -206,7 +211,7 @@ export default function OrderDetailPage({
           <Button variant="secondary" className="mt-3 w-full gap-2" asChild>
             <a href={mapsUrl} target="_blank" rel="noopener noreferrer">
               <Navigation className="h-4 w-4" />
-              Open in Google Maps
+              {t("openInMaps")}
             </a>
           </Button>
         )}
@@ -214,10 +219,10 @@ export default function OrderDetailPage({
 
       {/* Materials */}
       <div className="rounded-2xl border bg-card p-4 shadow-xs">
-        <h2 className="text-sm font-semibold">Materials</h2>
+        <h2 className="text-sm font-semibold">{t("materials")}</h2>
         {order.categories.length === 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">
-            No materials listed on this booking.
+            {t("noMaterials")}
           </p>
         ) : (
           <div className="mt-2 divide-y">
@@ -238,7 +243,7 @@ export default function OrderDetailPage({
                   </div>
                 ) : (
                   <span className="text-xs text-muted-foreground">
-                    weigh at pickup
+                    {t("weighAtPickup")}
                   </span>
                 )}
               </div>
@@ -249,7 +254,7 @@ export default function OrderDetailPage({
           <>
             <Separator className="my-2" />
             <div className="flex items-center justify-between pt-1">
-              <span className="text-sm font-semibold">Total paid</span>
+              <span className="text-sm font-semibold">{t("totalPaid")}</span>
               <span className="font-mono text-base font-semibold text-cash">
                 {formatInr(order.payoutInr)}
               </span>
@@ -263,7 +268,7 @@ export default function OrderDetailPage({
         <div className="rounded-2xl border bg-card p-4 shadow-xs">
           <h2 className="flex items-center gap-2 text-sm font-semibold">
             <StickyNote className="h-4 w-4 text-primary" />
-            Customer note
+            {t("customerNote")}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">{order.notes}</p>
         </div>
@@ -272,14 +277,14 @@ export default function OrderDetailPage({
       {/* Photos */}
       {order.photoUrls.length > 0 && (
         <div className="rounded-2xl border bg-card p-4 shadow-xs">
-          <h2 className="text-sm font-semibold">Scrap photos</h2>
+          <h2 className="text-sm font-semibold">{t("scrapPhotos")}</h2>
           <div className="mt-3 grid grid-cols-3 gap-2">
             {order.photoUrls.map((url, i) => (
               <a key={url} href={url} target="_blank" rel="noopener noreferrer">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={url}
-                  alt={`Scrap photo ${i + 1}`}
+                  alt={t("scrapPhotoAlt", { index: i + 1 })}
                   className="aspect-square w-full rounded-xl border object-cover"
                   loading="lazy"
                 />
@@ -300,7 +305,7 @@ export default function OrderDetailPage({
                 onClick={handleDecline}
                 disabled={busy}
               >
-                Decline
+                {t("decline")}
               </Button>
             )}
             <Button
@@ -309,7 +314,7 @@ export default function OrderDetailPage({
               disabled={busy}
             >
               {action.next === "completed" && <IndianRupee className="h-4.5 w-4.5" />}
-              {busy ? "Working…" : action.label}
+              {busy ? t("working") : actionLabel}
             </Button>
           </div>
         </div>

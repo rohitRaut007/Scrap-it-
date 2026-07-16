@@ -1,0 +1,204 @@
+{
+  "common": {
+    "retry": "Retry"
+  },
+  "auth": {
+    "login": {
+      "accessibilityLabel": "Authentication mode",
+      "modeOptions": {
+        "signin": "Sign in",
+        "signup": "Sign up"
+      },
+      "signin": {
+        "title": "Welcome back",
+        "lead": "Sign in to schedule pickups and track your impact.",
+        "cta": "Sign in",
+        "switchPrefix": "New to Scrap-it?",
+        "switchAction": "Create an account"
+      },
+      "signup": {
+        "title": "Create your account",
+        "lead": "Join Scrap-it and turn your scrap into impact.",
+        "cta": "Create account",
+        "switchPrefix": "Already have an account?",
+        "switchAction": "Sign in"
+      },
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "At least {{count}} characters",
+      "passwordHint": "Use at least {{count}} characters with letters and numbers.",
+      "pleaseWait": "Please wait…",
+      "forgotPassword": "Forgot password?",
+      "encryptedNotice": "Encrypted sign-in. We never share your data.",
+      "termsNotice": "By continuing you agree to our Terms and Privacy Policy.",
+      "genericError": "Something went wrong. Please try again.",
+      "profileLoadError": "We couldn't load your profile. Please try again."
+    },
+    "onboarding": {
+      "skip": "Skip",
+      "slides": {
+        "1": {
+          "title": "Professional pickups at your doorstep",
+          "body": "Book trusted scrap pickup partners in a few taps."
+        },
+        "2": {
+          "title": "Fast booking and smart scheduling",
+          "body": "Select categories, choose timing, and confirm instantly."
+        },
+        "3": {
+          "title": "Track every pickup in real time",
+          "body": "See driver progress and order timeline with clarity."
+        }
+      }
+    }
+  },
+  "tabs": {
+    "home": "Home",
+    "map": "Map",
+    "orders": "Orders",
+    "profile": "Profile"
+  },
+  "home": {
+    "greeting": "Hello,",
+    "greetingFallback": "there",
+    "subGreeting": "Let's make a cleaner tomorrow.",
+    "profileError": "We couldn't load your profile. Check your connection and API settings.",
+    "retry": "Retry",
+    "addressPlaceholder": "Set pickup location — add an address when you schedule",
+    "schedulePickup": {
+      "title": "Schedule Pickup",
+      "subtitle": "Book at your convenience",
+      "cta": "Book Now"
+    },
+    "trackOrder": {
+      "title": "Track Order",
+      "subtitle": "Track your pickup in real-time",
+      "cta": "Track Now"
+    },
+    "popularCategories": "Popular Categories",
+    "seeAll": "See all",
+    "upcomingPickup": "Upcoming Pickup",
+    "viewDetails": "View details",
+    "itemsWeightSummary": "{{count}} items • {{weight}} kg",
+    "noPickupScheduled": "No pickup scheduled",
+    "noPickupSubtitle": "Reserve a slot and get pickup at your doorstep.",
+    "yourImpact": "Your Impact",
+    "impactSubtitle": "You've contributed to a cleaner planet.",
+    "pickups": "Pickups",
+    "wasteCollected": "Waste collected",
+    "estPayout": "Est. payout"
+  },
+  "orders": {
+    "title": "Orders",
+    "subtitle": "History and active pickups",
+    "emptyTitle": "No orders yet",
+    "emptyDescription": "Schedule a pickup from the home tab.",
+    "statusLabels": {
+      "scheduled": "Scheduled",
+      "assigned": "Assigned",
+      "en_route": "On the way",
+      "arriving": "Arriving",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "detail": {
+      "headerTitle": "Order",
+      "loading": "Loading…",
+      "notFoundTitle": "Order not found",
+      "notFoundDescription": "Check your history.",
+      "eta": "ETA ~{{minutes}} min",
+      "mapPreview": "Map preview",
+      "mapPreviewSubtitle": "Live tracking connects when backend is ready.",
+      "timeline": "Timeline",
+      "timelineSteps": {
+        "scheduled": "Scheduled",
+        "assigned": "Driver assigned",
+        "en_route": "On the way",
+        "arriving": "Arriving",
+        "completed": "Completed"
+      },
+      "currentStep": "Current step",
+      "driver": "Driver",
+      "scheduleAnother": "Schedule another"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Account and impact",
+    "loadError": "Couldn't load your account. Check your connection and try again.",
+    "retry": "Retry",
+    "addName": "Add your name in Edit profile",
+    "noEmail": "No email",
+    "addPhone": "Add phone",
+    "statsLoadError": "Couldn't load stats.",
+    "yourImpact": "Your impact",
+    "pickups": "Pickups",
+    "waste": "Waste",
+    "estPayout": "Est. payout",
+    "editProfile": "Edit profile",
+    "savedAddresses": "Saved addresses",
+    "helpSupport": "Help & support",
+    "logOut": "Log out",
+    "language": "Language"
+  },
+  "editProfile": {
+    "title": "Edit profile",
+    "loadError": "Couldn't load your profile. Check your connection and try again.",
+    "retry": "Retry",
+    "subtitle": "Your name and phone appear on pickups and receipts.",
+    "nameLabel": "Name",
+    "phoneLabel": "Phone",
+    "genericError": "Something went wrong. Please try again.",
+    "save": "Save changes"
+  },
+  "pickup": {
+    "header": {
+      "defaultTitle": "Schedule pickup",
+      "step": "Step {{current}} of {{total}}"
+    },
+    "continue": "Continue",
+    "confirmPickup": "Confirm pickup",
+    "scheduleFailedTitle": "Could not schedule pickup",
+    "scheduleFailedBody": "Something went wrong. Please try again.",
+    "categories": {
+      "title": "What are you recycling?",
+      "subtitle": "Select one or more items"
+    },
+    "location": {
+      "title": "Pickup location",
+      "subtitle": "Select or add an address",
+      "addNew": "+ Add new address"
+    },
+    "photos": {
+      "title": "Add photos",
+      "subtitle": "Optional – helps us estimate better",
+      "addPhoto": "Add photo",
+      "retry": "Retry",
+      "helperText": "Clear photos help us provide accurate estimates.",
+      "unavailableTitle": "Photos unavailable",
+      "unavailableBody": "Photo picking needs a native build that includes expo-image-picker. Run a new Android/iOS build (e.g. expo run:android) or rebuild your dev client.",
+      "permissionTitle": "Photos access needed",
+      "permissionBody": "Allow photo library access to attach reference images for your pickup.",
+      "rebuildBody": "Rebuild your development client so expo-image-picker native code is included, then try again."
+    },
+    "schedule": {
+      "title": "When should we come?",
+      "subtitle": "Pick a date and time"
+    },
+    "review": {
+      "title": "Review your request",
+      "subtitle": "Make sure everything looks good",
+      "items": "Items",
+      "schedule": "Schedule",
+      "address": "Address",
+      "addressFallback": "Address",
+      "warning": "Final amount will be calculated after weighing at pickup."
+    },
+    "success": {
+      "title": "Pickup scheduled!",
+      "body": "Your pickup #{{code}} has been confirmed. We'll notify you when the driver is on the way.",
+      "track": "Track pickup"
+    }
+  }
+}

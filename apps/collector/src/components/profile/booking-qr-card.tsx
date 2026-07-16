@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import QRCode from "qrcode";
 import { Check, Copy, QrCode, Share2 } from "lucide-react";
 import { toast } from "sonner";
@@ -13,6 +14,7 @@ interface BookingQrCardProps {
 }
 
 export function BookingQrCard({ bookingUrl, collectorName }: BookingQrCardProps) {
+  const t = useTranslations("profile");
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -35,23 +37,26 @@ export function BookingQrCard({ bookingUrl, collectorName }: BookingQrCardProps)
     };
   }, [bookingUrl]);
 
-  const shareText = `Book your scrap pickup with ${collectorName ?? "me"} on Scrap-it — fair rates, weighed in front of you. ${bookingUrl}`;
+  const withPart = collectorName
+    ? t("shareWithName", { name: collectorName })
+    : t("shareWithMe");
+  const shareText = t("shareText", { withPart, url: bookingUrl });
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(bookingUrl);
       setCopied(true);
-      toast.success("Booking link copied");
+      toast.success(t("toastCopied"));
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Could not copy the link");
+      toast.error(t("toastCopyError"));
     }
   };
 
   const handleShare = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ title: "Book my scrap pickup", text: shareText });
+        await navigator.share({ title: t("shareTitle"), text: shareText });
         return;
       } catch {
         // user cancelled — fall through to WhatsApp
@@ -68,11 +73,10 @@ export function BookingQrCard({ bookingUrl, collectorName }: BookingQrCardProps)
     <div className="rounded-2xl border bg-card p-4 shadow-xs">
       <h2 className="flex items-center gap-2 text-sm font-semibold">
         <QrCode className="h-4 w-4 text-primary" />
-        Your personal booking link
+        {t("bookingLinkTitle")}
       </h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        Customers who scan this book directly with you — the pickup is yours,
-        guaranteed. Share it after every pickup.
+        {t("bookingLinkDescription")}
       </p>
 
       <div className="mt-4 flex flex-col items-center">
@@ -80,7 +84,7 @@ export function BookingQrCard({ bookingUrl, collectorName }: BookingQrCardProps)
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={qrDataUrl}
-            alt={`QR code for ${bookingUrl}`}
+            alt={t("qrAlt", { url: bookingUrl })}
             className="h-44 w-44 rounded-xl border"
           />
         ) : (
@@ -94,11 +98,11 @@ export function BookingQrCard({ bookingUrl, collectorName }: BookingQrCardProps)
       <div className="mt-4 grid grid-cols-2 gap-2.5">
         <Button variant="outline" className="gap-2" onClick={handleCopy}>
           {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-          {copied ? "Copied" : "Copy link"}
+          {copied ? t("copied") : t("copyLink")}
         </Button>
         <Button className="gap-2" onClick={handleShare}>
           <Share2 className="h-4 w-4" />
-          Share
+          {t("share")}
         </Button>
       </div>
     </div>

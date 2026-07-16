@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Rozha_One, Hind, IBM_Plex_Mono } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -36,18 +38,23 @@ export const viewport: Viewport = {
   themeColor: "#1A1918",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body
         className={`${rozha.variable} ${hind.variable} ${plexMono.variable} antialiased`}
       >
-        {children}
-        <Toaster position="top-center" richColors />
+        <NextIntlClientProvider messages={messages}>
+          {children}
+          <Toaster position="top-center" richColors />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
 import { Card } from "@/components/ui/card";
@@ -13,6 +14,7 @@ import { orderStatusLabel, orderStatusTone } from "./order-status-label";
 
 export function OrdersScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [orders, setOrders] = useState<PickupOrder[] | null>(null);
 
   const load = useCallback(async () => {
@@ -27,10 +29,10 @@ export function OrdersScreen() {
   return (
     <Screen contentClassName="px-5 pt-4">
       <Text variant="title" className="mb-1">
-        Orders
+        {t("orders.title")}
       </Text>
       <Text variant="muted" className="mb-5 text-[14px]">
-        History and active pickups
+        {t("orders.subtitle")}
       </Text>
 
       {orders === null ? (
@@ -41,8 +43,8 @@ export function OrdersScreen() {
         </View>
       ) : orders.length === 0 ? (
         <EmptyState
-          title="No orders yet"
-          description="Schedule a pickup from the home tab."
+          title={t("orders.emptyTitle")}
+          description={t("orders.emptyDescription")}
         />
       ) : (
         <View className="gap-3">
@@ -60,7 +62,7 @@ export function OrdersScreen() {
                     </Text>
                   </View>
                   <Badge
-                    label={orderStatusLabel(o.status)}
+                    label={orderStatusLabel(o.status, t)}
                     tone={orderStatusTone(o.status)}
                   />
                 </View>

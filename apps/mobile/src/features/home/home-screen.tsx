@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
 import { Card } from "@/components/ui/card";
@@ -42,6 +43,7 @@ const categoryIcons: Record<
 
 export function HomeScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { colors } = useAppTheme();
   const [user, setUser] = useState<User | null>(null);
   const [userLoad, setUserLoad] = useState<"pending" | "ok" | "error">("pending");
@@ -115,11 +117,11 @@ export function HomeScreen() {
       {userLoad === "error" ? (
         <View className="mb-4 rounded-2xl border border-destructive/25 bg-destructive/5 px-4 py-3 dark:border-red-400/30 dark:bg-red-400/10">
           <Text className="text-[13px] text-foreground">
-            We couldn&apos;t load your profile. Check your connection and API settings.
+            {t("home.profileError")}
           </Text>
           <Pressable onPress={load} className="mt-2 self-start">
             <Text className="text-[13px] font-semibold text-primary dark:text-emerald-300">
-              Retry
+              {t("home.retry")}
             </Text>
           </Pressable>
         </View>
@@ -127,7 +129,7 @@ export function HomeScreen() {
       <View className="mb-4 flex-row items-center justify-between">
         <View>
           <Text variant="small" className="text-[13px] font-medium">
-            Hello,
+            {t("home.greeting")}
           </Text>
           {userLoad === "pending" ? (
             <Skeleton className="mt-1 h-7 w-36" />
@@ -137,11 +139,11 @@ export function HomeScreen() {
             </Text>
           ) : (
             <Text variant="title" className="text-[22px]">
-              there 👋
+              {t("home.greetingFallback")} 👋
             </Text>
           )}
           <Text variant="muted" className="mt-1 text-[13px]">
-            Let&apos;s make a cleaner tomorrow.
+            {t("home.subGreeting")}
           </Text>
         </View>
         <Pressable className="size-10 items-center justify-center rounded-full bg-secondary/80 active:bg-secondary dark:bg-neutral-800 dark:active:bg-neutral-700">
@@ -164,7 +166,7 @@ export function HomeScreen() {
             className="flex-1 font-medium text-[13px] text-foreground"
             numberOfLines={2}
           >
-            {addressLine ?? "Set pickup location — add an address when you schedule"}
+            {addressLine ?? t("home.addressPlaceholder")}
           </Text>
         </View>
         <Ionicons name="chevron-down" size={16} color={colors.mutedForeground} />
@@ -176,15 +178,15 @@ export function HomeScreen() {
           className="flex-1 overflow-hidden rounded-3xl border border-primary/20 bg-primary/10 p-4 active:opacity-90 dark:border-emerald-400/20 dark:bg-emerald-400/10"
         >
           <Text className="text-base font-semibold text-foreground">
-            Schedule Pickup
+            {t("home.schedulePickup.title")}
           </Text>
           <Text variant="muted" className="mt-1 text-[12px]">
-            Book at your convenience
+            {t("home.schedulePickup.subtitle")}
           </Text>
           <View className="mt-4 flex-row items-center justify-between">
             <View className="rounded-full bg-primary px-3 py-1.5 dark:bg-emerald-400">
               <Text className="text-[12px] font-semibold text-primary-foreground dark:text-emerald-950">
-                Book Now
+                {t("home.schedulePickup.cta")}
               </Text>
             </View>
             <View className="size-11 items-center justify-center rounded-2xl bg-primary/15 dark:bg-emerald-400/15">
@@ -197,14 +199,14 @@ export function HomeScreen() {
           onPress={() => (active ? onTrack(active.id) : router.push("/orders"))}
           className="flex-1 overflow-hidden rounded-3xl border border-border bg-card p-4 active:bg-muted/80 dark:border-neutral-800 dark:bg-neutral-900 dark:active:bg-neutral-800"
         >
-          <Text className="text-base font-semibold text-foreground">Track Order</Text>
+          <Text className="text-base font-semibold text-foreground">{t("home.trackOrder.title")}</Text>
           <Text variant="muted" className="mt-1 text-[12px]">
-            Track your pickup in real-time
+            {t("home.trackOrder.subtitle")}
           </Text>
           <View className="mt-4 flex-row items-center justify-between">
             <View className="rounded-full bg-primary/10 px-3 py-1.5 dark:bg-emerald-400/10">
               <Text className="text-[12px] font-semibold text-primary dark:text-emerald-300">
-                Track Now
+                {t("home.trackOrder.cta")}
               </Text>
             </View>
             <View className="size-11 items-center justify-center rounded-2xl bg-secondary dark:bg-neutral-800">
@@ -216,11 +218,11 @@ export function HomeScreen() {
 
       <View className="mb-3 flex-row items-center justify-between">
         <Text className="text-[15px] font-semibold text-foreground">
-          Popular Categories
+          {t("home.popularCategories")}
         </Text>
         <Pressable onPress={onSchedule}>
           <Text className="text-[12px] font-medium text-primary dark:text-emerald-300">
-            See all
+            {t("home.seeAll")}
           </Text>
         </Pressable>
       </View>
@@ -254,12 +256,12 @@ export function HomeScreen() {
 
       <View className="mb-3 flex-row items-center justify-between">
         <Text className="text-[15px] font-semibold text-foreground">
-          Upcoming Pickup
+          {t("home.upcomingPickup")}
         </Text>
         {active ? (
           <Pressable onPress={() => onTrack(active.id)}>
             <Text className="text-[12px] font-medium text-primary dark:text-emerald-300">
-              View details
+              {t("home.viewDetails")}
             </Text>
           </Pressable>
         ) : null}
@@ -277,12 +279,14 @@ export function HomeScreen() {
                 {formatPickupSummary(active.scheduledAt)}
               </Text>
               <Text variant="muted" className="mt-1 text-[12px]">
-                {(active.items?.length ?? active.categoryIds.length) || 0} items •{" "}
-                {(active.totalWeightKg ?? 0).toFixed(1)} kg
+                {t("home.itemsWeightSummary", {
+                  count: (active.items?.length ?? active.categoryIds.length) || 0,
+                  weight: (active.totalWeightKg ?? 0).toFixed(1),
+                })}
               </Text>
               <View className="mt-3 self-start">
                 <Text className="rounded-full bg-primary/10 px-3 py-1.5 text-[12px] font-semibold text-primary dark:bg-emerald-400/10 dark:text-emerald-300">
-                  {orderStatusLabel(active.status)}
+                  {orderStatusLabel(active.status, t)}
                 </Text>
               </View>
             </View>
@@ -293,9 +297,9 @@ export function HomeScreen() {
         ) : (
           <View className="flex-row items-center justify-between">
             <View className="flex-1 pr-3">
-              <Text className="font-semibold text-foreground">No pickup scheduled</Text>
+              <Text className="font-semibold text-foreground">{t("home.noPickupScheduled")}</Text>
               <Text variant="muted" className="mt-1 text-[12px]">
-                Reserve a slot and get pickup at your doorstep.
+                {t("home.noPickupSubtitle")}
               </Text>
             </View>
             <View className="size-12 items-center justify-center rounded-2xl bg-secondary dark:bg-neutral-800">
@@ -309,29 +313,29 @@ export function HomeScreen() {
         <View className="flex-row items-center justify-between">
           <View className="flex-1 pr-4">
             <Text className="text-[15px] font-semibold text-foreground">
-              Your Impact
+              {t("home.yourImpact")}
             </Text>
             <Text variant="muted" className="mt-1 text-[12px]">
-              You&apos;ve contributed to a cleaner planet.
+              {t("home.impactSubtitle")}
             </Text>
             <View className="mt-4 flex-row flex-wrap gap-5">
               <View>
                 <Text className="text-lg font-bold text-foreground">
                   {impact?.pickupsCompleted ?? 0}
                 </Text>
-                <Text variant="small">Pickups</Text>
+                <Text variant="small">{t("home.pickups")}</Text>
               </View>
               <View>
                 <Text className="text-lg font-bold text-foreground">
                   {(impact?.weightKgApprox ?? 0).toFixed(1)} kg
                 </Text>
-                <Text variant="small">Waste collected</Text>
+                <Text variant="small">{t("home.wasteCollected")}</Text>
               </View>
               <View>
                 <Text className="text-lg font-bold text-foreground">
                   ₹{impact?.estimatedPayoutInr ?? 0}
                 </Text>
-                <Text variant="small">Est. payout</Text>
+                <Text variant="small">{t("home.estPayout")}</Text>
               </View>
             </View>
           </View>

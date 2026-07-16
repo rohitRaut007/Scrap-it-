@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Camera, ChevronRight, Clock, MapPin, StickyNote } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ interface OrderCardProps {
 
 export function OrderCard({ order }: OrderCardProps) {
   const router = useRouter();
+  const t = useTranslations("orders");
   const [accepting, setAccepting] = useState(false);
 
   const isDone = order.status === "completed" || order.status === "cancelled";
@@ -29,14 +31,14 @@ export function OrderCard({ order }: OrderCardProps) {
     setAccepting(true);
     try {
       await collectorApi.accept(order.id);
-      toast.success("Pickup accepted — it's yours!");
+      toast.success(t("toastAccepted"));
       await revalidateCollectorData();
       router.push(`/orders/${order.id}`);
     } catch (err) {
       toast.error(
         err instanceof ApiError && err.status === 409
-          ? "Another collector just took this one."
-          : "Could not accept this pickup. Try again.",
+          ? t("toastAcceptFailedTaken")
+          : t("toastAcceptFailedGeneric"),
       );
       await revalidateCollectorData();
     } finally {
@@ -61,7 +63,7 @@ export function OrderCard({ order }: OrderCardProps) {
           <div className="flex items-center gap-1.5">
             {order.source === "manual" && (
               <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                Logged
+                {t("loggedBadge")}
               </span>
             )}
             <span className="font-mono text-sm font-semibold text-cash">
@@ -104,7 +106,7 @@ export function OrderCard({ order }: OrderCardProps) {
           {order.notes && (
             <span className="flex items-center gap-1">
               <StickyNote className="h-3.5 w-3.5" />
-              note
+              {t("note")}
             </span>
           )}
           {isDone && order.totalWeightKg != null && (
@@ -119,7 +121,7 @@ export function OrderCard({ order }: OrderCardProps) {
             onClick={handleAccept}
             disabled={accepting}
           >
-            {accepting ? "Accepting…" : "Accept"}
+            {accepting ? t("accepting") : t("accept")}
           </Button>
         ) : (
           <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { LogOut, Pencil, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,8 @@ import { formatDate, formatInr, initials } from "@/lib/format";
 
 export default function ProfilePage() {
   const router = useRouter();
+  const t = useTranslations("profile");
+  const tCommon = useTranslations("common");
   const { data: profile, isLoading, error, mutate } = useProfile();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -45,9 +48,9 @@ export default function ProfilePage() {
       await collectorApi.updateProfile(form);
       await mutate();
       setEditing(false);
-      toast.success("Profile updated");
+      toast.success(t("toastUpdated"));
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "Could not save changes.");
+      toast.error(err instanceof ApiError ? err.message : t("toastError"));
     } finally {
       setSaving(false);
     }
@@ -71,7 +74,7 @@ export default function ProfilePage() {
   if (error && !profile) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
         <ErrorState onRetry={() => mutate()} />
       </div>
     );
@@ -81,7 +84,7 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
+      <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
 
       {/* Identity card */}
       <div className="rounded-2xl border bg-card p-5 shadow-xs">
@@ -91,7 +94,7 @@ export default function ProfilePage() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="truncate text-lg font-bold">
-              {profile.name ?? "Add your name"}
+              {profile.name ?? t("addName")}
             </p>
             <p className="truncate text-xs text-muted-foreground">
               {profile.serviceArea ?? profile.email}
@@ -99,16 +102,19 @@ export default function ProfilePage() {
             <div className="mt-1 flex items-center gap-3 text-xs">
               <span className="flex items-center gap-1 font-semibold">
                 <Star className="h-3.5 w-3.5 fill-signal text-signal" />
-                {profile.rating != null ? profile.rating.toFixed(1) : "New"}
+                {profile.rating != null ? profile.rating.toFixed(1) : t("ratingNew")}
               </span>
               <span className="text-muted-foreground">
-                {profile.totalCompleted} pickups · {formatInr(profile.totalEarningsInr)} earned
+                {t("statsLine", {
+                  count: profile.totalCompleted,
+                  amount: formatInr(profile.totalEarningsInr),
+                })}
               </span>
             </div>
           </div>
         </div>
         <p className="mt-3 text-[11px] text-muted-foreground">
-          Collecting with Scrap-it since {formatDate(profile.memberSince)}
+          {t("memberSince", { date: formatDate(profile.memberSince) })}
         </p>
       </div>
 
@@ -123,7 +129,7 @@ export default function ProfilePage() {
       {/* Details / edit form */}
       <div className="rounded-2xl border bg-card p-4 shadow-xs">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Your details</h2>
+          <h2 className="text-sm font-semibold">{t("yourDetails")}</h2>
           {!editing && (
             <Button
               variant="ghost"
@@ -132,7 +138,7 @@ export default function ProfilePage() {
               onClick={() => setEditing(true)}
             >
               <Pencil className="h-3.5 w-3.5" />
-              Edit
+              {t("edit")}
             </Button>
           )}
         </div>
@@ -141,35 +147,35 @@ export default function ProfilePage() {
           <form onSubmit={handleSave} className="mt-3 space-y-3.5">
             <Field
               id="name"
-              label="Full name"
+              label={t("nameLabel")}
               value={form.name}
               onChange={(v) => setForm((f) => ({ ...f, name: v }))}
-              placeholder="e.g. Sunil Kamble"
+              placeholder={t("namePlaceholder")}
               disabled={saving}
             />
             <Field
               id="phone"
-              label="Phone"
+              label={t("phoneLabel")}
               value={form.phone}
               onChange={(v) => setForm((f) => ({ ...f, phone: v }))}
-              placeholder="+91 98xxx xxxxx"
+              placeholder={t("phonePlaceholder")}
               disabled={saving}
               inputMode="tel"
             />
             <Field
               id="vehicleInfo"
-              label="Vehicle"
+              label={t("vehicleLabel")}
               value={form.vehicleInfo}
               onChange={(v) => setForm((f) => ({ ...f, vehicleInfo: v }))}
-              placeholder="e.g. Tata Ace · MH-12 AB 1234"
+              placeholder={t("vehiclePlaceholder")}
               disabled={saving}
             />
             <Field
               id="serviceArea"
-              label="Service area"
+              label={t("serviceAreaLabel")}
               value={form.serviceArea}
               onChange={(v) => setForm((f) => ({ ...f, serviceArea: v }))}
-              placeholder="e.g. Kothrud, Pune"
+              placeholder={t("serviceAreaPlaceholder")}
               disabled={saving}
             />
             <div className="flex gap-2.5 pt-1">
@@ -180,19 +186,19 @@ export default function ProfilePage() {
                 onClick={() => setEditing(false)}
                 disabled={saving}
               >
-                Cancel
+                {tCommon("cancel")}
               </Button>
               <Button type="submit" className="flex-1" disabled={saving}>
-                {saving ? "Saving…" : "Save changes"}
+                {saving ? t("saving") : t("saveChanges")}
               </Button>
             </div>
           </form>
         ) : (
           <dl className="mt-3 space-y-2.5 text-sm">
-            <DetailRow label="Phone" value={profile.phone} />
-            <DetailRow label="Vehicle" value={profile.vehicleInfo} />
-            <DetailRow label="Service area" value={profile.serviceArea} />
-            <DetailRow label="Email" value={profile.email} />
+            <DetailRow label={t("phoneLabel")} value={profile.phone} notSetLabel={t("notSet")} />
+            <DetailRow label={t("vehicleLabel")} value={profile.vehicleInfo} notSetLabel={t("notSet")} />
+            <DetailRow label={t("serviceAreaLabel")} value={profile.serviceArea} notSetLabel={t("notSet")} />
+            <DetailRow label={t("emailLabel")} value={profile.email} notSetLabel={t("notSet")} />
           </dl>
         )}
       </div>
@@ -204,7 +210,7 @@ export default function ProfilePage() {
         onClick={handleLogout}
       >
         <LogOut className="h-4 w-4" />
-        Sign out
+        {tCommon("logout")}
       </Button>
     </div>
   );
@@ -243,12 +249,20 @@ function Field({
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: string | null }) {
+function DetailRow({
+  label,
+  value,
+  notSetLabel,
+}: {
+  label: string;
+  value: string | null;
+  notSetLabel: string;
+}) {
   return (
     <div className="flex items-baseline justify-between gap-4">
       <dt className="shrink-0 text-muted-foreground">{label}</dt>
       <dd className={value ? "text-right font-medium" : "text-right text-muted-foreground/60"}>
-        {value ?? "Not set"}
+        {value ?? notSetLabel}
       </dd>
     </div>
   );

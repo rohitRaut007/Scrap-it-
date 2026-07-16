@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,8 @@ export function LogPickupButton({
   className?: string;
   variant?: "default" | "outline";
 }) {
+  const t = useTranslations("orders");
+  const tLog = useTranslations("logPickup");
   const [open, setOpen] = useState(false);
 
   return (
@@ -31,7 +34,7 @@ export function LogPickupButton({
         onClick={() => setOpen(true)}
       >
         <Plus className="h-4 w-4" />
-        Log pickup
+        {t("logPickup")}
       </Button>
       <LogPickupDialog
         open={open}
@@ -39,8 +42,8 @@ export function LogPickupButton({
         onLogged={(payoutInr) =>
           toast.success(
             payoutInr != null
-              ? `Pickup logged · ${formatInr(payoutInr)}`
-              : "Pickup logged",
+              ? tLog("toastLoggedAmount", { amount: formatInr(payoutInr) })
+              : tLog("toastLogged"),
           )
         }
       />

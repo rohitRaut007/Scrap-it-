@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Home,
   Package,
@@ -13,13 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
-
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "Home", icon: Home },
-  { href: "/orders", label: "Pickups", icon: Package },
-  { href: "/earnings", label: "Earnings", icon: IndianRupee },
-  { href: "/profile", label: "Profile", icon: User },
-];
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
 
 interface PortalShellProps {
   userEmail?: string;
@@ -29,6 +24,15 @@ interface PortalShellProps {
 export function PortalShell({ userEmail, children }: PortalShellProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const t = useTranslations("nav");
+  const tCommon = useTranslations("common");
+
+  const NAV_ITEMS = [
+    { href: "/dashboard", label: t("dashboard"), icon: Home },
+    { href: "/orders", label: t("orders"), icon: Package },
+    { href: "/earnings", label: t("earnings"), icon: IndianRupee },
+    { href: "/profile", label: t("profile"), icon: User },
+  ];
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`);
@@ -47,9 +51,9 @@ export function PortalShell({ userEmail, children }: PortalShellProps) {
             <Recycle className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm font-bold leading-tight">Scrap-it</p>
+            <p className="text-sm font-bold leading-tight">{t("brand")}</p>
             <p className="text-[11px] text-muted-foreground leading-tight">
-              Collector Portal
+              {t("portalName")}
             </p>
           </div>
         </div>
@@ -71,22 +75,36 @@ export function PortalShell({ userEmail, children }: PortalShellProps) {
           ))}
         </nav>
         <div className="border-t p-3">
-          <p className="truncate px-3 pb-2 text-xs text-muted-foreground">
-            {userEmail}
-          </p>
+          <div className="flex items-center justify-between gap-2 px-3 pb-2">
+            <p className="truncate text-xs text-muted-foreground">
+              {userEmail}
+            </p>
+            <LanguageSwitcher />
+          </div>
           <Button
             variant="ghost"
             className="w-full justify-start gap-3 text-muted-foreground"
             onClick={handleLogout}
           >
             <LogOut className="h-4 w-4" />
-            Sign out
+            {tCommon("logout")}
           </Button>
         </div>
       </aside>
 
       {/* Content */}
       <div className="flex-1 min-w-0">
+        {/* Mobile header */}
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b bg-card/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/80 md:hidden">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <Recycle className="h-4 w-4" />
+            </div>
+            <p className="text-sm font-bold leading-tight">{t("brand")}</p>
+          </div>
+          <LanguageSwitcher />
+        </header>
+
         <main className="mx-auto w-full max-w-2xl px-4 pt-4 pb-24 md:px-8 md:py-8">
           {children}
         </main>

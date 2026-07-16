@@ -8,6 +8,7 @@ import {
   type ViewStyle,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
 import { useAppTheme } from "@/lib/theme";
@@ -33,6 +34,7 @@ export function PickupSuccessModal({
   onTrack,
 }: PickupSuccessModalProps) {
   const { colors } = useAppTheme();
+  const { t } = useTranslation();
 
   const backdropOpacity = useRef(new Animated.Value(0)).current;
   const cardOpacity = useRef(new Animated.Value(0)).current;
@@ -216,24 +218,19 @@ export function PickupSuccessModal({
 
                 <Animated.View style={contentBlockStyle} className="items-center">
                   <Text variant="subtitle" className="mb-2 text-center">
-                    Pickup scheduled!
+                    {t("pickup.success.title")}
                   </Text>
                   <Text
                     variant="muted"
                     className="mb-6 text-center text-[14px] leading-relaxed"
                   >
-                    Your pickup{" "}
-                    <Text className="font-semibold text-foreground dark:text-neutral-100">
-                      #{pickupCode}
-                    </Text>{" "}
-                    has been confirmed. We&apos;ll notify you when the driver is
-                    on the way.
+                    {t("pickup.success.body", { code: pickupCode })}
                   </Text>
                 </Animated.View>
 
                 <Animated.View style={buttonWrapStyle}>
                   <Button className="w-full rounded-full" onPress={onTrack}>
-                    Track pickup
+                    {t("pickup.success.track")}
                   </Button>
                 </Animated.View>
               </View>

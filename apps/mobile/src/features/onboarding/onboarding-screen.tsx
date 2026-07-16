@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Dimensions, FlatList, View, type ViewToken } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
@@ -10,32 +11,24 @@ import { useAppTheme } from "@/lib/theme";
 
 const { width } = Dimensions.get("window");
 
-const slides = [
-  {
-    key: "1",
-    title: "Professional pickups at your doorstep",
-    body: "Book trusted scrap pickup partners in a few taps.",
-    icon: "home-outline" as const,
-  },
-  {
-    key: "2",
-    title: "Fast booking and smart scheduling",
-    body: "Select categories, choose timing, and confirm instantly.",
-    icon: "calendar-outline" as const,
-  },
-  {
-    key: "3",
-    title: "Track every pickup in real time",
-    body: "See driver progress and order timeline with clarity.",
-    icon: "navigate-outline" as const,
-  },
+const slideDefs = [
+  { key: "1", i18nKey: "1", icon: "home-outline" as const },
+  { key: "2", i18nKey: "2", icon: "calendar-outline" as const },
+  { key: "3", i18nKey: "3", icon: "navigate-outline" as const },
 ];
 
 export function OnboardingScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { colors } = useAppTheme();
   const [index, setIndex] = useState(0);
   const listRef = useRef<FlatList>(null);
+
+  const slides = slideDefs.map((s) => ({
+    ...s,
+    title: t(`auth.onboarding.slides.${s.i18nKey}.title`),
+    body: t(`auth.onboarding.slides.${s.i18nKey}.body`),
+  }));
 
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
@@ -62,7 +55,7 @@ export function OnboardingScreen() {
       <View className="px-6 pt-2">
         <View className="items-end">
           <Button variant="ghost" size="sm" onPress={() => void finish()}>
-            Skip
+            {t("auth.onboarding.skip")}
           </Button>
         </View>
       </View>

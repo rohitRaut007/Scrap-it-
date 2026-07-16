@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Scale } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -32,6 +33,7 @@ export function CompletePickupDialog({
   onOpenChange,
   onCompleted,
 }: CompletePickupDialogProps) {
+  const t = useTranslations("completePickup");
   const [weights, setWeights] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -68,7 +70,7 @@ export function CompletePickupDialog({
       onCompleted(updated.payoutInr);
     } catch (err) {
       toast.error(
-        err instanceof ApiError ? err.message : "Could not complete the pickup.",
+        err instanceof ApiError ? err.message : t("toastError"),
       );
     } finally {
       setSubmitting(false);
@@ -81,19 +83,17 @@ export function CompletePickupDialog({
         <DialogHeader className="shrink-0 space-y-1 border-b px-5 py-4">
           <DialogTitle className="flex items-center gap-2">
             <Scale className="h-5 w-5 text-primary" />
-            Weigh &amp; complete
+            {t("title")}
           </DialogTitle>
           <DialogDescription>
-            Enter the weight for each material. The customer payout is
-            calculated at today&apos;s platform rates.
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
           {order.categories.length === 0 && (
             <p className="rounded-lg bg-signal/20 p-3 text-sm text-ink">
-              This booking has no materials listed. Contact support if the
-              customer has scrap to weigh.
+              {t("noMaterials")}
             </p>
           )}
           {lines.map((line) => (
@@ -140,7 +140,9 @@ export function CompletePickupDialog({
         <DialogFooter className="shrink-0 flex-col gap-3 border-t px-5 py-4 sm:flex-col">
           <div className="flex items-center justify-between">
             <p className="font-mono text-xs text-muted-foreground">
-              {totalWeight > 0 ? `${Math.round(totalWeight * 100) / 100} kg total` : "Customer payout"}
+              {totalWeight > 0
+                ? t("kgTotal", { weight: Math.round(totalWeight * 100) / 100 })
+                : t("customerPayout")}
             </p>
             <p className="font-mono text-lg font-semibold text-cash">
               {formatInr(totalPayout)}
@@ -153,14 +155,14 @@ export function CompletePickupDialog({
               onClick={() => onOpenChange(false)}
               disabled={submitting}
             >
-              Back
+              {t("back")}
             </Button>
             <Button
               className="flex-1"
               onClick={handleSubmit}
               disabled={!hasWeight || submitting}
             >
-              {submitting ? "Completing…" : "Complete"}
+              {submitting ? t("completing") : t("complete")}
             </Button>
           </div>
         </DialogFooter>

@@ -1,4 +1,5 @@
 import { Pressable, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import type { PickupAddressOption } from "@/features/pickup/types/pickup-flow";
 import { AddressOptionCard } from "@/features/pickup/components/cards/address-option-card";
@@ -16,13 +17,14 @@ export function LocationStep({
   onSelect,
   onAddNew,
 }: LocationStepProps) {
+  const { t } = useTranslation();
   return (
     <View>
       <Text variant="title" className="mb-1 text-[22px]">
-        Pickup location
+        {t("pickup.location.title")}
       </Text>
       <Text variant="muted" className="mb-4 text-[15px]">
-        Select or add an address
+        {t("pickup.location.subtitle")}
       </Text>
 
       {options.map((option) => (
@@ -43,7 +45,7 @@ export function LocationStep({
             variant="muted"
             className="text-center text-[15px] font-semibold"
           >
-            + Add new address
+            {t("pickup.location.addNew")}
           </Text>
         </Pressable>
       ) : null}

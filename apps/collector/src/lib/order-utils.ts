@@ -8,15 +8,15 @@ export type OrderStatus =
   | "completed"
   | "cancelled";
 
-/** Labels written from the collector's point of view. */
-export function orderStatusLabel(status: OrderStatus): string {
+/** Maps a status to its translation key under the `orders.status` namespace. */
+export function orderStatusMessageKey(status: OrderStatus): string {
   const map: Record<OrderStatus, string> = {
-    scheduled: "New",
-    assigned: "Accepted",
-    en_route: "On the way",
-    arriving: "Arriving",
-    completed: "Completed",
-    cancelled: "Cancelled",
+    scheduled: "scheduled",
+    assigned: "assigned",
+    en_route: "enRoute",
+    arriving: "arriving",
+    completed: "completed",
+    cancelled: "cancelled",
   };
   return map[status];
 }
@@ -38,15 +38,26 @@ export const COLLECTOR_STATUS_FLOW: OrderStatus[] = [
   "completed",
 ];
 
-/** Primary call-to-action for an order in the given state. */
+export type OrderActionKey =
+  | "acceptPickup"
+  | "startJourney"
+  | "arrived"
+  | "weighComplete";
+
+/**
+ * Primary call-to-action for an order in the given state. `actionKey` maps
+ * to a translation key under the `orders` namespace (e.g. `orders.acceptPickup`).
+ */
 export function nextAction(
   status: OrderStatus,
   isAvailable: boolean,
-): { label: string; next: OrderStatus } | null {
-  if (isAvailable) return { label: "Accept pickup", next: "assigned" };
-  if (status === "assigned") return { label: "Start journey", next: "en_route" };
-  if (status === "en_route") return { label: "I've arrived", next: "arriving" };
+): { actionKey: OrderActionKey; next: OrderStatus } | null {
+  if (isAvailable) return { actionKey: "acceptPickup", next: "assigned" };
+  if (status === "assigned")
+    return { actionKey: "startJourney", next: "en_route" };
+  if (status === "en_route")
+    return { actionKey: "arrived", next: "arriving" };
   if (status === "arriving")
-    return { label: "Weigh & complete", next: "completed" };
+    return { actionKey: "weighComplete", next: "completed" };
   return null;
 }

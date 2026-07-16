@@ -1,15 +1,8 @@
+import type { TFunction } from "i18next";
 import type { OrderStatus } from "@/types/domain";
 
-export function orderStatusLabel(status: OrderStatus): string {
-  const map: Record<OrderStatus, string> = {
-    scheduled: "Scheduled",
-    assigned: "Assigned",
-    en_route: "On the way",
-    arriving: "Arriving",
-    completed: "Completed",
-    cancelled: "Cancelled",
-  };
-  return map[status];
+export function orderStatusLabel(status: OrderStatus, t: TFunction): string {
+  return t(`orders.statusLabels.${status}`);
 }
 
 export function orderStatusTone(

@@ -1,15 +1,19 @@
+"use client";
+
 import { Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import type { OrderStatus } from "@/lib/order-utils";
 
-const STEPS: { status: OrderStatus; label: string }[] = [
-  { status: "assigned", label: "Accepted" },
-  { status: "en_route", label: "On the way" },
-  { status: "arriving", label: "Arriving" },
-  { status: "completed", label: "Done" },
-];
-
 export function StatusStepper({ status }: { status: OrderStatus }) {
+  const t = useTranslations("orders");
+  const STEPS: { status: OrderStatus; label: string }[] = [
+    { status: "assigned", label: t("stepAccepted") },
+    { status: "en_route", label: t("stepEnRoute") },
+    { status: "arriving", label: t("stepArriving") },
+    { status: "completed", label: t("stepDone") },
+  ];
+
   if (status === "cancelled" || status === "scheduled") return null;
   const currentIndex = STEPS.findIndex((s) => s.status === status);
 

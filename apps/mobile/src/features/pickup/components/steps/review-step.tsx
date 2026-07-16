@@ -1,5 +1,6 @@
 import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { Card } from "@/components/ui/card";
 import { useAppTheme } from "@/lib/theme";
@@ -14,6 +15,7 @@ export interface ReviewStepProps {
 
 export function ReviewStep({ draft, categories }: ReviewStepProps) {
   const { colors } = useAppTheme();
+  const { t } = useTranslation();
   const names = new Map(categories.map((c) => [c.id, c.name] as const));
   const schedule = formatReviewSchedule(
     draft.scheduledAtIso,
@@ -23,16 +25,16 @@ export function ReviewStep({ draft, categories }: ReviewStepProps) {
   return (
     <View>
       <Text variant="title" className="mb-1 text-[22px]">
-        Review your request
+        {t("pickup.review.title")}
       </Text>
       <Text variant="muted" className="mb-4 text-[15px]">
-        Make sure everything looks good
+        {t("pickup.review.subtitle")}
       </Text>
 
       <Card className="gap-0 overflow-hidden p-0">
         <View className="border-b border-border/70 p-4 dark:border-neutral-800">
           <Text variant="label" className="mb-2">
-            Items
+            {t("pickup.review.items")}
           </Text>
           <View className="flex-row flex-wrap gap-2">
             {draft.categoryIds.map((id) => {
@@ -53,7 +55,7 @@ export function ReviewStep({ draft, categories }: ReviewStepProps) {
 
         <View className="border-b border-border/70 p-4 dark:border-neutral-800">
           <Text variant="label" className="mb-2">
-            Schedule
+            {t("pickup.review.schedule")}
           </Text>
           <View className="flex-row items-start gap-3">
             <View className="size-10 items-center justify-center rounded-full bg-primary/15 dark:bg-emerald-400/15">
@@ -76,7 +78,7 @@ export function ReviewStep({ draft, categories }: ReviewStepProps) {
 
         <View className="p-4">
           <Text variant="label" className="mb-2">
-            Address
+            {t("pickup.review.address")}
           </Text>
           <View className="flex-row items-start gap-3">
             <View className="size-10 items-center justify-center rounded-full bg-primary/15 dark:bg-emerald-400/15">
@@ -88,7 +90,7 @@ export function ReviewStep({ draft, categories }: ReviewStepProps) {
             </View>
             <View className="min-w-0 flex-1">
               <Text className="text-[15px] font-semibold text-foreground dark:text-neutral-100">
-                {draft.addressLabel || "Address"}
+                {draft.addressLabel || t("pickup.review.addressFallback")}
               </Text>
               <Text
                 variant="muted"
@@ -111,7 +113,7 @@ export function ReviewStep({ draft, categories }: ReviewStepProps) {
           />
         </View>
         <Text variant="muted" className="flex-1 text-[13px] leading-snug">
-          Final amount will be calculated after weighing at pickup.
+          {t("pickup.review.warning")}
         </Text>
       </View>
     </View>

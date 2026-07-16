@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Recycle, Truck, IndianRupee, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,18 +11,20 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/lib/supabase";
 import { getRoleFromJwt } from "@/lib/auth";
 
-const highlights = [
-  { icon: Truck, text: "Accept pickups near you" },
-  { icon: IndianRupee, text: "Earnings tracked automatically" },
-  { icon: Star, text: "Build your reputation" },
-];
-
 export default function LoginPage() {
   const router = useRouter();
+  const t = useTranslations("login");
+  const tNav = useTranslations("nav");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const highlights = [
+    { icon: Truck, text: t("highlightAccept") },
+    { icon: IndianRupee, text: t("highlightEarnings") },
+    { icon: Star, text: t("highlightReputation") },
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,23 +42,21 @@ export default function LoginPage() {
 
       const token = data.session?.access_token;
       if (!token) {
-        setError("Sign in failed. Please try again.");
+        setError(t("errorGeneric"));
         return;
       }
 
       const role = getRoleFromJwt(token);
       if (role !== "collector") {
         await supabase.auth.signOut();
-        setError(
-          "This account is not registered as a collector. Contact Scrap-it support to get onboarded.",
-        );
+        setError(t("errorNotCollector"));
         return;
       }
 
       router.push("/dashboard");
       router.refresh();
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError(t("errorUnexpected"));
     } finally {
       setLoading(false);
     }
@@ -73,14 +74,14 @@ export default function LoginPage() {
             <div>
               <p className="text-lg font-bold leading-tight">Scrap-it</p>
               <p className="text-xs text-primary-foreground/80 leading-tight">
-                Collector Portal
+                {tNav("portalName")}
               </p>
             </div>
           </div>
           <h1 className="mt-8 text-2xl font-bold leading-snug">
-            Your pickups. Your earnings.
+            {t("heroLine1")}
             <br />
-            All in one place.
+            {t("heroLine2")}
           </h1>
           <ul className="mt-5 space-y-2.5">
             {highlights.map(({ icon: Icon, text }) => (
@@ -96,9 +97,9 @@ export default function LoginPage() {
       {/* Sign-in card */}
       <div className="flex-1 px-6 -mt-8 pb-10">
         <div className="mx-auto w-full max-w-sm rounded-2xl border bg-card p-6 shadow-lg shadow-black/5">
-          <h2 className="text-lg font-semibold">Sign in</h2>
+          <h2 className="text-lg font-semibold">{t("title")}</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Use the account Scrap-it gave you during onboarding
+            {t("subtitle")}
           </p>
 
           <form onSubmit={handleSubmit} className="mt-5 space-y-4">
@@ -109,13 +110,13 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("emailLabel")}</Label>
               <Input
                 id="email"
                 type="email"
                 inputMode="email"
                 autoComplete="email"
-                placeholder="you@example.com"
+                placeholder={t("emailPlaceholder")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -125,7 +126,7 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t("passwordLabel")}</Label>
               <Input
                 id="password"
                 type="password"
@@ -140,12 +141,12 @@ export default function LoginPage() {
             </div>
 
             <Button type="submit" className="w-full h-11 text-base" disabled={loading}>
-              {loading ? "Signing in…" : "Sign in"}
+              {loading ? t("signingIn") : t("submit")}
             </Button>
           </form>
 
           <p className="mt-5 text-center text-xs text-muted-foreground">
-            New to Scrap-it? Call us to get onboarded as a collector.
+            {t("footerNote")}
           </p>
         </div>
       </div>

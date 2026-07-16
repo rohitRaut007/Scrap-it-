@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { IndianRupee, Package, Weight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
@@ -9,6 +10,7 @@ import { useEarnings } from "@/hooks/use-portal";
 import { formatInr, formatWeight } from "@/lib/format";
 
 export default function EarningsPage() {
+  const t = useTranslations("earnings");
   const { data, isLoading, error, mutate } = useEarnings(30);
 
   if (isLoading && !data) {
@@ -25,7 +27,7 @@ export default function EarningsPage() {
   if (error && !data) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold tracking-tight">Earnings</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
         <ErrorState onRetry={() => mutate()} />
       </div>
     );
@@ -35,13 +37,13 @@ export default function EarningsPage() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold tracking-tight">Earnings</h1>
+      <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
 
       {/* Period totals */}
       <div className="grid grid-cols-3 gap-3">
-        <PeriodTile label="Today" value={formatInr(data.todayInr)} accent />
-        <PeriodTile label="This week" value={formatInr(data.weekInr)} />
-        <PeriodTile label="This month" value={formatInr(data.monthInr)} />
+        <PeriodTile label={t("today")} value={formatInr(data.todayInr)} accent />
+        <PeriodTile label={t("thisWeek")} value={formatInr(data.weekInr)} />
+        <PeriodTile label={t("thisMonth")} value={formatInr(data.monthInr)} />
       </div>
 
       {/* Chart */}
@@ -53,30 +55,30 @@ export default function EarningsPage() {
       <div className="grid grid-cols-3 gap-3">
         <LifetimeTile
           icon={IndianRupee}
-          label="Total earned"
+          label={t("totalEarned")}
           value={formatInr(data.totalInr)}
         />
         <LifetimeTile
           icon={Package}
-          label="Pickups done"
+          label={t("pickupsDone")}
           value={String(data.totalPickups)}
         />
         <LifetimeTile
           icon={Weight}
-          label="Scrap collected"
+          label={t("scrapCollected")}
           value={formatWeight(data.totalWeightKg)}
         />
       </div>
 
       {/* Recent completed pickups */}
       <div>
-        <h2 className="mb-2.5 text-base font-semibold">Recent pickups</h2>
+        <h2 className="mb-2.5 text-base font-semibold">{t("recentPickups")}</h2>
         {data.recentOrders.length === 0 ? (
           <div className="rounded-2xl border border-dashed p-8 text-center">
             <Package className="mx-auto h-8 w-8 text-muted-foreground/50" />
-            <p className="mt-2 text-sm font-medium">No completed pickups yet</p>
+            <p className="mt-2 text-sm font-medium">{t("noCompletedTitle")}</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Your earnings history will build up here as you complete pickups.
+              {t("noCompletedHint")}
             </p>
           </div>
         ) : (

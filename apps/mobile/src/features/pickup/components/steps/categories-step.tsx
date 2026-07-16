@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import type { Category } from "@/types/domain";
 import { CategoryGridCard } from "@/features/pickup/components/cards/category-grid-card";
@@ -15,14 +16,15 @@ export function CategoriesStep({
   selectedIds,
   onToggle,
 }: CategoriesStepProps) {
+  const { t } = useTranslation();
   const selected = useMemo(() => new Set(selectedIds), [selectedIds]);
   return (
     <View>
       <Text variant="title" className="mb-1 text-[22px]">
-        What are you recycling?
+        {t("pickup.categories.title")}
       </Text>
       <Text variant="muted" className="mb-4 text-[15px]">
-        Select one or more items
+        {t("pickup.categories.subtitle")}
       </Text>
 
       <View className="flex-row flex-wrap justify-between">

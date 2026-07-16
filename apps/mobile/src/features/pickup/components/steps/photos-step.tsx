@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { ActivityIndicator, Alert, Pressable, View } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/lib/theme";
 import { uploadsService } from "@/services/uploadsService";
@@ -22,6 +23,7 @@ type ImagePickerAsset = {
 
 export function PhotosStep({ photos, onChangePhotos }: PhotosStepProps) {
   const { colors } = useAppTheme();
+  const { t } = useTranslation();
 
   // Keep a ref in sync with the latest photos so async upload callbacks can
   // produce new arrays based on current state instead of the snapshot they
@@ -80,8 +82,8 @@ export function PhotosStep({ photos, onChangePhotos }: PhotosStepProps) {
       ImagePicker = await import("expo-image-picker");
     } catch {
       Alert.alert(
-        "Photos unavailable",
-        "Photo picking needs a native build that includes expo-image-picker. Run a new Android/iOS build (e.g. expo run:android) or rebuild your dev client.",
+        t("pickup.photos.unavailableTitle"),
+        t("pickup.photos.unavailableBody"),
       );
       return;
     }
@@ -90,8 +92,8 @@ export function PhotosStep({ photos, onChangePhotos }: PhotosStepProps) {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
         Alert.alert(
-          "Photos access needed",
-          "Allow photo library access to attach reference images for your pickup.",
+          t("pickup.photos.permissionTitle"),
+          t("pickup.photos.permissionBody"),
         );
         return;
       }
@@ -121,11 +123,11 @@ export function PhotosStep({ photos, onChangePhotos }: PhotosStepProps) {
     } catch (error) {
       console.warn("expo-image-picker failed", error);
       Alert.alert(
-        "Photos unavailable",
-        "Rebuild your development client so expo-image-picker native code is included, then try again.",
+        t("pickup.photos.unavailableTitle"),
+        t("pickup.photos.rebuildBody"),
       );
     }
-  }, [onChangePhotos, photos, startUpload]);
+  }, [onChangePhotos, photos, startUpload, t]);
 
   const removeAt = useCallback(
     (index: number) => {
@@ -152,10 +154,10 @@ export function PhotosStep({ photos, onChangePhotos }: PhotosStepProps) {
   return (
     <View>
       <Text variant="title" className="mb-1 text-[22px]">
-        Add photos
+        {t("pickup.photos.title")}
       </Text>
       <Text variant="muted" className="mb-4 text-[15px]">
-        Optional – helps us estimate better
+        {t("pickup.photos.subtitle")}
       </Text>
 
       <View className="flex-row flex-wrap gap-2">
@@ -178,7 +180,7 @@ export function PhotosStep({ photos, onChangePhotos }: PhotosStepProps) {
                 className="absolute inset-0 items-center justify-center rounded-2xl bg-red-600/80"
               >
                 <Ionicons name="refresh" size={22} color="#ffffff" />
-                <Text className="mt-1 text-[10px] text-white">Retry</Text>
+                <Text className="mt-1 text-[10px] text-white">{t("pickup.photos.retry")}</Text>
               </Pressable>
             ) : null}
             <Pressable
@@ -200,7 +202,7 @@ export function PhotosStep({ photos, onChangePhotos }: PhotosStepProps) {
               <Ionicons name="camera-outline" size={22} color={colors.primary} />
             </View>
             <Text variant="muted" className="text-[12px] font-medium">
-              Add photo
+              {t("pickup.photos.addPhoto")}
             </Text>
           </Pressable>
         ) : null}
@@ -211,7 +213,7 @@ export function PhotosStep({ photos, onChangePhotos }: PhotosStepProps) {
           <Ionicons name="information-circle" size={22} color={colors.primary} />
         </View>
         <Text variant="muted" className="flex-1 text-[13px] leading-snug">
-          Clear photos help us provide accurate estimates.
+          {t("pickup.photos.helperText")}
         </Text>
       </View>
     </View>

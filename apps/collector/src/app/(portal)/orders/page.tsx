@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Inbox, PackageCheck, Truck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
@@ -12,13 +13,9 @@ import { useAvailableOrders, useMyOrders } from "@/hooks/use-portal";
 import { cn } from "@/lib/utils";
 import type { OrderListResponse } from "@/lib/types";
 
-const TABS = [
-  { key: "new", label: "New" },
-  { key: "active", label: "Active" },
-  { key: "done", label: "Done" },
-] as const;
+const TAB_KEYS = ["new", "active", "done"] as const;
 
-type TabKey = (typeof TABS)[number]["key"];
+type TabKey = (typeof TAB_KEYS)[number];
 
 export default function OrdersPage() {
   return (
@@ -30,12 +27,20 @@ export default function OrdersPage() {
 
 function OrdersContent() {
   const router = useRouter();
+  const t = useTranslations("orders");
+  const tCommon = useTranslations("common");
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const tab: TabKey = TABS.some((t) => t.key === tabParam)
+  const tab: TabKey = TAB_KEYS.includes(tabParam as TabKey)
     ? (tabParam as TabKey)
     : "active";
   const [page, setPage] = useState(1);
+
+  const TABS: { key: TabKey; label: string }[] = [
+    { key: "new", label: t("tabNew") },
+    { key: "active", label: t("tabActive") },
+    { key: "done", label: t("tabDone") },
+  ];
 
   const available = useAvailableOrders(tab === "new" ? page : 1);
   const active = useMyOrders("active", tab === "active" ? page : 1);
@@ -57,7 +62,7 @@ function OrdersContent() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold tracking-tight">Pickups</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
         <LogPickupButton />
       </div>
 
@@ -108,10 +113,13 @@ function OrdersContent() {
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
           >
-            Previous
+            {tCommon("previous")}
           </Button>
           <span className="text-xs text-muted-foreground">
-            Page {page} of {Math.ceil(current.data.total / current.data.pageSize)}
+            {t("pageOf", {
+              page,
+              total: Math.ceil(current.data.total / current.data.pageSize),
+            })}
           </span>
           <Button
             variant="outline"
@@ -119,7 +127,7 @@ function OrdersContent() {
             disabled={page >= Math.ceil(current.data.total / current.data.pageSize)}
             onClick={() => setPage((p) => p + 1)}
           >
-            Next
+            {tCommon("next")}
           </Button>
         </div>
       )}
@@ -140,6 +148,8 @@ function OrdersList({
   error?: unknown;
   onRetry: () => void;
 }) {
+  const t = useTranslations("orders");
+
   if (isLoading && !response) return <OrdersSkeleton />;
 
   if (error && !response) return <ErrorState onRetry={onRetry} />;
@@ -148,18 +158,18 @@ function OrdersList({
     const empty = {
       new: {
         icon: Inbox,
-        title: "No new pickups right now",
-        hint: "New bookings in your area will show up here. Check back soon.",
+        title: t("emptyNewTitle"),
+        hint: t("emptyNewHint"),
       },
       active: {
         icon: Truck,
-        title: "Nothing in progress",
-        hint: "Accept a pickup from the New tab to get started.",
+        title: t("emptyActiveTitle"),
+        hint: t("emptyActiveHint"),
       },
       done: {
         icon: PackageCheck,
-        title: "No completed pickups yet",
-        hint: "Finished and cancelled pickups will appear here.",
+        title: t("emptyDoneTitle"),
+        hint: t("emptyDoneHint"),
       },
     }[tab];
     const Icon = empty.icon;

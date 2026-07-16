@@ -1,4 +1,5 @@
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { DateScrollRow } from "@/features/pickup/components/selectors/date-scroll-row";
 import { TimeSlotList } from "@/features/pickup/components/selectors/time-slot-list";
@@ -19,13 +20,14 @@ export function ScheduleStep({
   onDateKey,
   onTimeSlotId,
 }: ScheduleStepProps) {
+  const { t } = useTranslation();
   return (
     <View>
       <Text variant="title" className="mb-1 text-[22px]">
-        When should we come?
+        {t("pickup.schedule.title")}
       </Text>
       <Text variant="muted" className="mb-5 text-[15px]">
-        Pick a date and time
+        {t("pickup.schedule.subtitle")}
       </Text>
 
       <DateScrollRow

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { NotebookPen, X } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -32,6 +33,8 @@ export function LogPickupDialog({
   onOpenChange,
   onLogged,
 }: LogPickupDialogProps) {
+  const t = useTranslations("logPickup");
+  const tCommon = useTranslations("common");
   const { data: rateCard, isLoading: rateCardLoading } = useRateCard();
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -101,7 +104,7 @@ export function LogPickupDialog({
       onLogged(created.payoutInr);
     } catch (err) {
       toast.error(
-        err instanceof ApiError ? err.message : "Could not save the pickup.",
+        err instanceof ApiError ? err.message : t("toastError"),
       );
     } finally {
       setSubmitting(false);
@@ -121,20 +124,20 @@ export function LogPickupDialog({
         <DialogHeader className="shrink-0 space-y-1 border-b px-5 py-4">
           <DialogTitle className="flex items-center gap-2">
             <NotebookPen className="h-5 w-5 text-primary" />
-            Log a pickup
+            {t("title")}
           </DialogTitle>
           <DialogDescription>
-            For a customer you picked up outside the app.
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
 
         {/* Scrollable middle — everything else lives here */}
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
           <div className="space-y-1.5">
-            <Label htmlFor="log-customer-name">Customer name</Label>
+            <Label htmlFor="log-customer-name">{t("customerNameLabel")}</Label>
             <Input
               id="log-customer-name"
-              placeholder="e.g. Ramesh Bhai"
+              placeholder={t("customerNamePlaceholder")}
               autoFocus
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
@@ -144,11 +147,11 @@ export function LogPickupDialog({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="log-customer-phone">Phone (optional)</Label>
+              <Label htmlFor="log-customer-phone">{t("phoneLabel")}</Label>
               <Input
                 id="log-customer-phone"
                 inputMode="tel"
-                placeholder="+91 98xxx xxxxx"
+                placeholder={t("phonePlaceholder")}
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
                 disabled={submitting}
@@ -156,10 +159,10 @@ export function LogPickupDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="log-address">Area (optional)</Label>
+              <Label htmlFor="log-address">{t("areaLabel")}</Label>
               <Input
                 id="log-address"
-                placeholder="e.g. Sector 12"
+                placeholder={t("areaPlaceholder")}
                 value={addressText}
                 onChange={(e) => setAddressText(e.target.value)}
                 disabled={submitting}
@@ -169,7 +172,7 @@ export function LogPickupDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>What did you collect?</Label>
+            <Label>{t("whatCollected")}</Label>
             {rateCardLoading ? (
               <div className="flex flex-wrap gap-2">
                 {Array.from({ length: 6 }).map((_, i) => (
@@ -203,7 +206,7 @@ export function LogPickupDialog({
 
           {selected.length > 0 && (
             <div className="space-y-2.5">
-              <Label>Weight collected</Label>
+              <Label>{t("weightCollected")}</Label>
               {lines.map((line) => (
                 <div
                   key={line.id}
@@ -236,7 +239,7 @@ export function LogPickupDialog({
                       onClick={() => toggleCategory(line.id)}
                       disabled={submitting}
                       className="text-muted-foreground hover:text-foreground"
-                      aria-label={`Remove ${line.name}`}
+                      aria-label={t("removeItem", { name: line.name })}
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -252,8 +255,8 @@ export function LogPickupDialog({
           <div className="flex items-center justify-between">
             <p className="font-mono text-xs text-muted-foreground">
               {totalWeight > 0
-                ? `${Math.round(totalWeight * 100) / 100} kg total`
-                : "This pickup's value"}
+                ? t("kgTotal", { weight: Math.round(totalWeight * 100) / 100 })
+                : t("pickupValue")}
             </p>
             <p className="font-mono text-lg font-semibold text-cash">
               {formatInr(totalPayout)}
@@ -266,10 +269,10 @@ export function LogPickupDialog({
               onClick={() => onOpenChange(false)}
               disabled={submitting}
             >
-              Cancel
+              {tCommon("cancel")}
             </Button>
             <Button className="flex-1" onClick={handleSubmit} disabled={!canSubmit}>
-              {submitting ? "Saving…" : "Save pickup"}
+              {submitting ? t("saving") : t("save")}
             </Button>
           </div>
         </DialogFooter>

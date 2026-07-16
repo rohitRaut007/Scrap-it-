@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { AppHeader } from "@/components/layout/app-header";
 import { Text } from "@/components/ui/text";
 import { Card } from "@/components/ui/card";
@@ -12,12 +13,12 @@ import { orderService } from "@/services/orderService";
 import type { OrderStatus, PickupOrder } from "@/types/domain";
 import { orderStatusLabel, orderStatusTone } from "./order-status-label";
 
-const timelineSteps: { status: OrderStatus; label: string }[] = [
-  { status: "scheduled", label: "Scheduled" },
-  { status: "assigned", label: "Driver assigned" },
-  { status: "en_route", label: "On the way" },
-  { status: "arriving", label: "Arriving" },
-  { status: "completed", label: "Completed" },
+const timelineStatuses: OrderStatus[] = [
+  "scheduled",
+  "assigned",
+  "en_route",
+  "arriving",
+  "completed",
 ];
 
 function statusRank(status: OrderStatus): number {
@@ -34,6 +35,7 @@ function statusRank(status: OrderStatus): number {
 
 export function OrderDetailScreen({ orderId }: { orderId: string }) {
   const router = useRouter();
+  const { t } = useTranslation();
   const [order, setOrder] = useState<PickupOrder | null | undefined>(
     undefined
   );
@@ -46,20 +48,26 @@ export function OrderDetailScreen({ orderId }: { orderId: string }) {
 
   const timeline = useMemo(() => {
     if (!order) return null;
-    return timelineSteps.map((step, i) => {
-      const stepRank = statusRank(step.status);
+    return timelineStatuses.map((status, i) => {
+      const stepRank = statusRank(status);
       const done = rank >= stepRank && order.status !== "cancelled";
-      const current = order.status === step.status;
-      return { ...step, done, current, i };
+      const current = order.status === status;
+      return {
+        status,
+        label: t(`orders.detail.timelineSteps.${status}`),
+        done,
+        current,
+        i,
+      };
     });
-  }, [order, rank]);
+  }, [order, rank, t]);
 
   if (order === undefined) {
     return (
       <Screen>
-        <AppHeader title="Order" onBack={() => router.back()} />
+        <AppHeader title={t("orders.detail.headerTitle")} onBack={() => router.back()} />
         <View className="flex-1 items-center justify-center">
-          <Text variant="muted">Loading…</Text>
+          <Text variant="muted">{t("orders.detail.loading")}</Text>
         </View>
       </Screen>
     );
@@ -68,8 +76,11 @@ export function OrderDetailScreen({ orderId }: { orderId: string }) {
   if (order === null) {
     return (
       <Screen contentClassName="px-6">
-        <AppHeader title="Order" onBack={() => router.back()} />
-        <EmptyState title="Order not found" description="Check your history." />
+        <AppHeader title={t("orders.detail.headerTitle")} onBack={() => router.back()} />
+        <EmptyState
+          title={t("orders.detail.notFoundTitle")}
+          description={t("orders.detail.notFoundDescription")}
+        />
       </Screen>
     );
   }
@@ -79,27 +90,27 @@ export function OrderDetailScreen({ orderId }: { orderId: string }) {
       <AppHeader title={`#${order.id}`} onBack={() => router.back()} />
       <View className="mb-4 flex-row items-center justify-between">
         <Badge
-          label={orderStatusLabel(order.status)}
+          label={orderStatusLabel(order.status, t)}
           tone={orderStatusTone(order.status)}
         />
         {order.etaMinutes != null ? (
           <Text variant="muted" className="text-[13px]">
-            ETA ~{order.etaMinutes} min
+            {t("orders.detail.eta", { minutes: order.etaMinutes })}
           </Text>
         ) : null}
       </View>
 
       <Card className="mb-5 min-h-[140px] items-center justify-center border-dashed bg-muted/40">
         <Text variant="muted" className="text-center text-[13px]">
-          Map preview
+          {t("orders.detail.mapPreview")}
         </Text>
         <Text variant="small" className="mt-1 text-center">
-          Live tracking connects when backend is ready.
+          {t("orders.detail.mapPreviewSubtitle")}
         </Text>
       </Card>
 
       <Text className="mb-3 text-[15px] font-semibold text-foreground">
-        Timeline
+        {t("orders.detail.timeline")}
       </Text>
       <Card className="gap-0 py-2">
         {timeline?.map((row) => (
@@ -126,7 +137,7 @@ export function OrderDetailScreen({ orderId }: { orderId: string }) {
               </Text>
               {row.current ? (
                 <Text variant="muted" className="mt-0.5 text-[12px]">
-                  Current step
+                  {t("orders.detail.currentStep")}
                 </Text>
               ) : null}
             </View>
@@ -137,7 +148,7 @@ export function OrderDetailScreen({ orderId }: { orderId: string }) {
       {order.driver ? (
         <Card className="mt-4">
           <Text variant="muted" className="text-[13px]">
-            Driver
+            {t("orders.detail.driver")}
           </Text>
           <Text className="mt-1 font-semibold text-foreground">
             {order.driver.name}
@@ -158,7 +169,7 @@ export function OrderDetailScreen({ orderId }: { orderId: string }) {
           variant="secondary"
           onPress={() => router.replace("/pickup")}
         >
-          Schedule another
+          {t("orders.detail.scheduleAnother")}
         </Button>
       ) : null}
     </Screen>

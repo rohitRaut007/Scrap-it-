@@ -2,11 +2,13 @@ import { useCallback, useState } from "react";
 import { Pressable, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { LanguageToggle } from "@/components/ui/language-toggle";
 import { analyticsService } from "@/services/analyticsService";
 import { authService } from "@/services/authService";
 import { userService } from "@/services/userService";
@@ -43,6 +45,7 @@ function Row({
 
 export function ProfileScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { colors } = useAppTheme();
   const [user, setUser] = useState<User | null>(null);
   const [userLoad, setUserLoad] = useState<"pending" | "ok" | "error">("pending");
@@ -90,10 +93,10 @@ export function ProfileScreen() {
   return (
     <Screen contentClassName="px-5 pt-4">
       <Text variant="title" className="mb-1">
-        Profile
+        {t("profile.title")}
       </Text>
       <Text variant="muted" className="mb-6 text-[14px]">
-        Account and impact
+        {t("profile.subtitle")}
       </Text>
 
       {userLoad === "pending" ? (
@@ -105,11 +108,11 @@ export function ProfileScreen() {
       ) : userLoad === "error" ? (
         <Card className="mb-6 border-destructive/25 dark:border-red-400/30">
           <Text className="text-[14px] text-foreground">
-            Couldn&apos;t load your account. Check your connection and try again.
+            {t("profile.loadError")}
           </Text>
           <Pressable onPress={load} className="mt-3 self-start">
             <Text className="text-[14px] font-semibold text-primary dark:text-emerald-300">
-              Retry
+              {t("profile.retry")}
             </Text>
           </Pressable>
         </Card>
@@ -120,17 +123,17 @@ export function ProfileScreen() {
           </Text>
           {!user.name?.trim() ? (
             <Text variant="muted" className="mt-1 text-[12px] italic opacity-80">
-              Add your name in Edit profile
+              {t("profile.addName")}
             </Text>
           ) : null}
           <Text variant="muted" className="mt-1 text-[13px]">
-            {user.email || "No email"}
+            {user.email || t("profile.noEmail")}
           </Text>
           <Text
             variant="muted"
             className={`mt-2 text-[13px] ${!user.phone?.trim() ? "italic opacity-80" : ""}`}
           >
-            {user.phone?.trim() ? user.phone : "Add phone"}
+            {user.phone?.trim() ? user.phone : t("profile.addPhone")}
           </Text>
         </Card>
       ) : null}
@@ -155,31 +158,31 @@ export function ProfileScreen() {
         </Card>
       ) : statsError ? (
         <View className="mb-6 rounded-2xl border border-border bg-card px-4 py-3 dark:border-neutral-800">
-          <Text className="text-[13px] text-foreground">Couldn&apos;t load stats.</Text>
+          <Text className="text-[13px] text-foreground">{t("profile.statsLoadError")}</Text>
           <Pressable onPress={load} className="mt-2 self-start">
             <Text className="text-[13px] font-semibold text-primary dark:text-emerald-300">
-              Retry
+              {t("profile.retry")}
             </Text>
           </Pressable>
         </View>
       ) : stats ? (
         <Card className="mb-6">
-          <Text className="mb-4 text-[15px] font-semibold text-foreground">Your impact</Text>
+          <Text className="mb-4 text-[15px] font-semibold text-foreground">{t("profile.yourImpact")}</Text>
           <View className="flex-row flex-wrap justify-between gap-y-4">
             <View className="min-w-[28%] flex-1">
-              <Text variant="label">Pickups</Text>
+              <Text variant="label">{t("profile.pickups")}</Text>
               <Text className="mt-2 text-2xl font-bold text-foreground">
                 {stats.pickupsCompleted}
               </Text>
             </View>
             <View className="min-w-[28%] flex-1">
-              <Text variant="label">Waste</Text>
+              <Text variant="label">{t("profile.waste")}</Text>
               <Text className="mt-2 text-2xl font-bold text-foreground">
                 {stats.weightKgApprox.toFixed(1)} kg
               </Text>
             </View>
             <View className="min-w-[28%] flex-1">
-              <Text variant="label">Est. payout</Text>
+              <Text variant="label">{t("profile.estPayout")}</Text>
               <Text className="mt-2 text-2xl font-bold text-primary dark:text-emerald-300">
                 ₹{stats.estimatedPayoutInr}
               </Text>
@@ -191,19 +194,20 @@ export function ProfileScreen() {
       <Card className="overflow-hidden px-0 py-0">
         <View className="px-4">
           <ThemeToggle />
+          <LanguageToggle />
           <Row
             icon="person-outline"
-            label="Edit profile"
+            label={t("profile.editProfile")}
             onPress={() => router.push("/edit-profile")}
           />
           <Row
             icon="location-outline"
-            label="Saved addresses"
+            label={t("profile.savedAddresses")}
             onPress={() => router.push("/saved-addresses")}
           />
           <Row
             icon="help-circle-outline"
-            label="Help & support"
+            label={t("profile.helpSupport")}
             onPress={() => void openSupportContact()}
           />
         </View>
@@ -215,7 +219,7 @@ export function ProfileScreen() {
       >
         <Ionicons name="log-out-outline" size={20} color={colors.destructive} />
         <Text className="font-semibold text-destructive dark:text-red-400">
-          Log out
+          {t("profile.logOut")}
         </Text>
       </Pressable>
     </Screen>

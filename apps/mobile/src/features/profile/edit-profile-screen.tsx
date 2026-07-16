@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { AppHeader } from "@/components/layout/app-header";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
@@ -9,14 +10,19 @@ import { Button } from "@/components/ui/button";
 import { ApiError } from "@/lib/api";
 import { userService } from "@/services/userService";
 
-function describeError(err: unknown): string {
-  if (err instanceof ApiError) return `Backend ${err.status}: ${err.message}`;
-  if (err instanceof Error) return err.message;
-  return "Something went wrong. Please try again.";
-}
-
 export function EditProfileScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
+
+  const describeError = useCallback(
+    (err: unknown): string => {
+      if (err instanceof ApiError) return `Backend ${err.status}: ${err.message}`;
+      if (err instanceof Error) return err.message;
+      return t("editProfile.genericError");
+    },
+    [t],
+  );
+
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [loadState, setLoadState] = useState<"pending" | "ok" | "error">("pending");
@@ -59,23 +65,23 @@ export function EditProfileScreen() {
 
   return (
     <Screen>
-      <AppHeader title="Edit profile" onBack={() => router.back()} />
+      <AppHeader title={t("editProfile.title")} onBack={() => router.back()} />
       {loadState === "error" ? (
         <View className="flex-1 px-5 pt-4">
           <Text className="text-[14px] text-foreground">
-            Couldn&apos;t load your profile. Check your connection and try again.
+            {t("editProfile.loadError")}
           </Text>
           <Button variant="outline" className="mt-4" onPress={() => void load()}>
-            Retry
+            {t("editProfile.retry")}
           </Button>
         </View>
       ) : (
         <View className="flex-1 px-5 pt-4">
           <Text variant="muted" className="mb-4 text-[14px]">
-            Your name and phone appear on pickups and receipts.
+            {t("editProfile.subtitle")}
           </Text>
           <TextField
-            label="Name"
+            label={t("editProfile.nameLabel")}
             value={name}
             onChangeText={setName}
             autoCapitalize="words"
@@ -83,7 +89,7 @@ export function EditProfileScreen() {
             containerClassName="mb-3"
           />
           <TextField
-            label="Phone"
+            label={t("editProfile.phoneLabel")}
             value={phone}
             onChangeText={setPhone}
             keyboardType="phone-pad"
@@ -100,7 +106,7 @@ export function EditProfileScreen() {
             loading={busy}
             onPress={() => void save()}
           >
-            Save changes
+            {t("editProfile.save")}
           </Button>
         </View>
       )}

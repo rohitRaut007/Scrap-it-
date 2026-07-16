@@ -1,5 +1,6 @@
 import { Pressable, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/cn";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/lib/theme";
@@ -13,13 +14,15 @@ export interface PickupStepHeaderProps {
 }
 
 export function PickupStepHeader({
-  title = "Schedule pickup",
+  title,
   stepIndex,
   totalSteps,
   onBack,
   className,
 }: PickupStepHeaderProps) {
   const { colors } = useAppTheme();
+  const { t } = useTranslation();
+  const resolvedTitle = title ?? t("pickup.header.defaultTitle");
   const filled = stepIndex + 1;
   const rest = Math.max(totalSteps - filled, 0);
 
@@ -42,10 +45,10 @@ export function PickupStepHeader({
         ) : null}
         <View className="flex-1">
           <Text variant="subtitle" numberOfLines={1}>
-            {title}
+            {resolvedTitle}
           </Text>
           <Text variant="muted" numberOfLines={1}>
-            Step {stepIndex + 1} of {totalSteps}
+            {t("pickup.header.step", { current: stepIndex + 1, total: totalSteps })}
           </Text>
         </View>
       </View>

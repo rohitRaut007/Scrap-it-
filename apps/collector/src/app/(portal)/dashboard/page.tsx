@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import {
   ArrowRight,
   BellRing,
@@ -17,16 +18,18 @@ import { LogPickupButton } from "@/components/orders/log-pickup-button";
 import { useProfile, useSummary } from "@/hooks/use-portal";
 import { firstName, formatInr } from "@/lib/format";
 
-function greeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
-}
-
 export default function DashboardPage() {
+  const t = useTranslations("dashboard");
+  const tCommon = useTranslations("common");
   const { data: summary, isLoading, error, mutate } = useSummary();
   const { data: profile } = useProfile();
+
+  const greeting = (): string => {
+    const h = new Date().getHours();
+    if (h < 12) return t("greetingMorning");
+    if (h < 17) return t("greetingAfternoon");
+    return t("greetingEvening");
+  };
 
   return (
     <div className="space-y-5">
@@ -57,7 +60,7 @@ export default function DashboardPage() {
           <div className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full bg-white/10" />
           <div className="pointer-events-none absolute -right-16 top-10 h-40 w-40 rounded-full bg-white/5" />
           <p className="font-mono text-xs uppercase tracking-[1.5px] text-paper/85">
-            Today&apos;s earnings
+            {t("todayEarnings")}
           </p>
           <p className="mt-1 font-display text-4xl tracking-tight">
             {formatInr(summary.todayEarningsInr)}
@@ -65,11 +68,11 @@ export default function DashboardPage() {
           <div className="mt-3 flex items-center gap-4 text-sm text-paper/85">
             <span className="flex items-center gap-1.5">
               <Package className="h-4 w-4" />
-              {summary.todayCompleted} pickup{summary.todayCompleted === 1 ? "" : "s"} done
+              {t("pickupsDone", { count: summary.todayCompleted })}
             </span>
             <span className="flex items-center gap-1.5">
               <TrendingUp className="h-4 w-4" />
-              {formatInr(summary.weekEarningsInr)} this week
+              {t("weekEarnings", { amount: formatInr(summary.weekEarningsInr) })}
             </span>
           </div>
         </div>
@@ -86,11 +89,10 @@ export default function DashboardPage() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold">
-              {summary.availableOrders} new pickup
-              {summary.availableOrders === 1 ? "" : "s"} available
+              {t("newPickupsAvailable", { count: summary.availableOrders })}
             </p>
             <p className="text-xs text-muted-foreground">
-              Accept before another collector does
+              {t("acceptBeforeOther")}
             </p>
           </div>
           <ArrowRight className="h-4 w-4 text-primary shrink-0" />
@@ -108,18 +110,18 @@ export default function DashboardPage() {
         <div className="grid grid-cols-3 gap-3">
           <StatTile
             icon={IndianRupee}
-            label="This month"
+            label={t("statThisMonth")}
             value={formatInr(summary.monthEarningsInr)}
           />
           <StatTile
             icon={CalendarCheck}
-            label="Total pickups"
+            label={t("statTotalPickups")}
             value={String(summary.totalCompleted)}
           />
           <StatTile
             icon={Star}
-            label="Rating"
-            value={summary.rating != null ? summary.rating.toFixed(1) : "New"}
+            label={t("statRating")}
+            value={summary.rating != null ? summary.rating.toFixed(1) : tCommon("new")}
           />
         </div>
       )}
@@ -128,15 +130,15 @@ export default function DashboardPage() {
       <div>
         <div className="mb-2.5 flex items-center justify-between">
           <h2 className="text-base font-semibold">
-            {summary && summary.activeOrders > 0
-              ? `Your next pickup${summary.activeOrders > 1 ? ` (${summary.activeOrders} active)` : ""}`
-              : "Your next pickup"}
+            {summary && summary.activeOrders > 1
+              ? t("nextPickupActive", { count: summary.activeOrders })
+              : t("nextPickup")}
           </h2>
           <Link
             href="/orders"
             className="text-sm font-medium text-primary hover:underline"
           >
-            See all
+            {t("seeAll")}
           </Link>
         </div>
 
@@ -147,18 +149,18 @@ export default function DashboardPage() {
         ) : (
           <div className="rounded-2xl border border-dashed p-8 text-center">
             <Package className="mx-auto h-8 w-8 text-muted-foreground/50" />
-            <p className="mt-2 text-sm font-medium">No active pickups</p>
+            <p className="mt-2 text-sm font-medium">{t("noActivePickups")}</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {summary && summary.availableOrders > 0
-                ? "New pickups are waiting in the feed."
-                : "New bookings in your area will appear here."}
+                ? t("noActivePickupsHintAvailable")
+                : t("noActivePickupsHint")}
             </p>
             {summary && summary.availableOrders > 0 && (
               <Link
                 href="/orders?tab=new"
                 className="mt-3 inline-block text-sm font-semibold text-primary hover:underline"
               >
-                Browse available pickups →
+                {t("browseAvailable")}
               </Link>
             )}
           </div>

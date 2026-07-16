@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { formatInr, weekdayShort } from "@/lib/format";
 import type { EarningsDay } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -11,6 +12,7 @@ import { cn } from "@/lib/utils";
  * Tap/click a bar to inspect its day; today is selected by default.
  */
 export function EarningsChart({ days }: { days: EarningsDay[] }) {
+  const t = useTranslations("earnings");
   const last14 = useMemo(() => days.slice(-14), [days]);
   const [selected, setSelected] = useState<number>(last14.length - 1);
 
@@ -34,11 +36,11 @@ export function EarningsChart({ days }: { days: EarningsDay[] }) {
           <p className="font-mono text-xl font-semibold">
             {formatInr(sel?.amountInr ?? 0)}
             <span className="ml-2 text-xs font-normal text-muted-foreground">
-              {sel ? `${sel.pickups} pickup${sel.pickups === 1 ? "" : "s"}` : ""}
+              {sel ? t("chartPickups", { count: sel.pickups }) : ""}
             </span>
           </p>
         </div>
-        <p className="text-[11px] text-muted-foreground">Last 14 days</p>
+        <p className="text-[11px] text-muted-foreground">{t("last14Days")}</p>
       </div>
 
       {/* Plot */}

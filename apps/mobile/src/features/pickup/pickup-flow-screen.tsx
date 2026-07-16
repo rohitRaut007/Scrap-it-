@@ -6,6 +6,7 @@ import {
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { CategoriesStep } from "@/features/pickup/components/steps/categories-step";
 import { ScheduleStep } from "@/features/pickup/components/steps/schedule-step";
@@ -32,6 +33,7 @@ import type {
 
 export function PickupFlowScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { categoryId } = useLocalSearchParams<{ categoryId?: string }>();
   const initialPrefill = useMemo(
@@ -152,13 +154,13 @@ export function PickupFlowScreen() {
     } catch (error) {
       console.warn("schedulePickup failed", error);
       Alert.alert(
-        "Could not schedule pickup",
-        "Something went wrong. Please try again.",
+        t("pickup.scheduleFailedTitle"),
+        t("pickup.scheduleFailedBody"),
       );
     } finally {
       setBusy(false);
     }
-  }, [draft]);
+  }, [draft, t]);
 
   const successId = successOrder?.id;
 
@@ -241,11 +243,11 @@ export function PickupFlowScreen() {
       >
         {stepId === "review" ? (
           <Button disabled={busy} loading={busy} onPress={() => void submit()}>
-            Confirm pickup
+            {t("pickup.confirmPickup")}
           </Button>
         ) : (
           <Button disabled={!canProceed} onPress={onContinue}>
-            Continue
+            {t("pickup.continue")}
           </Button>
         )}
       </View>

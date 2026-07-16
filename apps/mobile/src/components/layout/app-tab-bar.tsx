@@ -2,32 +2,23 @@ import { Pressable, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/cn";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/lib/theme";
 
-const tabs: {
+const tabDefs: {
   key: string;
-  label: string;
+  i18nKey: "home" | "map" | "orders" | "profile";
   icon: keyof typeof Ionicons.glyphMap;
   iconActive: keyof typeof Ionicons.glyphMap;
 }[] = [
-  { key: "home", label: "Home", icon: "home-outline", iconActive: "home" },
-  {
-    key: "map",
-    label: "Map",
-    icon: "map-outline",
-    iconActive: "map",
-  },
-  {
-    key: "orders",
-    label: "Orders",
-    icon: "time-outline",
-    iconActive: "time",
-  },
+  { key: "home", i18nKey: "home", icon: "home-outline", iconActive: "home" },
+  { key: "map", i18nKey: "map", icon: "map-outline", iconActive: "map" },
+  { key: "orders", i18nKey: "orders", icon: "time-outline", iconActive: "time" },
   {
     key: "profile",
-    label: "Profile",
+    i18nKey: "profile",
     icon: "person-outline",
     iconActive: "person",
   },
@@ -36,6 +27,11 @@ const tabs: {
 export function AppTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
+  const { t } = useTranslation();
+  const tabs = tabDefs.map((tab) => ({
+    ...tab,
+    label: t(`tabs.${tab.i18nKey}`),
+  }));
 
   return (
     <View
