@@ -6,7 +6,6 @@ export interface CollectorOrderCategory {
   categoryId: string;
   name: string;
   rateLabel: string;
-  baseRateInr: number;
   weightKg: number | null;
   rateInrPerKg: number | null;
   payoutInr: number | null;
@@ -34,6 +33,8 @@ export interface CollectorOrder {
   isAvailable: boolean;
   /** "manual" = logged by the collector for their own customer, not sourced from the app. */
   source: "app" | "manual";
+  /** Sequential per-collector receipt number; null until a receipt has been printed once. */
+  receiptNumber: number | null;
 }
 
 export interface OrderListResponse {
@@ -57,6 +58,12 @@ export interface CollectorProfile {
   totalCompleted: number;
   totalEarningsInr: number;
   memberSince: string;
+  shopName: string | null;
+  shopAddressText: string | null;
+  gstNumber: string | null;
+  showBusinessDetailsOnReceipt: boolean;
+  /** True when at least one of shopName/shopAddressText/gstNumber is set. */
+  hasBusinessDetails: boolean;
 }
 
 export interface CollectorSummary {
@@ -89,11 +96,12 @@ export interface CollectorEarnings {
   recentOrders: CollectorOrder[];
 }
 
-/** Category + today's platform rate, for the "Log a Pickup" weight entry screen. */
+/** Category + the collector's own saved rate, for the pickup weigh-in screens. */
 export interface RateCardItem {
   id: string;
   name: string;
   rateLabel: string;
-  baseRateInr: number;
+  /** Null when the collector hasn't set a rate for this category yet. */
+  rateInrPerKg: number | null;
   iconKey: string;
 }

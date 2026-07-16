@@ -27,6 +27,7 @@ import { CollectorUpdateStatusDto } from "./dto/collector-update-status.dto";
 import { CompleteOrderDto } from "./dto/complete-order.dto";
 import { LogPickupDto } from "./dto/log-pickup.dto";
 import { UpdateCollectorProfileDto } from "./dto/update-collector-profile.dto";
+import { UpsertRateCardDto } from "./dto/upsert-rate-card.dto";
 import {
   CollectorEarningsDto,
   CollectorOrderDto,
@@ -208,6 +209,22 @@ export class CollectorPortalService {
     if (dto.serviceArea !== undefined) {
       collectorData.serviceArea =
         dto.serviceArea.trim() === "" ? null : dto.serviceArea.trim();
+    }
+    if (dto.shopName !== undefined) {
+      collectorData.shopName =
+        dto.shopName.trim() === "" ? null : dto.shopName.trim();
+    }
+    if (dto.shopAddressText !== undefined) {
+      collectorData.shopAddressText =
+        dto.shopAddressText.trim() === "" ? null : dto.shopAddressText.trim();
+    }
+    if (dto.gstNumber !== undefined) {
+      collectorData.gstNumber =
+        dto.gstNumber.trim() === "" ? null : dto.gstNumber.trim();
+    }
+    if (dto.showBusinessDetailsOnReceipt !== undefined) {
+      collectorData.showBusinessDetailsOnReceipt =
+        dto.showBusinessDetailsOnReceipt;
     }
 
     await this.prisma.$transaction(async (tx) => {
@@ -616,15 +633,25 @@ export class CollectorPortalService {
 
     const attached = new Set(order.categories.map((c) => c.categoryId));
 
+    const overrideByCategory = new Map(
+      categories.map((c) => [c.id, itemByCategory.get(c.id)!.rateInrPerKg]),
+    );
+    const rateByCategory = await this.resolveCollectorRates(
+      collector.id,
+      categories,
+      overrideByCategory,
+    );
+
     // Pure computation — no need to hold a DB connection for this part.
     const categoryLines = categories.map((category) => {
       const item = itemByCategory.get(category.id)!;
       const weightKg = Math.round(item.weightKg * 100) / 100;
+      const rateInrPerKg = rateByCategory.get(category.id)!;
       return {
         categoryId: category.id,
         weightKg,
-        rateInrPerKg: category.baseRateInr,
-        payoutInr: Math.round(weightKg * category.baseRateInr),
+        rateInrPerKg,
+        payoutInr: Math.round(weightKg * rateInrPerKg),
         isNew: !attached.has(category.id),
       };
     });
@@ -831,6 +858,13 @@ export class CollectorPortalService {
       totalCompleted,
       totalEarningsInr,
       memberSince: collector.createdAt.toISOString(),
+      shopName: collector.shopName,
+      shopAddressText: collector.shopAddressText,
+      gstNumber: collector.gstNumber,
+      showBusinessDetailsOnReceipt: collector.showBusinessDetailsOnReceipt,
+      hasBusinessDetails: Boolean(
+        collector.shopName || collector.shopAddressText || collector.gstNumber,
+      ),
     };
   }
 
@@ -866,7 +900,6 @@ export class CollectorPortalService {
         categoryId: c.categoryId,
         name: c.category.name,
         rateLabel: c.category.rateLabel,
-        baseRateInr: c.category.baseRateInr,
         weightKg: c.weightKg ?? null,
         rateInrPerKg: c.rateInrPerKg ?? null,
         payoutInr: c.payoutInr ?? null,
@@ -881,6 +914,7 @@ export class CollectorPortalService {
       })),
       isAvailable,
       source: "app",
+      receiptNumber: order.receiptNumber ?? null,
     };
   }
 
@@ -906,18 +940,28 @@ export class CollectorPortalService {
       throw new UnprocessableEntityException("Unknown category in items");
     }
 
+    const overrideByCategory = new Map(
+      categories.map((c) => [c.id, itemByCategory.get(c.id)!.rateInrPerKg]),
+    );
+    const rateByCategory = await this.resolveCollectorRates(
+      collector.id,
+      categories,
+      overrideByCategory,
+    );
+
     let totalWeightKg = 0;
     let payoutInr = 0;
     const categoryLines = categories.map((category) => {
       const item = itemByCategory.get(category.id)!;
       const weightKg = Math.round(item.weightKg * 100) / 100;
-      const linePayout = Math.round(weightKg * category.baseRateInr);
+      const rateInrPerKg = rateByCategory.get(category.id)!;
+      const linePayout = Math.round(weightKg * rateInrPerKg);
       totalWeightKg += weightKg;
       payoutInr += linePayout;
       return {
         categoryId: category.id,
         weightKg,
-        rateInrPerKg: category.baseRateInr,
+        rateInrPerKg,
         payoutInr: linePayout,
       };
     });
@@ -940,25 +984,95 @@ export class CollectorPortalService {
     return this.toLogOrderDto(created as LogWithRelations);
   }
 
-  /** Categories + today's platform rates, for the "Log a Pickup" weigh screen. */
+  /** Categories + the collector's own saved rates, for the pickup weigh screens. */
   async getRateCard(authUser: AuthUser): Promise<CollectorRateCardItemDto[]> {
-    // The collector lookup only needs to lazily provision the row as a
-    // side effect — its result isn't used here, so it doesn't need to
-    // finish before we fetch categories. Run both round trips concurrently.
-    const [, categories] = await Promise.all([
-      this.getOrCreateCollector(authUser),
+    const collector = await this.getOrCreateCollector(authUser);
+    const [categories, rates] = await Promise.all([
       this.prisma.category.findMany({
         where: { active: true },
         orderBy: { name: "asc" },
       }),
+      this.prisma.collectorCategoryRate.findMany({
+        where: { collectorId: collector.id },
+      }),
     ]);
+    const rateByCategory = new Map(rates.map((r) => [r.categoryId, r.rateInrPerKg]));
     return categories.map((c) => ({
       id: c.id,
       name: c.name,
       rateLabel: c.rateLabel,
-      baseRateInr: c.baseRateInr,
+      rateInrPerKg: rateByCategory.get(c.id) ?? null,
       iconKey: c.iconKey,
     }));
+  }
+
+  /** Set/update the collector's own per-category buy-rate. */
+  async setRateCard(
+    authUser: AuthUser,
+    dto: UpsertRateCardDto,
+  ): Promise<CollectorRateCardItemDto[]> {
+    const collector = await this.getOrCreateCollector(authUser);
+
+    const categoryIds = dto.items.map((i) => i.categoryId);
+    const categories = await this.prisma.category.findMany({
+      where: { id: { in: categoryIds } },
+    });
+    if (categories.length !== new Set(categoryIds).size) {
+      throw new UnprocessableEntityException("Unknown category in items");
+    }
+
+    await this.prisma.$transaction(
+      dto.items.map((item) =>
+        this.prisma.collectorCategoryRate.upsert({
+          where: {
+            collectorId_categoryId: {
+              collectorId: collector.id,
+              categoryId: item.categoryId,
+            },
+          },
+          create: {
+            collectorId: collector.id,
+            categoryId: item.categoryId,
+            rateInrPerKg: item.rateInrPerKg,
+          },
+          update: { rateInrPerKg: item.rateInrPerKg },
+        }),
+      ),
+    );
+
+    return this.getRateCard(authUser);
+  }
+
+  /**
+   * Resolve the authoritative rate per category for this collector: a
+   * per-pickup override if the client sent one, otherwise the collector's
+   * saved rate card. Throws (named category) if neither exists — logging a
+   * pickup must never silently fall back to 0 or to the hidden platform rate.
+   */
+  private async resolveCollectorRates(
+    collectorId: string,
+    categories: Category[],
+    overrideByCategory: Map<string, number | undefined>,
+  ): Promise<Map<string, number>> {
+    const savedRates = await this.prisma.collectorCategoryRate.findMany({
+      where: { collectorId, categoryId: { in: categories.map((c) => c.id) } },
+    });
+    const savedByCategory = new Map(
+      savedRates.map((r) => [r.categoryId, r.rateInrPerKg]),
+    );
+
+    const resolved = new Map<string, number>();
+    for (const category of categories) {
+      const rate =
+        overrideByCategory.get(category.id) ?? savedByCategory.get(category.id);
+      if (rate === undefined) {
+        throw new UnprocessableEntityException(
+          `Set your rate for '${category.name}' before logging it`,
+        );
+      }
+      resolved.set(category.id, rate);
+    }
+    return resolved;
   }
 
   /** Maps a manual log into the same shape as a real order for frontend reuse. */
@@ -981,7 +1095,6 @@ export class CollectorPortalService {
         categoryId: c.categoryId,
         name: c.category.name,
         rateLabel: c.category.rateLabel,
-        baseRateInr: c.category.baseRateInr,
         weightKg: c.weightKg,
         rateInrPerKg: c.rateInrPerKg,
         payoutInr: c.payoutInr,
@@ -994,6 +1107,94 @@ export class CollectorPortalService {
       timeline: [],
       isAvailable: false,
       source: "manual",
+      receiptNumber: log.receiptNumber ?? null,
     };
+  }
+
+  /**
+   * Idempotently assign (or return the already-assigned) sequential
+   * per-collector receipt number for a completed order. The increment on
+   * Collector.receiptSequence row-locks in Postgres, serializing concurrent
+   * prints for the same collector; the conditional updateMany guards against
+   * a double-submit re-incrementing the same pickup's number.
+   */
+  async getOrAssignOrderReceiptNumber(
+    authUser: AuthUser,
+    orderId: string,
+  ): Promise<{ receiptNumber: number }> {
+    const collector = await this.getOrCreateCollector(authUser);
+    return this.prisma.$transaction(async (tx) => {
+      const order = await tx.pickupOrder.findUnique({
+        where: { id: orderId },
+        select: { collectorId: true, receiptNumber: true },
+      });
+      if (!order) throw new NotFoundException("Order not found");
+      if (order.collectorId !== collector.id) {
+        throw new ForbiddenException("This order is not assigned to you");
+      }
+      if (order.receiptNumber != null) {
+        return { receiptNumber: order.receiptNumber };
+      }
+
+      const updatedCollector = await tx.collector.update({
+        where: { id: collector.id },
+        data: { receiptSequence: { increment: 1 } },
+        select: { receiptSequence: true },
+      });
+      const claimed = await tx.pickupOrder.updateMany({
+        where: { id: orderId, receiptNumber: null },
+        data: { receiptNumber: updatedCollector.receiptSequence },
+      });
+      if (claimed.count === 0) {
+        // Lost a race to a concurrent call for this same order — the winner's
+        // number is authoritative; the increment we spent just leaves a
+        // harmless gap in the per-collector sequence.
+        const row = await tx.pickupOrder.findUniqueOrThrow({
+          where: { id: orderId },
+          select: { receiptNumber: true },
+        });
+        return { receiptNumber: row.receiptNumber! };
+      }
+      return { receiptNumber: updatedCollector.receiptSequence };
+    });
+  }
+
+  /** Same as getOrAssignOrderReceiptNumber(), for a manually logged pickup. */
+  async getOrAssignLogReceiptNumber(
+    authUser: AuthUser,
+    logId: string,
+  ): Promise<{ receiptNumber: number }> {
+    const collector = await this.getOrCreateCollector(authUser);
+    return this.prisma.$transaction(async (tx) => {
+      const log = await tx.pickupLog.findUnique({
+        where: { id: logId },
+        select: { collectorId: true, receiptNumber: true },
+      });
+      if (!log) throw new NotFoundException("Pickup log not found");
+      if (log.collectorId !== collector.id) {
+        throw new ForbiddenException("This pickup log is not yours");
+      }
+      if (log.receiptNumber != null) {
+        return { receiptNumber: log.receiptNumber };
+      }
+
+      const updatedCollector = await tx.collector.update({
+        where: { id: collector.id },
+        data: { receiptSequence: { increment: 1 } },
+        select: { receiptSequence: true },
+      });
+      const claimed = await tx.pickupLog.updateMany({
+        where: { id: logId, receiptNumber: null },
+        data: { receiptNumber: updatedCollector.receiptSequence },
+      });
+      if (claimed.count === 0) {
+        const row = await tx.pickupLog.findUniqueOrThrow({
+          where: { id: logId },
+          select: { receiptNumber: true },
+        });
+        return { receiptNumber: row.receiptNumber! };
+      }
+      return { receiptNumber: updatedCollector.receiptSequence };
+    });
   }
 }

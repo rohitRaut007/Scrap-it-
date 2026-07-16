@@ -83,6 +83,7 @@ model Category {
 
   pickupOrders        PickupOrderCategory[]
   pickupLogCategories PickupLogCategory[]
+  collectorRates      CollectorCategoryRate[]
 }
 
 model Collector {
@@ -93,12 +94,44 @@ model Collector {
   /// Permanent personal booking link slug, e.g. scrapit.app/book/<slug>
   bookingSlug String?  @unique
   serviceArea String?
+
+  /// Optional business details for printed receipts — never required, hidden
+  /// from a receipt entirely when all three are blank.
+  shopName        String?
+  shopAddressText String?
+  gstNumber       String?
+  /// Saved per-collector default for whether shopName/shopAddressText/gstNumber
+  /// appear on a receipt; overridable per-bill at print time (not persisted back).
+  showBusinessDetailsOnReceipt Boolean @default(false)
+
+  /// Sequential per-collector receipt numbering counter — incremented under a
+  /// row lock the first time a receipt is generated for a given pickup.
+  receiptSequence Int @default(0)
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   pickupOrders  PickupOrder[]
   pickupLogs    PickupLog[]
+  categoryRates CollectorCategoryRate[]
+}
+
+/// A collector's own buy-rate per category, replacing the platform's
+/// Category.baseRateInr as the authoritative payout rate for that collector.
+/// baseRateInr stays in schema for internal/admin reference only.
+model CollectorCategoryRate {
+  id           String   @id @default(uuid()) @db.Uuid
+  collectorId  String   @db.Uuid
+  categoryId   String   @db.Uuid
+  rateInrPerKg Float
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  collector Collector @relation(fields: [collectorId], references: [id], onDelete: Cascade)
+  category  Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([collectorId, categoryId])
 }
 
 /// A pickup a collector logs for their own existing customer, found
@@ -120,6 +153,8 @@ model PickupLog {
   payoutInr     Float?
   /// When the collector says the pickup happened — drives day-bucketing in earnings.
   loggedAt      DateTime @default(now())
+  /// Assigned lazily on first receipt print; reused (never re-incremented) on reprint.
+  receiptNumber Int?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -157,6 +192,8 @@ model PickupOrder {
   notes          String?
   completedAt    DateTime?
   cancelledAt    DateTime?
+  /// Assigned lazily on first receipt print; reused (never re-incremented) on reprint.
+  receiptNumber  Int?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 

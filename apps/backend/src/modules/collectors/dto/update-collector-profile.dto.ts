@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MaxLength } from "class-validator";
+import { IsBoolean, IsOptional, IsString, MaxLength } from "class-validator";
 
 export class UpdateCollectorProfileDto {
   @IsOptional()
@@ -20,4 +20,23 @@ export class UpdateCollectorProfileDto {
   @IsString()
   @MaxLength(160)
   serviceArea?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  shopName?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  shopAddressText?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  gstNumber?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  showBusinessDetailsOnReceipt?: boolean;
 }

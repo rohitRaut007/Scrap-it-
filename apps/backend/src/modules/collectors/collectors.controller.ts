@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Put,
   Query,
   UseGuards,
 } from "@nestjs/common";
@@ -22,6 +23,7 @@ import { CollectorUpdateStatusDto } from "./dto/collector-update-status.dto";
 import { CompleteOrderDto } from "./dto/complete-order.dto";
 import { LogPickupDto } from "./dto/log-pickup.dto";
 import { UpdateCollectorProfileDto } from "./dto/update-collector-profile.dto";
+import { UpsertRateCardDto } from "./dto/upsert-rate-card.dto";
 
 @Controller("collectors")
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -102,6 +104,14 @@ export class CollectorsController {
     return this.portal.complete(user, id, dto);
   }
 
+  @Post("me/orders/:id/receipt-number")
+  assignOrderReceiptNumber(
+    @CurrentUser() user: AuthUser,
+    @Param("id", new ParseUUIDPipe()) id: string,
+  ) {
+    return this.portal.getOrAssignOrderReceiptNumber(user, id);
+  }
+
   @Get("me/earnings")
   earnings(
     @CurrentUser() user: AuthUser,
@@ -116,8 +126,21 @@ export class CollectorsController {
     return this.portal.logPickup(user, dto);
   }
 
+  @Post("me/pickup-logs/:id/receipt-number")
+  assignLogReceiptNumber(
+    @CurrentUser() user: AuthUser,
+    @Param("id", new ParseUUIDPipe()) id: string,
+  ) {
+    return this.portal.getOrAssignLogReceiptNumber(user, id);
+  }
+
   @Get("me/rate-card")
   rateCard(@CurrentUser() user: AuthUser) {
     return this.portal.getRateCard(user);
+  }
+
+  @Put("me/rate-card")
+  setRateCard(@CurrentUser() user: AuthUser, @Body() dto: UpsertRateCardDto) {
+    return this.portal.setRateCard(user, dto);
   }
 }

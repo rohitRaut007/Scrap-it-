@@ -2,6 +2,7 @@
 
 import { use, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -23,6 +24,16 @@ import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/orders/status-badge";
 import { StatusStepper } from "@/components/orders/status-stepper";
 import { CompletePickupDialog } from "@/components/orders/complete-pickup-dialog";
+
+// @react-pdf/renderer is heavy — keep it out of this page's initial bundle
+// and only load it once the collector actually wants to print a receipt.
+const PrintReceiptButton = dynamic(
+  () =>
+    import("@/components/receipts/print-receipt-button").then(
+      (m) => m.PrintReceiptButton,
+    ),
+  { ssr: false },
+);
 import { useOrder } from "@/hooks/use-portal";
 import { collectorApi, ApiError } from "@/lib/api";
 import {
@@ -262,6 +273,14 @@ export default function OrderDetailPage({
           </>
         )}
       </div>
+
+      {/* Receipt */}
+      {(order.status === "completed" || order.source === "manual") && (
+        <PrintReceiptButton
+          order={order}
+          onReceiptNumberAssigned={() => mutate()}
+        />
+      )}
 
       {/* Notes */}
       {order.notes && (

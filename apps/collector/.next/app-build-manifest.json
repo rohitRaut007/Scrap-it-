@@ -6,11 +6,6 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/login/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/login/page.js"
-    ],
     "/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -26,6 +21,11 @@
       "static/chunks/main-app.js",
       "static/chunks/app/(portal)/dashboard/page.js"
     ],
+    "/login/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/login/page.js"
+    ],
     "/(portal)/earnings/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -35,6 +35,21 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(portal)/orders/page.js"
+    ],
+    "/(portal)/orders/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(portal)/orders/[id]/page.js"
+    ],
+    "/(portal)/profile/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(portal)/profile/page.js"
+    ],
+    "/(portal)/profile/rate-card/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(portal)/profile/rate-card/page.js"
     ]
   }
 }

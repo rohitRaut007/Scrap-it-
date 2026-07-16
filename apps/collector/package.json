@@ -12,6 +12,7 @@
     "lint": "pnpm exec next lint"
   },
   "dependencies": {
+    "@react-pdf/renderer": "^4.5.1",
     "@scrap-it/api-client": "workspace:*",
     "@scrap-it/design-tokens": "workspace:*",
     "@scrap-it/types": "workspace:*",

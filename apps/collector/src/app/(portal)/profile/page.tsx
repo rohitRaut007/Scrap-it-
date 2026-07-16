@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { LogOut, Pencil, Star } from "lucide-react";
+import { ChevronRight, LogOut, Pencil, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
 import { BookingQrCard } from "@/components/profile/booking-qr-card";
+import { BusinessDetailsForm } from "@/components/profile/business-details-form";
 import { useProfile } from "@/hooks/use-portal";
 import { collectorApi, ApiError } from "@/lib/api";
 import { supabase } from "@/lib/supabase";
@@ -202,6 +204,17 @@ export default function ProfilePage() {
           </dl>
         )}
       </div>
+
+      {/* Rate card */}
+      <Button variant="outline" className="w-full justify-between" asChild>
+        <Link href="/profile/rate-card">
+          {t("rateCardLink")}
+          <ChevronRight className="h-4 w-4" />
+        </Link>
+      </Button>
+
+      {/* Business details for receipts (all optional, privacy-gated) */}
+      <BusinessDetailsForm profile={profile} onSaved={() => mutate()} />
 
       {/* Sign out (mobile — desktop has it in the sidebar) */}
       <Button

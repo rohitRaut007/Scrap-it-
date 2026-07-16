@@ -21,6 +21,13 @@ export class LogPickupItemDto {
   @Min(0.1)
   @Max(10000)
   weightKg!: number;
+
+  /** Per-pickup override; defaults to the collector's saved rate card when omitted. */
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(100000)
+  rateInrPerKg?: number;
 }
 
 /** A pickup a collector logs for their own existing customer, found outside the app. */

@@ -1,7 +1,7 @@
 {
-  "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/login/page": "app/login/page.js",
   "/(portal)/dashboard/page": "app/(portal)/dashboard/page.js",
-  "/(portal)/earnings/page": "app/(portal)/earnings/page.js",
-  "/(portal)/orders/page": "app/(portal)/orders/page.js"
+  "/(portal)/orders/page": "app/(portal)/orders/page.js",
+  "/(portal)/orders/[id]/page": "app/(portal)/orders/[id]/page.js",
+  "/(portal)/profile/page": "app/(portal)/profile/page.js",
+  "/(portal)/profile/rate-card/page": "app/(portal)/profile/rate-card/page.js"
 }

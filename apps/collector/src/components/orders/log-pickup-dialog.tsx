@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { NotebookPen, X } from "lucide-react";
 import { toast } from "sonner";
@@ -41,6 +42,7 @@ export function LogPickupDialog({
   const [addressText, setAddressText] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [weights, setWeights] = useState<Record<string, string>>({});
+  const [rates, setRates] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
   const selected = useMemo(
@@ -51,17 +53,27 @@ export function LogPickupDialog({
   const lines = useMemo(
     () =>
       selected.map((c) => {
-        const raw = weights[c.id] ?? "";
-        const parsed = parseFloat(raw);
-        const weightKg = Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
-        return { ...c, weightKg, linePayout: Math.round(weightKg * c.baseRateInr) };
+        const rawWeight = weights[c.id] ?? "";
+        const parsedWeight = parseFloat(rawWeight);
+        const weightKg =
+          Number.isFinite(parsedWeight) && parsedWeight > 0 ? parsedWeight : 0;
+        const rawRate = rates[c.id] ?? (c.rateInrPerKg != null ? String(c.rateInrPerKg) : "");
+        const parsedRate = parseFloat(rawRate);
+        const rateInrPerKg = Number.isFinite(parsedRate) && parsedRate >= 0 ? parsedRate : null;
+        return {
+          ...c,
+          weightKg,
+          rateInrPerKg,
+          rawRate,
+          linePayout: rateInrPerKg != null ? Math.round(weightKg * rateInrPerKg) : 0,
+        };
       }),
-    [selected, weights],
+    [selected, weights, rates],
   );
 
   const totalPayout = lines.reduce((sum, l) => sum + l.linePayout, 0);
   const totalWeight = lines.reduce((sum, l) => sum + l.weightKg, 0);
-  const hasWeight = lines.some((l) => l.weightKg > 0);
+  const hasWeight = lines.some((l) => l.weightKg > 0 && l.rateInrPerKg != null);
   const canSubmit = customerName.trim().length > 0 && hasWeight && !submitting;
 
   const toggleCategory = (id: string) => {
@@ -82,12 +94,17 @@ export function LogPickupDialog({
     setAddressText("");
     setSelectedIds([]);
     setWeights({});
+    setRates({});
   };
 
   const handleSubmit = async () => {
     const items = lines
-      .filter((l) => l.weightKg > 0)
-      .map((l) => ({ categoryId: l.id, weightKg: l.weightKg }));
+      .filter((l) => l.weightKg > 0 && l.rateInrPerKg != null)
+      .map((l) => ({
+        categoryId: l.id,
+        weightKg: l.weightKg,
+        rateInrPerKg: l.rateInrPerKg!,
+      }));
     if (items.length === 0 || customerName.trim().length === 0) return;
 
     setSubmitting(true);
@@ -208,41 +225,64 @@ export function LogPickupDialog({
             <div className="space-y-2.5">
               <Label>{t("weightCollected")}</Label>
               {lines.map((line) => (
-                <div
-                  key={line.id}
-                  className="flex items-center gap-3 rounded-xl border p-3"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">{line.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      ₹{line.baseRateInr}/kg
-                    </p>
+                <div key={line.id} className="rounded-xl border p-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">{line.name}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        step="0.1"
+                        placeholder="0.0"
+                        autoFocus
+                        className="h-11 w-24 text-right"
+                        value={weights[line.id] ?? ""}
+                        onChange={(e) =>
+                          setWeights((w) => ({ ...w, [line.id]: e.target.value }))
+                        }
+                        disabled={submitting}
+                      />
+                      <span className="w-6 text-sm text-muted-foreground">kg</span>
+                      <button
+                        type="button"
+                        onClick={() => toggleCategory(line.id)}
+                        disabled={submitting}
+                        className="text-muted-foreground hover:text-foreground"
+                        aria-label={t("removeItem", { name: line.name })}
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">₹</span>
                     <Input
                       type="number"
                       inputMode="decimal"
                       min="0"
-                      step="0.1"
-                      placeholder="0.0"
-                      autoFocus
-                      className="h-11 w-24 text-right"
-                      value={weights[line.id] ?? ""}
+                      step="0.5"
+                      placeholder={t("ratePlaceholder")}
+                      className="h-9 w-24 text-right text-xs"
+                      value={line.rawRate}
                       onChange={(e) =>
-                        setWeights((w) => ({ ...w, [line.id]: e.target.value }))
+                        setRates((r) => ({ ...r, [line.id]: e.target.value }))
                       }
                       disabled={submitting}
                     />
-                    <span className="w-6 text-sm text-muted-foreground">kg</span>
-                    <button
-                      type="button"
-                      onClick={() => toggleCategory(line.id)}
-                      disabled={submitting}
-                      className="text-muted-foreground hover:text-foreground"
-                      aria-label={t("removeItem", { name: line.name })}
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
+                    <span className="text-xs text-muted-foreground">
+                      {t("perKg")}
+                    </span>
+                    {line.rateInrPerKg == null && (
+                      <Link
+                        href="/profile/rate-card"
+                        className="ml-auto text-xs font-medium text-primary underline"
+                      >
+                        {t("setRateLink")}
+                      </Link>
+                    )}
                   </div>
                 </div>
               ))}

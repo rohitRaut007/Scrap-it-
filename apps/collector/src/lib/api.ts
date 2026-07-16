@@ -83,6 +83,10 @@ export const collectorApi = {
     phone?: string;
     vehicleInfo?: string;
     serviceArea?: string;
+    shopName?: string;
+    shopAddressText?: string;
+    gstNumber?: string;
+    showBusinessDetailsOnReceipt?: boolean;
   }) => request<CollectorProfile>("/collectors/me", jsonInit("PATCH", data)),
   summary: () => request<CollectorSummary>("/collectors/me/summary"),
   availableOrders: (page = 1, pageSize = 20) =>
@@ -103,7 +107,10 @@ export const collectorApi = {
       `/collectors/me/orders/${id}/status`,
       jsonInit("PATCH", { status }),
     ),
-  complete: (id: string, items: { categoryId: string; weightKg: number }[]) =>
+  complete: (
+    id: string,
+    items: { categoryId: string; weightKg: number; rateInrPerKg?: number }[],
+  ) =>
     request<CollectorOrder>(
       `/collectors/me/orders/${id}/complete`,
       jsonInit("POST", { items }),
@@ -111,12 +118,27 @@ export const collectorApi = {
   earnings: (days = 30) =>
     request<CollectorEarnings>(`/collectors/me/earnings?days=${days}`),
   rateCard: () => request<RateCardItem[]>("/collectors/me/rate-card"),
+  updateRateCard: (items: { categoryId: string; rateInrPerKg: number }[]) =>
+    request<RateCardItem[]>(
+      "/collectors/me/rate-card",
+      jsonInit("PUT", { items }),
+    ),
   logPickup: (data: {
     customerName: string;
     customerPhone?: string;
     addressText?: string;
     notes?: string;
-    items: { categoryId: string; weightKg: number }[];
+    items: { categoryId: string; weightKg: number; rateInrPerKg?: number }[];
   }) =>
     request<CollectorOrder>("/collectors/me/pickup-logs", jsonInit("POST", data)),
+  orderReceiptNumber: (id: string) =>
+    request<{ receiptNumber: number }>(
+      `/collectors/me/orders/${id}/receipt-number`,
+      jsonInit("POST"),
+    ),
+  logReceiptNumber: (id: string) =>
+    request<{ receiptNumber: number }>(
+      `/collectors/me/pickup-logs/${id}/receipt-number`,
+      jsonInit("POST"),
+    ),
 };

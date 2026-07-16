@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Scale } from "lucide-react";
 import { toast } from "sonner";
@@ -15,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useRateCard } from "@/hooks/use-portal";
 import { collectorApi, ApiError } from "@/lib/api";
 import { formatInr } from "@/lib/format";
 import { revalidateCollectorData } from "@/lib/revalidate";
@@ -34,32 +36,50 @@ export function CompletePickupDialog({
   onCompleted,
 }: CompletePickupDialogProps) {
   const t = useTranslations("completePickup");
+  const { data: rateCard } = useRateCard();
   const [weights, setWeights] = useState<Record<string, string>>({});
+  const [rates, setRates] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+
+  const rateByCategory = useMemo(
+    () => new Map((rateCard ?? []).map((r) => [r.id, r.rateInrPerKg])),
+    [rateCard],
+  );
 
   const lines = useMemo(
     () =>
       order.categories.map((c) => {
-        const raw = weights[c.categoryId] ?? "";
-        const parsed = parseFloat(raw);
-        const weightKg = Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+        const rawWeight = weights[c.categoryId] ?? "";
+        const parsedWeight = parseFloat(rawWeight);
+        const weightKg =
+          Number.isFinite(parsedWeight) && parsedWeight > 0 ? parsedWeight : 0;
+        const savedRate = rateByCategory.get(c.categoryId) ?? null;
+        const rawRate = rates[c.categoryId] ?? (savedRate != null ? String(savedRate) : "");
+        const parsedRate = parseFloat(rawRate);
+        const rateInrPerKg = Number.isFinite(parsedRate) && parsedRate >= 0 ? parsedRate : null;
         return {
           ...c,
           weightKg,
-          linePayout: Math.round(weightKg * c.baseRateInr),
+          rateInrPerKg,
+          rawRate,
+          linePayout: rateInrPerKg != null ? Math.round(weightKg * rateInrPerKg) : 0,
         };
       }),
-    [order.categories, weights],
+    [order.categories, weights, rates, rateByCategory],
   );
 
   const totalPayout = lines.reduce((sum, l) => sum + l.linePayout, 0);
   const totalWeight = lines.reduce((sum, l) => sum + l.weightKg, 0);
-  const hasWeight = lines.some((l) => l.weightKg > 0);
+  const hasWeight = lines.some((l) => l.weightKg > 0 && l.rateInrPerKg != null);
 
   const handleSubmit = async () => {
     const items = lines
-      .filter((l) => l.weightKg > 0)
-      .map((l) => ({ categoryId: l.categoryId, weightKg: l.weightKg }));
+      .filter((l) => l.weightKg > 0 && l.rateInrPerKg != null)
+      .map((l) => ({
+        categoryId: l.categoryId,
+        weightKg: l.weightKg,
+        rateInrPerKg: l.rateInrPerKg!,
+      }));
     if (items.length === 0) return;
 
     setSubmitting(true);
@@ -97,40 +117,61 @@ export function CompletePickupDialog({
             </p>
           )}
           {lines.map((line) => (
-            <div
-              key={line.categoryId}
-              className="flex items-center gap-3 rounded-xl border p-3"
-            >
-              <div className="flex-1 min-w-0">
-                <Label
-                  htmlFor={`w-${line.categoryId}`}
-                  className="text-sm font-medium"
-                >
-                  {line.name}
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  ₹{line.baseRateInr}/kg
-                </p>
+            <div key={line.categoryId} className="rounded-xl border p-3">
+              <div className="flex items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <Label
+                    htmlFor={`w-${line.categoryId}`}
+                    className="text-sm font-medium"
+                  >
+                    {line.name}
+                  </Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id={`w-${line.categoryId}`}
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    step="0.1"
+                    placeholder="0.0"
+                    className="h-11 w-24 text-right"
+                    value={weights[line.categoryId] ?? ""}
+                    onChange={(e) =>
+                      setWeights((w) => ({
+                        ...w,
+                        [line.categoryId]: e.target.value,
+                      }))
+                    }
+                    disabled={submitting}
+                  />
+                  <span className="w-6 text-sm text-muted-foreground">kg</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">₹</span>
                 <Input
-                  id={`w-${line.categoryId}`}
                   type="number"
                   inputMode="decimal"
                   min="0"
-                  step="0.1"
-                  placeholder="0.0"
-                  className="h-11 w-24 text-right"
-                  value={weights[line.categoryId] ?? ""}
+                  step="0.5"
+                  placeholder={t("ratePlaceholder")}
+                  className="h-9 w-24 text-right text-xs"
+                  value={line.rawRate}
                   onChange={(e) =>
-                    setWeights((w) => ({
-                      ...w,
-                      [line.categoryId]: e.target.value,
-                    }))
+                    setRates((r) => ({ ...r, [line.categoryId]: e.target.value }))
                   }
                   disabled={submitting}
                 />
-                <span className="w-6 text-sm text-muted-foreground">kg</span>
+                <span className="text-xs text-muted-foreground">{t("perKg")}</span>
+                {line.rateInrPerKg == null && (
+                  <Link
+                    href="/profile/rate-card"
+                    className="ml-auto text-xs font-medium text-primary underline"
+                  >
+                    {t("setRateLink")}
+                  </Link>
+                )}
               </div>
             </div>
           ))}

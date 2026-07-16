@@ -3,6 +3,7 @@ import {
   ArrayMinSize,
   IsArray,
   IsNumber,
+  IsOptional,
   IsUUID,
   Max,
   Min,
@@ -17,6 +18,13 @@ export class CompleteOrderItemDto {
   @Min(0.1)
   @Max(10000)
   weightKg!: number;
+
+  /** Per-pickup override; defaults to the collector's saved rate card when omitted. */
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(100000)
+  rateInrPerKg?: number;
 }
 
 export class CompleteOrderDto {
