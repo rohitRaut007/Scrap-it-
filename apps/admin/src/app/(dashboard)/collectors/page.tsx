@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { toast } from "sonner";
 import { AlertTriangle, Star } from "lucide-react";
 import {
   Table,
@@ -10,12 +12,31 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCollectors } from "@/hooks/use-collectors";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useCollectors, updateCollectorStatus } from "@/hooks/use-collectors";
 import { formatRelative } from "@/lib/order-utils";
 
 export default function CollectorsPage() {
-  const { data, isLoading, error } = useCollectors();
+  const { data, isLoading, error, mutate } = useCollectors();
   const collectors = data?.data ?? [];
+  const [pendingId, setPendingId] = useState<string | null>(null);
+
+  const handleToggleStatus = async (id: string, currentStatus: "active" | "suspended") => {
+    const nextStatus = currentStatus === "active" ? "suspended" : "active";
+    setPendingId(id);
+    try {
+      await updateCollectorStatus(id, nextStatus);
+      toast.success(
+        nextStatus === "suspended" ? "Collector suspended" : "Collector reactivated",
+      );
+      await mutate();
+    } catch {
+      toast.error("Couldn't update collector status");
+    } finally {
+      setPendingId(null);
+    }
+  };
 
   return (
     <div>
@@ -30,13 +51,15 @@ export default function CollectorsPage() {
               <TableHead className="hidden sm:table-cell">Rating</TableHead>
               <TableHead className="hidden md:table-cell">Phone</TableHead>
               <TableHead className="hidden lg:table-cell">Joined</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead />
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading &&
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
-                  {Array.from({ length: 5 }).map((_, j) => (
+                  {Array.from({ length: 7 }).map((_, j) => (
                     <TableCell key={j}>
                       <Skeleton className="h-4 w-full" />
                     </TableCell>
@@ -46,7 +69,7 @@ export default function CollectorsPage() {
 
             {!isLoading && collectors.length === 0 && !error && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                   No collectors registered yet.
                 </TableCell>
               </TableRow>
@@ -88,6 +111,21 @@ export default function CollectorsPage() {
                     <span className="text-sm text-muted-foreground">
                       {formatRelative(c.createdAt)}
                     </span>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={c.status === "suspended" ? "destructive" : "secondary"}>
+                      {c.status === "suspended" ? "Suspended" : "Active"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      size="sm"
+                      variant={c.status === "suspended" ? "outline" : "destructive"}
+                      disabled={pendingId === c.id}
+                      onClick={() => handleToggleStatus(c.id, c.status)}
+                    >
+                      {c.status === "suspended" ? "Reactivate" : "Suspend"}
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

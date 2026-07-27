@@ -23,9 +23,6 @@ importers:
       '@scrap-it/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
-      '@scrap-it/design-tokens':
-        specifier: workspace:*
-        version: link:../../packages/design-tokens
       '@scrap-it/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -126,6 +123,9 @@ importers:
       '@prisma/client':
         specifier: ^6.7.0
         version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
+      '@scrap-it/constants':
+        specifier: workspace:*
+        version: link:../../packages/constants
       '@scrap-it/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -202,6 +202,9 @@ importers:
       '@scrap-it/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@scrap-it/constants':
+        specifier: workspace:*
+        version: link:../../packages/constants
       '@scrap-it/design-tokens':
         specifier: workspace:*
         version: link:../../packages/design-tokens

@@ -33,6 +33,7 @@ export interface PickupOrder {
   photoUrls?: string[];
   createdAt?: string;
   cancelledAt?: string | null;
+  hasRating?: boolean;
 }
 
 export interface AddressSummary {
@@ -59,5 +60,15 @@ export interface User {
 export interface AnalyticsSummary {
   pickupsCompleted: number;
   weightKgApprox: number;
-  estimatedPayoutInr: number;
+  /** `null` when the estimate isn't available yet — never render as ₹0. */
+  estimatedPayoutInr: number | null;
+}
+
+export interface AppNotification {
+  id: string;
+  title: string | null;
+  body: string | null;
+  payload: unknown;
+  readAt: string | null;
+  createdAt: string;
 }

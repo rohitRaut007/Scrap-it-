@@ -25,6 +25,7 @@ export class OrderDto {
   photoUrls!: string[];
   createdAt!: string;
   cancelledAt!: string | null;
+  hasRating!: boolean;
 }
 
 export class OrderResponse {

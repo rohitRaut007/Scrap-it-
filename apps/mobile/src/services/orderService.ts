@@ -52,4 +52,8 @@ export const orderService = {
     });
     return res.data;
   },
+
+  async rate(id: string, score: number, comment?: string): Promise<{ ok: true }> {
+    return api.post<{ ok: true }>(`/orders/${id}/rating`, { score, comment });
+  },
 };

@@ -3,6 +3,7 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  UnprocessableEntityException,
 } from "@nestjs/common";
 import {
   Address,
@@ -17,6 +18,7 @@ import { CancelOrderDto } from "./dto/cancel-order.dto";
 import { CreateOrderDto } from "./dto/create-order.dto";
 import { ListOrdersQueryDto } from "./dto/list-orders-query.dto";
 import { OrderDto } from "./dto/order.dto";
+import { RateOrderDto } from "./dto/rate-order.dto";
 
 const ACTIVE_STATUSES: OrderStatus[] = [
   OrderStatus.scheduled,
@@ -34,12 +36,14 @@ type OrderWithRelations = PickupOrder & {
   address: Address;
   categories: { categoryId: string }[];
   photos: PickupOrderPhoto[];
+  rating: { id: string } | null;
 };
 
 const ORDER_INCLUDE = {
   address: true,
   categories: { select: { categoryId: true } },
   photos: true,
+  rating: { select: { id: true } },
 } satisfies Prisma.PickupOrderInclude;
 
 @Injectable()
@@ -251,6 +255,57 @@ export class OrdersService {
     return this.toDto(updated);
   }
 
+  async rate(
+    userId: string,
+    orderId: string,
+    dto: RateOrderDto,
+  ): Promise<{ ok: true }> {
+    const order = await this.prisma.pickupOrder.findFirst({
+      where: { id: orderId, customerId: userId },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    if (order.status !== OrderStatus.completed) {
+      throw new UnprocessableEntityException(
+        "Only completed orders can be rated",
+      );
+    }
+    if (!order.collectorId) {
+      throw new UnprocessableEntityException("Order has no collector to rate");
+    }
+
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.rating.create({
+          data: {
+            orderId,
+            customerId: userId,
+            collectorId: order.collectorId!,
+            score: dto.score,
+            comment: dto.comment,
+          },
+        });
+        const agg = await tx.rating.aggregate({
+          where: { collectorId: order.collectorId! },
+          _avg: { score: true },
+        });
+        await tx.collector.update({
+          where: { id: order.collectorId! },
+          data: { rating: agg._avg.score },
+        });
+      });
+    } catch (err) {
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === "P2002"
+      ) {
+        throw new ConflictException("Order already rated");
+      }
+      throw err;
+    }
+
+    return { ok: true };
+  }
+
   private async toDto(row: OrderWithRelations): Promise<OrderDto> {
     const photoUrls = (
       await Promise.all(
@@ -274,6 +329,7 @@ export class OrdersService {
       photoUrls,
       createdAt: row.createdAt.toISOString(),
       cancelledAt: row.cancelledAt ? row.cancelledAt.toISOString() : null,
+      hasRating: row.rating !== null,
     };
   }
 }

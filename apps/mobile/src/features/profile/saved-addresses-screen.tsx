@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Alert, Pressable, ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { AppHeader } from "@/components/layout/app-header";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
@@ -14,21 +15,25 @@ import { formatAddressSummary } from "@/lib/formatAddress";
 import type { AddressSummary } from "@/types/domain";
 import { useAppTheme } from "@/lib/theme";
 
-function describeError(err: unknown): string {
-  if (err instanceof ApiError) return `${err.message} (HTTP ${err.status})`;
-  if (err instanceof Error) return err.message;
-  return "Something went wrong.";
-}
-
 export function SavedAddressesScreen() {
   const router = useRouter();
   const { colors } = useAppTheme();
+  const { t } = useTranslation();
   const [addresses, setAddresses] = useState<AddressSummary[]>([]);
   const [loadState, setLoadState] = useState<"pending" | "ok" | "error">(
     "pending",
   );
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const describeError = useCallback(
+    (err: unknown): string => {
+      if (err instanceof ApiError) return `${err.message} (HTTP ${err.status})`;
+      if (err instanceof Error) return err.message;
+      return t("savedAddresses.genericError");
+    },
+    [t],
+  );
 
   const load = useCallback(async () => {
     setLoadState("pending");
@@ -41,7 +46,7 @@ export function SavedAddressesScreen() {
       setError(describeError(e));
       setLoadState("error");
     }
-  }, []);
+  }, [describeError]);
 
   useEffect(() => {
     void load();
@@ -55,48 +60,52 @@ export function SavedAddressesScreen() {
         await addressService.setDefault(id);
         await load();
       } catch (e) {
-        Alert.alert("Couldn't update default", describeError(e));
+        Alert.alert(t("savedAddresses.updateDefaultErrorTitle"), describeError(e));
       } finally {
         setBusyId(null);
       }
     },
-    [busyId, load],
+    [busyId, load, describeError, t],
   );
 
   const remove = useCallback(
     (id: string) => {
       if (busyId) return;
-      Alert.alert("Delete address", "This cannot be undone.", [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            setBusyId(id);
-            try {
-              await addressService.remove(id);
-              await load();
-            } catch (e) {
-              Alert.alert("Couldn't delete", describeError(e));
-            } finally {
-              setBusyId(null);
-            }
+      Alert.alert(
+        t("savedAddresses.deleteConfirmTitle"),
+        t("savedAddresses.deleteConfirmBody"),
+        [
+          { text: t("savedAddresses.deleteConfirmCancel"), style: "cancel" },
+          {
+            text: t("savedAddresses.deleteConfirmAction"),
+            style: "destructive",
+            onPress: async () => {
+              setBusyId(id);
+              try {
+                await addressService.remove(id);
+                await load();
+              } catch (e) {
+                Alert.alert(t("savedAddresses.deleteErrorTitle"), describeError(e));
+              } finally {
+                setBusyId(null);
+              }
+            },
           },
-        },
-      ]);
+        ],
+      );
     },
-    [busyId, load],
+    [busyId, load, describeError, t],
   );
 
   return (
     <Screen>
-      <AppHeader title="Saved addresses" onBack={() => router.back()} />
+      <AppHeader title={t("savedAddresses.title")} onBack={() => router.back()} />
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
       >
         <Text variant="muted" className="mb-4 text-[14px]">
-          These are the addresses we&apos;ll offer when you schedule a pickup.
+          {t("savedAddresses.intro")}
         </Text>
 
         {loadState === "pending" ? (
@@ -107,7 +116,7 @@ export function SavedAddressesScreen() {
         ) : loadState === "error" ? (
           <Card className="border-destructive/25 dark:border-red-400/30">
             <Text className="text-[14px] text-foreground">
-              Couldn&apos;t load addresses. Check your connection and try again.
+              {t("savedAddresses.loadError")}
             </Text>
             {error ? (
               <Text variant="muted" className="mt-1 text-[12px]">
@@ -116,17 +125,17 @@ export function SavedAddressesScreen() {
             ) : null}
             <Pressable onPress={() => void load()} className="mt-3 self-start">
               <Text className="text-[14px] font-semibold text-primary dark:text-emerald-300">
-                Retry
+                {t("savedAddresses.retry")}
               </Text>
             </Pressable>
           </Card>
         ) : addresses.length === 0 ? (
           <Card>
             <Text className="text-[14px] text-foreground">
-              You haven&apos;t saved any addresses yet.
+              {t("savedAddresses.emptyTitle")}
             </Text>
             <Text variant="muted" className="mt-1 text-[13px]">
-              Add one to schedule pickups faster next time.
+              {t("savedAddresses.emptyBody")}
             </Text>
           </Card>
         ) : (
@@ -144,11 +153,11 @@ export function SavedAddressesScreen() {
                   <View className="min-w-0 flex-1">
                     <View className="flex-row flex-wrap items-center gap-2">
                       <Text className="font-semibold text-foreground">
-                        {a.label?.trim() || "Address"}
+                        {a.label?.trim() || t("savedAddresses.addressFallback")}
                       </Text>
                       {a.isDefault ? (
                         <Text className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary dark:bg-emerald-400/15 dark:text-emerald-300">
-                          Default
+                          {t("savedAddresses.default")}
                         </Text>
                       ) : null}
                     </View>
@@ -164,7 +173,7 @@ export function SavedAddressesScreen() {
                     onPress={() => router.push(`/saved-addresses/${a.id}/edit`)}
                     disabled={busyId === a.id}
                   >
-                    Edit
+                    {t("savedAddresses.edit")}
                   </Button>
                   {!a.isDefault ? (
                     <Button
@@ -174,7 +183,7 @@ export function SavedAddressesScreen() {
                       disabled={busyId === a.id}
                       loading={busyId === a.id}
                     >
-                      Make default
+                      {t("savedAddresses.makeDefault")}
                     </Button>
                   ) : null}
                   <Button
@@ -183,7 +192,7 @@ export function SavedAddressesScreen() {
                     onPress={() => remove(a.id)}
                     disabled={busyId === a.id}
                   >
-                    Delete
+                    {t("savedAddresses.delete")}
                   </Button>
                 </View>
               </Card>
@@ -196,7 +205,7 @@ export function SavedAddressesScreen() {
           onPress={() => router.push("/saved-addresses/new")}
           disabled={loadState === "pending"}
         >
-          Add new address
+          {t("savedAddresses.addNew")}
         </Button>
       </ScrollView>
     </Screen>

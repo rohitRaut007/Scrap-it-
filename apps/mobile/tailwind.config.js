@@ -73,7 +73,9 @@ module.exports = {
         },
       },
       borderRadius: {
-        // Ledger aesthetic: hard cap at 8px — no soft-modern rounding
+        // Ledger aesthetic: 6px base, 8px cap on xl+ (cards/large surfaces).
+        // Circular elements (avatars/pills/toggles) intentionally use
+        // rounded-full — an exemption from this cap, not a violation of it.
         lg: "6px",
         xl: "8px",
         "2xl": "8px",

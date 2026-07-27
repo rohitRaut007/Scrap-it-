@@ -32,6 +32,42 @@ enum NotificationChannel {
   in_app
 }
 
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+}
+
+enum ClientType {
+  SOCIETY
+  CORPORATE
+  RESTAURANT
+  FACTORY
+  OFFICE
+  PROCESSOR
+}
+
+enum BillType {
+  RESIDENTIAL
+  COMMERCIAL
+}
+
+enum TimelineEventType {
+  created
+  assigned
+  en_route
+  arriving
+  completed
+  cancelled
+  declined
+}
+
+enum CollectorStatus {
+  active
+  suspended
+}
+
 model User {
   id               String   @id @db.Uuid
   email            String   @unique
@@ -42,32 +78,33 @@ model User {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  addresses        Address[]
-  defaultAddress   Address? @relation("UserDefaultAddress", fields: [defaultAddressId], references: [id], onDelete: SetNull)
-  pickupOrders     PickupOrder[] @relation("CustomerOrders")
-  collector        Collector?
-  notifications    Notification[]
+  addresses          Address[]
+  defaultAddress     Address?            @relation("UserDefaultAddress", fields: [defaultAddressId], references: [id], onDelete: SetNull)
+  pickupOrders       PickupOrder[]       @relation("CustomerOrders")
+  collector          Collector?
+  notifications      Notification[]
   idempotencyRecords IdempotencyRecord[]
+  ratingsGiven       Rating[]
 }
 
 model Address {
-  id          String   @id @default(uuid()) @db.Uuid
-  userId      String   @db.Uuid
-  label       String?
-  line1       String
-  line2       String?
-  city        String
-  region      String?
-  postalCode  String?
-  country     String    @default("IN")
-  latitude    Float?
-  longitude   Float?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  label      String?
+  line1      String
+  line2      String?
+  city       String
+  region     String?
+  postalCode String?
+  country    String   @default("IN")
+  latitude   Float?
+  longitude  Float?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   pickupOrders    PickupOrder[]
-  defaultedByUser User?          @relation("UserDefaultAddress")
+  defaultedByUser User?         @relation("UserDefaultAddress")
 }
 
 model Category {
@@ -87,19 +124,20 @@ model Category {
 }
 
 model Collector {
-  id          String   @id @default(uuid()) @db.Uuid
-  userId      String   @unique @db.Uuid
+  id          String          @id @default(uuid()) @db.Uuid
+  userId      String          @unique @db.Uuid
   vehicleInfo String?
   rating      Float?
+  status      CollectorStatus @default(active)
   /// Permanent personal booking link slug, e.g. scrapit.app/book/<slug>
-  bookingSlug String?  @unique
+  bookingSlug String? @unique
   serviceArea String?
 
   /// Optional business details for printed receipts — never required, hidden
   /// from a receipt entirely when all three are blank.
-  shopName        String?
-  shopAddressText String?
-  gstNumber       String?
+  shopName                     String?
+  shopAddressText              String?
+  gstNumber                    String?
   /// Saved per-collector default for whether shopName/shopAddressText/gstNumber
   /// appear on a receipt; overridable per-bill at print time (not persisted back).
   showBusinessDetailsOnReceipt Boolean @default(false)
@@ -108,13 +146,32 @@ model Collector {
   /// row lock the first time a receipt is generated for a given pickup.
   receiptSequence Int @default(0)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  /// Optional invoice letterhead details — separate from the receipt business
+  /// details above since invoices are a distinct printed document.
+  businessTagline String?
+  /// Cheque payee name shown on invoices; defaults per-invoice from here.
+  payableTo       String?
+  /// Hex accent color for the invoice letterhead/rules; null = design-system default.
+  accentColor     String?
+  /// Sequential per-collector RES-### numbering counter (residential bills),
+  /// same mechanism as receiptSequence, tracked separately per bill type.
+  residentialInvoiceSequence Int @default(0)
+  /// Sequential per-collector COM-### numbering counter (commercial invoices).
+  commercialInvoiceSequence  Int @default(0)
+  /// Default Terms & Conditions text for new commercial invoices — optional,
+  /// per-invoice-overridable, same pattern as businessTagline/payableTo.
+  defaultTermsAndConditions String? @db.Text
 
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user          User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   pickupOrders  PickupOrder[]
   pickupLogs    PickupLog[]
   categoryRates CollectorCategoryRate[]
+  clients       Client[]
+  invoices      Invoice[]
+  ratings       Rating[]
 }
 
 /// A collector's own buy-rate per category, replacing the platform's
@@ -179,33 +236,35 @@ model PickupLogCategory {
 }
 
 model PickupOrder {
-  id             String       @id @default(uuid()) @db.Uuid
-  customerId     String       @db.Uuid
-  status         OrderStatus  @default(scheduled)
-  scheduledAt    DateTime
-  addressId      String       @db.Uuid
-  collectorId    String?      @db.Uuid
-  etaMinutes     Int?
-  totalWeightKg  Float?
+  id            String      @id @default(uuid()) @db.Uuid
+  customerId    String      @db.Uuid
+  status        OrderStatus @default(scheduled)
+  scheduledAt   DateTime
+  addressId     String      @db.Uuid
+  collectorId   String?     @db.Uuid
+  etaMinutes    Int?
+  totalWeightKg Float?
   /// Total ₹ payout to the customer, computed at completion (Σ weightKg × baseRateInr).
-  payoutInr      Float?
-  notes          String?
-  completedAt    DateTime?
-  cancelledAt    DateTime?
+  payoutInr     Float?
+  notes         String?
+  completedAt   DateTime?
+  cancelledAt   DateTime?
   /// Assigned lazily on first receipt print; reused (never re-incremented) on reprint.
-  receiptNumber  Int?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  receiptNumber Int?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
-  customer    User      @relation("CustomerOrders", fields: [customerId], references: [id], onDelete: Cascade)
-  address     Address   @relation(fields: [addressId], references: [id])
-  collector   Collector? @relation(fields: [collectorId], references: [id])
-  categories  PickupOrderCategory[]
-  timeline    PickupTimeline[]
-  photos      PickupOrderPhoto[]
+  customer   User                  @relation("CustomerOrders", fields: [customerId], references: [id], onDelete: Cascade)
+  address    Address               @relation(fields: [addressId], references: [id])
+  collector  Collector?            @relation(fields: [collectorId], references: [id])
+  categories PickupOrderCategory[]
+  timeline   PickupTimeline[]
+  photos     PickupOrderPhoto[]
+  rating     Rating?
 
   @@index([customerId, createdAt])
   @@index([customerId, status])
+  @@index([collectorId, status])
 }
 
 model PickupOrderCategory {
@@ -225,23 +284,41 @@ model PickupOrderCategory {
 }
 
 model PickupTimeline {
-  id          String   @id @default(uuid()) @db.Uuid
-  orderId     String   @db.Uuid
-  eventType   String
-  occurredAt  DateTime @default(now())
-  metadata    Json?
+  id         String            @id @default(uuid()) @db.Uuid
+  orderId    String            @db.Uuid
+  eventType  TimelineEventType
+  occurredAt DateTime          @default(now())
+  metadata   Json?
 
   order PickupOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId, occurredAt])
 }
 
+/// A household's 1-5 rating (+ optional comment) of the collector on a
+/// completed order — exactly one per order, never edited or deleted.
+model Rating {
+  id          String   @id @default(uuid()) @db.Uuid
+  orderId     String   @unique @db.Uuid
+  customerId  String   @db.Uuid
+  collectorId String   @db.Uuid
+  score       Int
+  comment     String?
+  createdAt   DateTime @default(now())
+
+  order     PickupOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customer  User        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  collector Collector   @relation(fields: [collectorId], references: [id], onDelete: Cascade)
+
+  @@index([collectorId])
+}
+
 model PickupOrderPhoto {
-  id          String      @id @default(uuid()) @db.Uuid
-  orderId     String      @db.Uuid
-  storageKey  String      @unique
+  id          String   @id @default(uuid()) @db.Uuid
+  orderId     String   @db.Uuid
+  storageKey  String   @unique
   contentType String
-  createdAt   DateTime    @default(now())
+  createdAt   DateTime @default(now())
 
   order PickupOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
@@ -261,16 +338,107 @@ model IdempotencyRecord {
 }
 
 model Notification {
-  id        String               @id @default(uuid()) @db.Uuid
-  userId    String               @db.Uuid
-  channel   NotificationChannel  @default(in_app)
+  id        String              @id @default(uuid()) @db.Uuid
+  userId    String              @db.Uuid
+  channel   NotificationChannel @default(in_app)
   title     String?
   body      String?
   payload   Json?
   readAt    DateTime?
-  createdAt DateTime             @default(now())
+  createdAt DateTime            @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+/// A collector's own recurring billing account (a site/society they invoice
+/// monthly) — exists only to give Invoice a stable identity across months.
+/// Deliberately NOT linked to PickupLog/PickupOrder or to a real User; scoped
+/// purely to invoicing so it can't be mistaken for the marketplace customer
+/// relationship those models intentionally avoid (see PickupLog's own doc comment).
+model Client {
+  id          String     @id @default(uuid()) @db.Uuid
+  collectorId String     @db.Uuid
+  /// Controlled taxonomy — drives which bill template/numbering series applies
+  /// (see resolveBillType in @scrap-it/constants). SOCIETY -> Residential Bill,
+  /// everything else -> Commercial Invoice.
+  type        ClientType
+  siteName    String
+  /// Descriptive line under the entity name, e.g. "Residential Society" /
+  /// "Commercial Premises" — suggested default from DEFAULT_PREMISES_TYPE,
+  /// editable. Same underlying column as the old free-text siteType field.
+  premisesType String? @map("siteType")
+  /// Bold display name on the bill ("Home Rising Residential"), distinct from
+  /// siteName. Falls back to siteName at render time when blank.
+  entityName  String?
+  /// Client's own GSTIN (not the collector's) — printed when present, omitted
+  /// entirely otherwise. Display-only, no strict format validation.
+  gstin       String?
+  contactName String?
+  phone       String?
+  /// Site / ship-to address.
+  addressText String?
+  /// Bill-to address, only when it differs from the site address (e.g. billed
+  /// through a managing entity) — null means "same as addressText".
+  billToAddressText String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  collector Collector @relation(fields: [collectorId], references: [id], onDelete: Cascade)
+  invoices  Invoice[]
+
+  @@index([collectorId])
+}
+
+model Invoice {
+  id            String        @id @default(uuid()) @db.Uuid
+  collectorId   String        @db.Uuid
+  clientId      String        @db.Uuid
+  /// Which document/numbering series this invoice belongs to — derived once
+  /// from the client's type at creation time and frozen forever after, even
+  /// if the client's own type is edited later.
+  billType      BillType
+  /// Assigned lazily on first generate, same pattern as receiptNumber — null while DRAFT.
+  /// Scoped to billType — RES-### and COM-### are independent sequences.
+  invoiceNumber Int?
+  billingMonth  Int
+  billingYear   Int
+  /// Set when generated (DRAFT -> SENT); null while still a draft.
+  issuedAt      DateTime?
+  status        InvoiceStatus @default(DRAFT)
+  /// Cheque payee name; defaults from Collector.payableTo, editable per invoice.
+  payableTo     String?
+  /// Commercial-only — null/ignored for RESIDENTIAL invoices.
+  referencePoNumber   String?
+  termsOfPayment      String?
+  termsAndConditions  String? @db.Text
+  subtotal      Float
+  total         Float
+  /// Computed server-side at generate time — Indian numbering (lakh/crore).
+  amountInWords String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  collector Collector     @relation(fields: [collectorId], references: [id], onDelete: Cascade)
+  client    Client        @relation(fields: [clientId], references: [id])
+  items     InvoiceItem[]
+
+  @@index([collectorId, billingYear, billingMonth])
+  @@index([clientId])
+}
+
+model InvoiceItem {
+  id          String @id @default(uuid()) @db.Uuid
+  invoiceId   String @db.Uuid
+  description String
+  quantity    Float
+  unit        String @default("Units")
+  rate        Float
+  /// quantity * rate, computed server-side.
+  amount      Float
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
 }

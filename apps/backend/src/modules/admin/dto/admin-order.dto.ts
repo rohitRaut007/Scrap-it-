@@ -1,4 +1,4 @@
-import type { OrderStatus } from "@prisma/client";
+import type { CollectorStatus, OrderStatus } from "@prisma/client";
 
 export class CollectorInfoDto {
   id!: string;
@@ -58,6 +58,7 @@ export class CollectorAdminDto {
   phone!: string | null;
   vehicleInfo!: string | null;
   rating!: number | null;
+  status!: CollectorStatus;
   createdAt!: string;
 }
 

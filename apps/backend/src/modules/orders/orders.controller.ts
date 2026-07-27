@@ -18,6 +18,7 @@ import type { AuthUser } from "../auth/strategies/supabase-jwt.strategy";
 import { CancelOrderDto } from "./dto/cancel-order.dto";
 import { CreateOrderDto } from "./dto/create-order.dto";
 import { ListOrdersQueryDto } from "./dto/list-orders-query.dto";
+import { RateOrderDto } from "./dto/rate-order.dto";
 import {
   ActiveOrderResponse,
   OrderListResponse,
@@ -89,5 +90,15 @@ export class OrdersController {
     if (!user) throw new UnauthorizedException();
     const data = await this.orders.cancel(user.id, id, dto);
     return { data };
+  }
+
+  @Post(":id/rating")
+  async rate(
+    @CurrentUser() user: AuthUser | undefined,
+    @Param("id", new ParseUUIDPipe({ version: "4" })) id: string,
+    @Body() dto: RateOrderDto,
+  ) {
+    if (!user) throw new UnauthorizedException();
+    return this.orders.rate(user.id, id, dto);
   }
 }

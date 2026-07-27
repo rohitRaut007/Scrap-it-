@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Alert, ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { AppHeader } from "@/components/layout/app-header";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
@@ -16,15 +17,19 @@ export interface AddressFormScreenProps {
   addressId?: string;
 }
 
-function describeError(err: unknown, fallback: string): string {
-  if (err instanceof ApiError) return `${err.message} (HTTP ${err.status})`;
-  if (err instanceof Error) return err.message;
-  return fallback;
-}
-
 export function AddressFormScreen({ addressId }: AddressFormScreenProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const isEdit = Boolean(addressId);
+
+  const describeError = useCallback(
+    (err: unknown, fallback: string): string => {
+      if (err instanceof ApiError) return `${err.message} (HTTP ${err.status})`;
+      if (err instanceof Error) return err.message;
+      return fallback;
+    },
+    [],
+  );
 
   const [label, setLabel] = useState("");
   const [line1, setLine1] = useState("");
@@ -50,16 +55,16 @@ export function AddressFormScreen({ addressId }: AddressFormScreenProps) {
       const match = all.find((a) => a.id === addressId);
       if (!match) {
         setLoadState("error");
-        setError("Address not found.");
+        setError(t("addressForm.notFound"));
         return;
       }
       hydrate(match);
       setLoadState("ok");
     } catch (e) {
-      setError(describeError(e, "Couldn't load address."));
+      setError(describeError(e, t("addressForm.loadError")));
       setLoadState("error");
     }
-  }, [addressId]);
+  }, [addressId, describeError, t]);
 
   function hydrate(a: AddressSummary) {
     setLabel(a.label ?? "");
@@ -79,7 +84,7 @@ export function AddressFormScreen({ addressId }: AddressFormScreenProps) {
   const save = useCallback(async () => {
     if (busy) return;
     if (!line1.trim() || !city.trim()) {
-      setError("Address line 1 and city are required.");
+      setError(t("addressForm.requiredFieldsError"));
       return;
     }
     setBusy(true);
@@ -102,7 +107,7 @@ export function AddressFormScreen({ addressId }: AddressFormScreenProps) {
       }
       router.back();
     } catch (e) {
-      setError(describeError(e, "Couldn't save address."));
+      setError(describeError(e, t("addressForm.saveError")));
     } finally {
       setBusy(false);
     }
@@ -111,6 +116,7 @@ export function AddressFormScreen({ addressId }: AddressFormScreenProps) {
     busy,
     city,
     country,
+    describeError,
     isDefault,
     isEdit,
     label,
@@ -119,31 +125,36 @@ export function AddressFormScreen({ addressId }: AddressFormScreenProps) {
     postalCode,
     region,
     router,
+    t,
   ]);
 
   const remove = useCallback(() => {
     if (!addressId || busy) return;
-    Alert.alert("Delete address", "This cannot be undone.", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => {
-          setBusy(true);
-          addressService
-            .remove(addressId)
-            .then(() => router.back())
-            .catch((e) => setError(describeError(e, "Couldn't delete.")))
-            .finally(() => setBusy(false));
+    Alert.alert(
+      t("addressForm.deleteConfirmTitle"),
+      t("addressForm.deleteConfirmBody"),
+      [
+        { text: t("addressForm.deleteConfirmCancel"), style: "cancel" },
+        {
+          text: t("addressForm.deleteConfirmAction"),
+          style: "destructive",
+          onPress: () => {
+            setBusy(true);
+            addressService
+              .remove(addressId)
+              .then(() => router.back())
+              .catch((e) => setError(describeError(e, t("addressForm.deleteError"))))
+              .finally(() => setBusy(false));
+          },
         },
-      },
-    ]);
-  }, [addressId, busy, router]);
+      ],
+    );
+  }, [addressId, busy, describeError, router, t]);
 
   return (
     <Screen>
       <AppHeader
-        title={isEdit ? "Edit address" : "Add address"}
+        title={isEdit ? t("addressForm.editTitle") : t("addressForm.addTitle")}
         onBack={() => router.back()}
       />
       {loadState === "pending" ? (
@@ -155,10 +166,10 @@ export function AddressFormScreen({ addressId }: AddressFormScreenProps) {
       ) : loadState === "error" ? (
         <View className="flex-1 px-5 pt-4">
           <Text className="text-[14px] text-foreground">
-            {error ?? "Couldn't load address."}
+            {error ?? t("addressForm.loadError")}
           </Text>
           <Button variant="outline" className="mt-4" onPress={() => void load()}>
-            Retry
+            {t("addressForm.retry")}
           </Button>
         </View>
       ) : (
@@ -168,50 +179,50 @@ export function AddressFormScreen({ addressId }: AddressFormScreenProps) {
           keyboardShouldPersistTaps="handled"
         >
           <TextField
-            label="Label (optional)"
+            label={t("addressForm.labelField")}
             value={label}
             onChangeText={setLabel}
             autoCapitalize="words"
-            placeholder="Home, Office, …"
+            placeholder={t("addressForm.labelPlaceholder")}
             containerClassName="mb-3"
           />
           <TextField
-            label="Address line 1"
+            label={t("addressForm.line1Field")}
             value={line1}
             onChangeText={setLine1}
             autoCapitalize="words"
             containerClassName="mb-3"
           />
           <TextField
-            label="Address line 2 (optional)"
+            label={t("addressForm.line2Field")}
             value={line2}
             onChangeText={setLine2}
             autoCapitalize="words"
             containerClassName="mb-3"
           />
           <TextField
-            label="City"
+            label={t("addressForm.cityField")}
             value={city}
             onChangeText={setCity}
             autoCapitalize="words"
             containerClassName="mb-3"
           />
           <TextField
-            label="State / region (optional)"
+            label={t("addressForm.regionField")}
             value={region}
             onChangeText={setRegion}
             autoCapitalize="words"
             containerClassName="mb-3"
           />
           <TextField
-            label="Postal code (optional)"
+            label={t("addressForm.postalCodeField")}
             value={postalCode}
             onChangeText={setPostalCode}
             keyboardType="number-pad"
             containerClassName="mb-3"
           />
           <TextField
-            label="Country code"
+            label={t("addressForm.countryField")}
             value={country}
             onChangeText={(v) => setCountry(v.toUpperCase().slice(0, 2))}
             autoCapitalize="characters"
@@ -222,7 +233,7 @@ export function AddressFormScreen({ addressId }: AddressFormScreenProps) {
             className="mb-4"
             onPress={() => setIsDefault((v) => !v)}
           >
-            {isDefault ? "Default address" : "Set as default"}
+            {isDefault ? t("addressForm.defaultAddress") : t("addressForm.setDefault")}
           </Button>
 
           {error ? (
@@ -232,7 +243,7 @@ export function AddressFormScreen({ addressId }: AddressFormScreenProps) {
           ) : null}
 
           <Button disabled={busy} loading={busy} onPress={() => void save()}>
-            {isEdit ? "Save changes" : "Add address"}
+            {isEdit ? t("addressForm.saveChanges") : t("addressForm.addAddress")}
           </Button>
 
           {isEdit ? (
@@ -242,7 +253,7 @@ export function AddressFormScreen({ addressId }: AddressFormScreenProps) {
               disabled={busy}
               onPress={remove}
             >
-              Delete address
+              {t("addressForm.deleteAddress")}
             </Button>
           ) : null}
         </ScrollView>

@@ -77,7 +77,8 @@
 }
 
 :root {
-  /* Ledger radius: 6px max — no soft-modern rounding */
+  /* Ledger radius: 6px base, 8px cap on cards/xl+ (rounded-xl and up);
+     circular elements (avatars/pills/toggles) intentionally use rounded-full. */
   --radius: 0.375rem;
 
   --background: #f3eedf;            /* paper */

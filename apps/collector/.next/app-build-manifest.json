@@ -26,30 +26,30 @@
       "static/chunks/main-app.js",
       "static/chunks/app/login/page.js"
     ],
-    "/(portal)/earnings/page": [
+    "/(portal)/invoices/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(portal)/earnings/page.js"
+      "static/chunks/app/(portal)/invoices/page.js"
+    ],
+    "/(portal)/invoices/new/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(portal)/invoices/new/page.js"
     ],
     "/(portal)/orders/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(portal)/orders/page.js"
     ],
+    "/(portal)/earnings/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(portal)/earnings/page.js"
+    ],
     "/(portal)/orders/[id]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(portal)/orders/[id]/page.js"
-    ],
-    "/(portal)/profile/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(portal)/profile/page.js"
-    ],
-    "/(portal)/profile/rate-card/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(portal)/profile/rate-card/page.js"
     ]
   }
 }

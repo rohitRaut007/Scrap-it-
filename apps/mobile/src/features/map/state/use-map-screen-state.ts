@@ -71,7 +71,8 @@ export function useMapScreenState() {
       setLoadState("error");
       setOrigin(null);
       setRoute(null);
-      setErrorMessage("Unable to load live map right now. Please try again.");
+      // Left null so the screen renders its own translated fallback copy.
+      setErrorMessage(null);
       mapTelemetry.trackError(error, { screen: "map", reason: "load_failed" });
     }
   }, [fetchRouteWithRetry]);

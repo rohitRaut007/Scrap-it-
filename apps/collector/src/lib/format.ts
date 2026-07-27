@@ -30,6 +30,24 @@ export function formatScheduledAt(iso: string): string {
   return `${d.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}, ${time}`;
 }
 
+/** DD.MM.YYYY — the reference bill's date format, used on invoices. */
+export function formatBillDate(d: Date): string {
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  return `${dd}.${mm}.${d.getFullYear()}`;
+}
+
+const COMMERCIAL_MONTH_ABBR = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+/** DD-MMM-YYYY — the commercial invoice's date format, e.g. "01-Jul-2026". */
+export function formatCommercialDate(d: Date): string {
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${dd}-${COMMERCIAL_MONTH_ABBR[d.getMonth()]}-${d.getFullYear()}`;
+}
+
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-IN", {
     day: "numeric",

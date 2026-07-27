@@ -23,8 +23,13 @@ export async function createApp(expressInstance?: Express): Promise<INestApplica
   app.useGlobalInterceptors(new LoggingInterceptor());
 
   const corsOrigins = process.env.CORS_ORIGINS;
+  if (!corsOrigins?.length && process.env.NODE_ENV === "production") {
+    throw new Error(
+      "CORS_ORIGINS must be set in production (comma-separated allowed origins).",
+    );
+  }
   app.enableCors({
-    origin: corsOrigins?.length ? corsOrigins.split(",").map((s) => s.trim()) : true,
+    origin: corsOrigins?.length ? corsOrigins.split(",").map((s) => s.trim()) : [],
     credentials: true,
   });
 

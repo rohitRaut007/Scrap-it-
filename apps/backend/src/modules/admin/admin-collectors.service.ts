@@ -1,6 +1,7 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../database/prisma.service";
 import { PaginationQueryDto } from "../../common/dto/pagination-query.dto";
+import { UpdateCollectorStatusDto } from "./dto/update-collector-status.dto";
 import {
   CollectorAdminDto,
   CollectorListResponse,
@@ -34,9 +35,27 @@ export class AdminCollectorsService {
       phone: c.user.phone,
       vehicleInfo: c.vehicleInfo,
       rating: c.rating,
+      status: c.status,
       createdAt: c.createdAt.toISOString(),
     }));
 
     return { data, page, pageSize, total };
+  }
+
+  async updateStatus(
+    id: string,
+    dto: UpdateCollectorStatusDto,
+  ): Promise<{ ok: true }> {
+    const existing = await this.prisma.collector.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!existing) throw new NotFoundException("Collector not found");
+
+    await this.prisma.collector.update({
+      where: { id },
+      data: { status: dto.status },
+    });
+    return { ok: true };
   }
 }

@@ -36,10 +36,34 @@ function OrdersContent() {
     : "active";
   const [page, setPage] = useState(1);
 
-  const TABS: { key: TabKey; label: string }[] = [
-    { key: "new", label: t("tabNew") },
-    { key: "active", label: t("tabActive") },
-    { key: "done", label: t("tabDone") },
+  const TABS: {
+    key: TabKey;
+    label: string;
+    icon: typeof Inbox;
+    activeClasses: string;
+    dotClasses: string;
+  }[] = [
+    {
+      key: "new",
+      label: t("tabNew"),
+      icon: Inbox,
+      activeClasses: "bg-primary/10 text-primary ring-1 ring-primary/25",
+      dotClasses: "bg-primary text-primary-foreground",
+    },
+    {
+      key: "active",
+      label: t("tabActive"),
+      icon: Truck,
+      activeClasses: "bg-signal/20 text-ink ring-1 ring-signal/40",
+      dotClasses: "bg-signal text-ink",
+    },
+    {
+      key: "done",
+      label: t("tabDone"),
+      icon: PackageCheck,
+      activeClasses: "bg-cash/10 text-cash ring-1 ring-cash/30",
+      dotClasses: "bg-cash text-paper",
+    },
   ];
 
   const available = useAvailableOrders(tab === "new" ? page : 1);
@@ -66,27 +90,28 @@ function OrdersContent() {
         <LogPickupButton />
       </div>
 
-      {/* Segmented tabs */}
-      <div className="grid grid-cols-3 gap-1 rounded-xl bg-secondary p-1">
-        {TABS.map(({ key, label }) => (
+      {/* Segmented tabs — each state gets its own icon + accent color so
+          pending (new), ongoing (active), and completed (done) stay
+          visually distinct even before you notice which one is selected. */}
+      <div className="grid grid-cols-3 gap-1.5 rounded-xl bg-secondary p-1">
+        {TABS.map(({ key, label, icon: Icon, activeClasses, dotClasses }) => (
           <button
             key={key}
             onClick={() => setTab(key)}
             className={cn(
               "flex items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-all",
               tab === key
-                ? "bg-card text-foreground shadow-sm"
+                ? cn("shadow-sm", activeClasses)
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
+            <Icon className="h-3.5 w-3.5 shrink-0" />
             {label}
             {counts[key] != null && counts[key]! > 0 && (
               <span
                 className={cn(
                   "rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none",
-                  key === "new"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary-foreground/10 text-muted-foreground",
+                  tab === key ? dotClasses : "bg-secondary-foreground/10 text-muted-foreground",
                 )}
               >
                 {counts[key]}

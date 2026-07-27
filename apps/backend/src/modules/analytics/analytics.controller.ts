@@ -15,8 +15,9 @@ export class AnalyticsController {
   }
 
   /**
-   * Customer-facing summary. `estimatedPayoutInr` is a placeholder (0) until
-   * pricing rules are defined — not a real payout estimate.
+   * Customer-facing summary. `estimatedPayoutInr` is `null` (not a real
+   * estimate) until pricing rules are defined — callers must not render it
+   * as a numeric zero.
    */
   @Get("summary")
   @UseGuards(JwtAuthGuard)
@@ -36,7 +37,7 @@ export class AnalyticsController {
     return {
       pickupsCompleted,
       weightKgApprox,
-      estimatedPayoutInr: 0,
+      estimatedPayoutInr: null as number | null,
     };
   }
 }

@@ -64,6 +64,12 @@ export interface CollectorProfile {
   showBusinessDetailsOnReceipt: boolean;
   /** True when at least one of shopName/shopAddressText/gstNumber is set. */
   hasBusinessDetails: boolean;
+  businessTagline: string | null;
+  payableTo: string | null;
+  /** Hex accent color for the invoice letterhead; null = design-system default. */
+  accentColor: string | null;
+  /** Default Terms & Conditions text for new commercial invoices; null = fallback text. */
+  defaultTermsAndConditions: string | null;
 }
 
 export interface CollectorSummary {
@@ -104,4 +110,63 @@ export interface RateCardItem {
   /** Null when the collector hasn't set a rate for this category yet. */
   rateInrPerKg: number | null;
   iconKey: string;
+}
+
+// --- Invoices ---
+// Mirrors apps/backend/src/modules/invoices/dto/*.ts
+
+import type { ClientType, BillType } from "@scrap-it/constants";
+export type { ClientType, BillType } from "@scrap-it/constants";
+
+export type InvoiceStatus = "DRAFT" | "SENT" | "PAID" | "OVERDUE";
+
+export interface Client {
+  id: string;
+  type: ClientType;
+  siteName: string;
+  entityName: string | null;
+  premisesType: string | null;
+  gstin: string | null;
+  contactName: string | null;
+  phone: string | null;
+  addressText: string | null;
+  billToAddressText: string | null;
+}
+
+export interface InvoiceItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unit: string;
+  rate: number;
+  amount: number;
+}
+
+export interface Invoice {
+  id: string;
+  billType: BillType;
+  /** Formatted "RES-007" / "COM-016"; null while still a draft. */
+  billNumber: string | null;
+  invoiceNumber: number | null;
+  billingMonth: number;
+  billingYear: number;
+  issuedAt: string | null;
+  status: InvoiceStatus;
+  payableTo: string | null;
+  referencePoNumber: string | null;
+  termsOfPayment: string | null;
+  termsAndConditions: string | null;
+  subtotal: number;
+  total: number;
+  amountInWords: string | null;
+  createdAt: string;
+  client: Client;
+  items: InvoiceItem[];
+}
+
+export interface InvoiceListResponse {
+  data: Invoice[];
+  page: number;
+  pageSize: number;
+  total: number;
 }

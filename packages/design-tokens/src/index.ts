@@ -100,6 +100,9 @@ export const layout = {
   sectionPaddingY: { desktop: 100, mobile: 60 },
   featureBlockPaddingY: { desktop: 44, mobile: 32 },
   cardPadding: "16px 18px",
-  /** 0 for structural elements; 6px only for small chips/tags. */
-  radius: { structural: 0, chip: 6 },
+  /** 0 for structural elements; 6px base (chips/tags/inputs); 8px cap for
+   *  cards/large surfaces (rounded-xl and up); fully circular for avatars,
+   *  pills, and toggles (rounded-full) — that's an intentional exemption
+   *  from the 8px cap, not a violation of it. */
+  radius: { structural: 0, chip: 6, card: 8 },
 } as const;

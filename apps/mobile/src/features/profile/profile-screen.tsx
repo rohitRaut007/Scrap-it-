@@ -7,10 +7,10 @@ import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { LanguageToggle } from "@/components/ui/language-toggle";
 import { analyticsService } from "@/services/analyticsService";
 import { authService } from "@/services/authService";
+import { notificationService } from "@/services/notificationService";
 import { userService } from "@/services/userService";
 import type { AnalyticsSummary, User } from "@/types/domain";
 import { displayNameFromUser } from "@/lib/displayName";
@@ -20,10 +20,12 @@ import { useAppTheme } from "@/lib/theme";
 function Row({
   icon,
   label,
+  badgeCount,
   onPress,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
+  badgeCount?: number;
   onPress?: () => void;
 }) {
   const { colors } = useAppTheme();
@@ -38,7 +40,16 @@ function Row({
         <Ionicons name={icon} size={20} color={colors.subtleIcon} />
         <Text className="text-[15px] text-foreground">{label}</Text>
       </View>
-      <Ionicons name="chevron-forward" size={18} color={colors.subtleIcon} />
+      <View className="flex-row items-center gap-2">
+        {badgeCount ? (
+          <View className="min-w-5 items-center rounded-full bg-primary px-1.5 py-0.5">
+            <Text className="text-[11px] font-semibold text-primary-foreground">
+              {badgeCount}
+            </Text>
+          </View>
+        ) : null}
+        <Ionicons name="chevron-forward" size={18} color={colors.subtleIcon} />
+      </View>
     </Pressable>
   );
 }
@@ -51,6 +62,7 @@ export function ProfileScreen() {
   const [userLoad, setUserLoad] = useState<"pending" | "ok" | "error">("pending");
   const [stats, setStats] = useState<AnalyticsSummary | null>(null);
   const [statsError, setStatsError] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const load = useCallback(async () => {
     setUserLoad("pending");
@@ -82,6 +94,10 @@ export function ProfileScreen() {
   useFocusEffect(
     useCallback(() => {
       void load();
+      void notificationService
+        .list()
+        .then((res) => setUnreadCount(res.unreadCount))
+        .catch(() => setUnreadCount(0));
     }, [load]),
   );
 
@@ -184,7 +200,9 @@ export function ProfileScreen() {
             <View className="min-w-[28%] flex-1">
               <Text variant="label">{t("profile.estPayout")}</Text>
               <Text className="mt-2 text-2xl font-bold text-primary dark:text-emerald-300">
-                ₹{stats.estimatedPayoutInr}
+                {stats.estimatedPayoutInr != null
+                  ? `₹${stats.estimatedPayoutInr}`
+                  : "—"}
               </Text>
             </View>
           </View>
@@ -193,7 +211,6 @@ export function ProfileScreen() {
 
       <Card className="overflow-hidden px-0 py-0">
         <View className="px-4">
-          <ThemeToggle />
           <LanguageToggle />
           <Row
             icon="person-outline"
@@ -204,6 +221,12 @@ export function ProfileScreen() {
             icon="location-outline"
             label={t("profile.savedAddresses")}
             onPress={() => router.push("/saved-addresses")}
+          />
+          <Row
+            icon="notifications-outline"
+            label={t("profile.notifications")}
+            badgeCount={unreadCount}
+            onPress={() => router.push("/notifications")}
           />
           <Row
             icon="help-circle-outline"

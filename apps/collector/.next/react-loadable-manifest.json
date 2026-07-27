@@ -5,6 +5,18 @@
       "static/chunks/_app-pages-browser_node_modules_next_dist_client_dev_noop-turbopack-hmr_js.js"
     ]
   },
+  "app\\(portal)\\invoices\\new\\page.tsx -> @/components/invoices/invoice-preview": {
+    "id": "app\\(portal)\\invoices\\new\\page.tsx -> @/components/invoices/invoice-preview",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_invoices_invoice-preview_tsx.js"
+    ]
+  },
+  "app\\(portal)\\invoices\\new\\page.tsx -> @/components/invoices/invoice-share-button": {
+    "id": "app\\(portal)\\invoices\\new\\page.tsx -> @/components/invoices/invoice-share-button",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_invoices_invoice-share-button_tsx.js"
+    ]
+  },
   "app\\(portal)\\orders\\[id]\\page.tsx -> @/components/receipts/print-receipt-button": {
     "id": "app\\(portal)\\orders\\[id]\\page.tsx -> @/components/receipts/print-receipt-button",
     "files": [

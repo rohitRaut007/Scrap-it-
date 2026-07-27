@@ -66,6 +66,12 @@ export interface CollectorProfileDto {
   /** True when at least one of shopName/shopAddressText/gstNumber is set — drives
    *  whether the receipt visibility toggle appears anywhere in the UI at all. */
   hasBusinessDetails: boolean;
+  businessTagline: string | null;
+  payableTo: string | null;
+  /** Hex accent color for the invoice letterhead; null = design-system default. */
+  accentColor: string | null;
+  /** Default Terms & Conditions text for new commercial invoices; null = fallback text. */
+  defaultTermsAndConditions: string | null;
 }
 
 export interface CollectorSummaryDto {

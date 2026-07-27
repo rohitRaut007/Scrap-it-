@@ -48,3 +48,18 @@ export function useEarnings(days = 30) {
 export function useRateCard() {
   return useSWR("collector/rate-card", () => collectorApi.rateCard());
 }
+
+/** Clients change rarely — no polling. */
+export function useClients() {
+  return useSWR("collector/invoice-clients", () => collectorApi.clients());
+}
+
+export function useInvoices(page = 1) {
+  return useSWR(["collector/invoices", page], () => collectorApi.invoices(page));
+}
+
+export function useInvoice(id: string | null) {
+  return useSWR(id ? ["collector/invoice", id] : null, () =>
+    collectorApi.invoice(id!),
+  );
+}

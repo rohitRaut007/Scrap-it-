@@ -12,6 +12,7 @@ import {
   PickupOrderPhoto,
   PickupTimeline,
   Prisma,
+  TimelineEventType,
   User,
 } from "@prisma/client";
 import { PrismaService } from "../../database/prisma.service";
@@ -175,7 +176,10 @@ export class AdminOrdersService {
       await tx.pickupTimeline.create({
         data: {
           orderId: id,
-          eventType: dto.status,
+          // VALID_TRANSITIONS above only ever allows cancelled/en_route/
+          // arriving/completed here — "scheduled"/"assigned" never reach
+          // this line, so the cast to TimelineEventType is safe.
+          eventType: dto.status as unknown as TimelineEventType,
           metadata: {
             actorId,
             actorRole: "admin",

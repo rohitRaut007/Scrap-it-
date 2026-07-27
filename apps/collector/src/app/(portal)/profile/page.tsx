@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
 import { BookingQrCard } from "@/components/profile/booking-qr-card";
 import { BusinessDetailsForm } from "@/components/profile/business-details-form";
+import { InvoiceDetailsForm } from "@/components/profile/invoice-details-form";
 import { useProfile } from "@/hooks/use-portal";
 import { collectorApi, ApiError } from "@/lib/api";
 import { supabase } from "@/lib/supabase";
@@ -215,6 +216,9 @@ export default function ProfilePage() {
 
       {/* Business details for receipts (all optional, privacy-gated) */}
       <BusinessDetailsForm profile={profile} onSaved={() => mutate()} />
+
+      {/* Invoice letterhead settings (tagline, cheque payee name, accent color) */}
+      <InvoiceDetailsForm profile={profile} onSaved={() => mutate()} />
 
       {/* Sign out (mobile — desktop has it in the sidebar) */}
       <Button

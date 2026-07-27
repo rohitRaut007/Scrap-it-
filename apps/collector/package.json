@@ -14,6 +14,7 @@
   "dependencies": {
     "@react-pdf/renderer": "^4.5.1",
     "@scrap-it/api-client": "workspace:*",
+    "@scrap-it/constants": "workspace:*",
     "@scrap-it/design-tokens": "workspace:*",
     "@scrap-it/types": "workspace:*",
     "@supabase/ssr": "^0.12.0",

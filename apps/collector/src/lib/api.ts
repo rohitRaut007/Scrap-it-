@@ -1,10 +1,15 @@
 import { createApiClient } from "@scrap-it/api-client";
+import type { ClientType } from "@scrap-it/constants";
 import { supabase } from "./supabase";
 import type {
+  Client,
   CollectorEarnings,
   CollectorOrder,
   CollectorProfile,
   CollectorSummary,
+  Invoice,
+  InvoiceListResponse,
+  InvoiceStatus,
   OrderListResponse,
   RateCardItem,
 } from "./types";
@@ -87,6 +92,10 @@ export const collectorApi = {
     shopAddressText?: string;
     gstNumber?: string;
     showBusinessDetailsOnReceipt?: boolean;
+    businessTagline?: string;
+    payableTo?: string;
+    accentColor?: string;
+    defaultTermsAndConditions?: string;
   }) => request<CollectorProfile>("/collectors/me", jsonInit("PATCH", data)),
   summary: () => request<CollectorSummary>("/collectors/me/summary"),
   availableOrders: (page = 1, pageSize = 20) =>
@@ -141,4 +150,45 @@ export const collectorApi = {
       `/collectors/me/pickup-logs/${id}/receipt-number`,
       jsonInit("POST"),
     ),
+  clients: () => request<Client[]>("/invoices/clients"),
+  createClient: (data: {
+    type: ClientType;
+    siteName: string;
+    entityName?: string;
+    premisesType?: string;
+    gstin?: string;
+    contactName?: string;
+    phone?: string;
+    addressText?: string;
+    billToAddressText?: string;
+  }) => request<Client>("/invoices/clients", jsonInit("POST", data)),
+  invoices: (page = 1, pageSize = 20) =>
+    request<InvoiceListResponse>(`/invoices?page=${page}&pageSize=${pageSize}`),
+  invoice: (id: string) => request<Invoice>(`/invoices/${id}`),
+  createInvoice: (data: {
+    clientId: string;
+    billingMonth: number;
+    billingYear: number;
+    payableTo?: string;
+    referencePoNumber?: string;
+    termsOfPayment?: string;
+    termsAndConditions?: string;
+    items: { description?: string; quantity: number; unit?: string; rate: number }[];
+  }) => request<Invoice>("/invoices", jsonInit("POST", data)),
+  updateInvoice: (
+    id: string,
+    data: {
+      billingMonth?: number;
+      billingYear?: number;
+      payableTo?: string;
+      referencePoNumber?: string;
+      termsOfPayment?: string;
+      termsAndConditions?: string;
+      items?: { description?: string; quantity: number; unit?: string; rate: number }[];
+    },
+  ) => request<Invoice>(`/invoices/${id}`, jsonInit("PATCH", data)),
+  generateInvoice: (id: string) =>
+    request<Invoice>(`/invoices/${id}/generate`, jsonInit("POST")),
+  updateInvoiceStatus: (id: string, status: Extract<InvoiceStatus, "PAID" | "OVERDUE">) =>
+    request<Invoice>(`/invoices/${id}/status`, jsonInit("PATCH", { status })),
 };

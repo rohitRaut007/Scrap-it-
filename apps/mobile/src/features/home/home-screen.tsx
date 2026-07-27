@@ -90,7 +90,7 @@ export function HomeScreen() {
       setImpact({
         pickupsCompleted: 0,
         weightKgApprox: 0,
-        estimatedPayoutInr: 0,
+        estimatedPayoutInr: null,
       });
     }
   }, []);
@@ -333,7 +333,9 @@ export function HomeScreen() {
               </View>
               <View>
                 <Text className="text-lg font-bold text-foreground">
-                  ₹{impact?.estimatedPayoutInr ?? 0}
+                  {impact?.estimatedPayoutInr != null
+                    ? `₹${impact.estimatedPayoutInr}`
+                    : "—"}
                 </Text>
                 <Text variant="small">{t("home.estPayout")}</Text>
               </View>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { View } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
+import { useTranslation } from "react-i18next";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
 import { useMapScreenState } from "@/features/map/state/use-map-screen-state";
@@ -18,6 +19,7 @@ const agentPoints: LngLat[] = [
 ];
 
 export function MapScreen() {
+  const { t } = useTranslation();
   const { loadState, origin, destination, route, errorMessage, cameraCenter, reload } =
     useMapScreenState();
   const lastSentAtRef = useRef(0);
@@ -35,29 +37,27 @@ export function MapScreen() {
     <Screen scroll={false} className="pt-2">
       <View className="px-5 pb-3">
         <Text className="text-[18px] font-semibold text-foreground">
-          Live pickup map
+          {t("map.title")}
         </Text>
         <Text variant="muted" className="mt-1 text-[13px]">
-          {route
-            ? `ETA ${route.etaMinutes} min • ${route.distanceKm} km`
-            : "Preparing route and nearby agents"}
+          {t("map.disclosure")}
         </Text>
       </View>
 
       {loadState === "permission_denied" ? (
         <MapScreenFallback
-          title="Location permission is off"
-          description="Enable location permission to see your live position and route updates."
-          ctaLabel="Try again"
+          title={t("map.permissionDeniedTitle")}
+          description={t("map.permissionDeniedBody")}
+          ctaLabel={t("map.tryAgain")}
           onPress={reload}
         />
       ) : null}
 
       {loadState === "error" ? (
         <MapScreenFallback
-          title="Map is temporarily unavailable"
-          description={errorMessage ?? "We could not load route data right now."}
-          ctaLabel="Retry"
+          title={t("map.errorTitle")}
+          description={errorMessage ?? t("map.errorBody")}
+          ctaLabel={t("map.retry")}
           onPress={reload}
         />
       ) : null}
@@ -88,13 +88,13 @@ export function MapScreen() {
               latitude: destination[1],
               longitude: destination[0],
             }}
-            title="Destination"
+            title={t("map.destination")}
           />
           {agentPoints.map(([longitude, latitude], index) => (
             <Marker
               key={`agent-${index}`}
               coordinate={{ latitude, longitude }}
-              title={`Agent ${index + 1}`}
+              title={t("map.agent", { number: index + 1 })}
               pinColor="#B84E1C"
             />
           ))}

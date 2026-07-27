@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { View } from "react-native";
+import { Alert, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { AppHeader } from "@/components/layout/app-header";
@@ -9,9 +9,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Screen } from "@/components/ui/screen";
+import { ApiError } from "@/lib/api";
 import { orderService } from "@/services/orderService";
 import type { OrderStatus, PickupOrder } from "@/types/domain";
 import { orderStatusLabel, orderStatusTone } from "./order-status-label";
+import { RatePickupModal } from "./rate-pickup-modal";
+
+const CANCELLABLE_STATUSES: OrderStatus[] = ["scheduled", "assigned"];
 
 const timelineStatuses: OrderStatus[] = [
   "scheduled",
@@ -39,10 +43,57 @@ export function OrderDetailScreen({ orderId }: { orderId: string }) {
   const [order, setOrder] = useState<PickupOrder | null | undefined>(
     undefined
   );
+  const [cancelling, setCancelling] = useState(false);
+  const [ratingModalVisible, setRatingModalVisible] = useState(false);
+  const [submittingRating, setSubmittingRating] = useState(false);
 
   useEffect(() => {
     void orderService.getById(orderId).then(setOrder);
   }, [orderId]);
+
+  const handleCancel = () => {
+    Alert.alert(
+      t("orders.detail.cancelConfirmTitle"),
+      t("orders.detail.cancelConfirmBody"),
+      [
+        { text: t("orders.detail.cancelConfirmKeep"), style: "cancel" },
+        {
+          text: t("orders.detail.cancelConfirmAction"),
+          style: "destructive",
+          onPress: async () => {
+            setCancelling(true);
+            try {
+              const updated = await orderService.cancel(orderId);
+              setOrder(updated);
+            } catch (e) {
+              const message =
+                e instanceof ApiError
+                  ? e.message
+                  : t("orders.detail.cancelGenericError");
+              Alert.alert(t("orders.detail.cancelErrorTitle"), message);
+            } finally {
+              setCancelling(false);
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const handleSubmitRating = async (score: number, comment?: string) => {
+    setSubmittingRating(true);
+    try {
+      await orderService.rate(orderId, score, comment);
+      setOrder((prev) => (prev ? { ...prev, hasRating: true } : prev));
+      setRatingModalVisible(false);
+    } catch (e) {
+      const message =
+        e instanceof ApiError ? e.message : t("orders.detail.rating.genericError");
+      Alert.alert(t("orders.detail.rating.errorTitle"), message);
+    } finally {
+      setSubmittingRating(false);
+    }
+  };
 
   const rank = order ? statusRank(order.status) : -1;
 
@@ -164,14 +215,48 @@ export function OrderDetailScreen({ orderId }: { orderId: string }) {
       </Text>
 
       {order.status === "completed" ? (
+        <>
+          {order.hasRating ? (
+            <Text variant="muted" className="mt-6 text-center text-[13px]">
+              {t("orders.detail.rating.thanks")}
+            </Text>
+          ) : (
+            <Button
+              className="mt-6"
+              variant="outline"
+              onPress={() => setRatingModalVisible(true)}
+            >
+              {t("orders.detail.rating.cta")}
+            </Button>
+          )}
+          <Button
+            className="mt-3"
+            variant="secondary"
+            onPress={() => router.replace("/pickup")}
+          >
+            {t("orders.detail.scheduleAnother")}
+          </Button>
+        </>
+      ) : null}
+
+      {CANCELLABLE_STATUSES.includes(order.status) ? (
         <Button
           className="mt-8"
-          variant="secondary"
-          onPress={() => router.replace("/pickup")}
+          variant="outline"
+          onPress={handleCancel}
+          disabled={cancelling}
+          loading={cancelling}
         >
-          {t("orders.detail.scheduleAnother")}
+          {t("orders.detail.cancelPickup")}
         </Button>
       ) : null}
+
+      <RatePickupModal
+        visible={ratingModalVisible}
+        submitting={submittingRating}
+        onSubmit={handleSubmitRating}
+        onClose={() => setRatingModalVisible(false)}
+      />
     </Screen>
   );
 }

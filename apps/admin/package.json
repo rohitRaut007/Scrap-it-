@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@scrap-it/api-client": "workspace:*",
-    "@scrap-it/design-tokens": "workspace:*",
     "@scrap-it/types": "workspace:*",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",

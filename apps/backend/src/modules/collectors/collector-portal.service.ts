@@ -20,6 +20,7 @@ import {
   User,
 } from "@prisma/client";
 import { PrismaService } from "../../database/prisma.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import { UploadsService } from "../uploads/uploads.service";
 import type { AuthUser } from "../auth/strategies/supabase-jwt.strategy";
 import { CollectorOrdersQueryDto } from "./dto/collector-orders-query.dto";
@@ -122,6 +123,7 @@ export class CollectorPortalService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly uploads: UploadsService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   /**
@@ -134,7 +136,14 @@ export class CollectorPortalService {
       where: { userId: authUser.id },
       include: { user: true },
     });
-    if (existing) return existing;
+    if (existing) {
+      if (existing.status === "suspended") {
+        throw new ForbiddenException(
+          "Your collector account is suspended. Contact support.",
+        );
+      }
+      return existing;
+    }
 
     const user = await this.prisma.user.findUnique({
       where: { id: authUser.id },
@@ -225,6 +234,24 @@ export class CollectorPortalService {
     if (dto.showBusinessDetailsOnReceipt !== undefined) {
       collectorData.showBusinessDetailsOnReceipt =
         dto.showBusinessDetailsOnReceipt;
+    }
+    if (dto.businessTagline !== undefined) {
+      collectorData.businessTagline =
+        dto.businessTagline.trim() === "" ? null : dto.businessTagline.trim();
+    }
+    if (dto.payableTo !== undefined) {
+      collectorData.payableTo =
+        dto.payableTo.trim() === "" ? null : dto.payableTo.trim();
+    }
+    if (dto.accentColor !== undefined) {
+      collectorData.accentColor =
+        dto.accentColor.trim() === "" ? null : dto.accentColor.trim();
+    }
+    if (dto.defaultTermsAndConditions !== undefined) {
+      collectorData.defaultTermsAndConditions =
+        dto.defaultTermsAndConditions.trim() === ""
+          ? null
+          : dto.defaultTermsAndConditions.trim();
     }
 
     await this.prisma.$transaction(async (tx) => {
@@ -459,7 +486,21 @@ export class CollectorPortalService {
       include: COLLECTOR_ORDER_INCLUDE,
       relationLoadStrategy: "join",
     });
-    if (!row) throw new NotFoundException("Order not found");
+
+    if (!row) {
+      // Manual pickup logs live in a separate table (see logPickup()) and
+      // share the history list with PickupOrder rows, so their detail links
+      // point here too — fall back to that table before giving up.
+      const log = await this.prisma.pickupLog.findUnique({
+        where: { id },
+        include: { categories: { include: { category: true } } },
+      });
+      if (!log) throw new NotFoundException("Order not found");
+      if (log.collectorId !== collectorId) {
+        throw new ForbiddenException("This order belongs to another collector");
+      }
+      return this.toLogOrderDto(log as LogWithRelations);
+    }
 
     const isMine = row.collectorId === collectorId;
     const isClaimable =
@@ -583,9 +624,15 @@ export class CollectorPortalService {
           },
         },
       }),
+      this.prisma.notification.create({
+        data: {
+          userId: order.customerId,
+          title: "Pickup update",
+          body: `Your pickup is now ${dto.status.replace("_", " ")}.`,
+          payload: { orderId: id, status: dto.status },
+        },
+      }),
     ]);
-
-    // TODO: Notify customer of status change (push / WhatsApp)
 
     return this.toOrderDto(
       {
@@ -713,9 +760,13 @@ export class CollectorPortalService {
           },
         },
       });
+      await this.notifications.create(tx, {
+        userId: order.customerId,
+        title: "Pickup completed",
+        body: `You earned ₹${payoutInr}.`,
+        payload: { orderId: id, payoutInr },
+      });
     });
-
-    // TODO: Notify customer: "Pickup completed. You earned ₹X"
 
     return this.getOrderForCollector(collector.id, id);
   }
@@ -865,6 +916,10 @@ export class CollectorPortalService {
       hasBusinessDetails: Boolean(
         collector.shopName || collector.shopAddressText || collector.gstNumber,
       ),
+      businessTagline: collector.businessTagline,
+      payableTo: collector.payableTo,
+      accentColor: collector.accentColor,
+      defaultTermsAndConditions: collector.defaultTermsAndConditions,
     };
   }
 

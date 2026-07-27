@@ -14,6 +14,7 @@ import { NotificationsModule } from "./modules/notifications/notifications.modul
 import { AnalyticsModule } from "./modules/analytics/analytics.module";
 import { AdminModule } from "./modules/admin/admin.module";
 import { UploadsModule } from "./modules/uploads/uploads.module";
+import { InvoicesModule } from "./modules/invoices/invoices.module";
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { UploadsModule } from "./modules/uploads/uploads.module";
     AnalyticsModule,
     AdminModule,
     UploadsModule,
+    InvoicesModule,
   ],
   controllers: [AppController],
   providers: [RolesGuard],
