@@ -6,7 +6,6 @@ import { useTranslations } from "next-intl";
 import {
   Home,
   Package,
-  IndianRupee,
   FileText,
   User,
   Recycle,
@@ -32,7 +31,6 @@ export function PortalShell({ userEmail, children }: PortalShellProps) {
     { href: "/dashboard", label: t("dashboard"), icon: Home },
     { href: "/orders", label: t("orders"), icon: Package },
     { href: "/invoices", label: t("invoices"), icon: FileText },
-    { href: "/earnings", label: t("earnings"), icon: IndianRupee },
     { href: "/profile", label: t("profile"), icon: User },
   ];
 
@@ -114,7 +112,7 @@ export function PortalShell({ userEmail, children }: PortalShellProps) {
 
       {/* Mobile bottom navigation */}
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 md:hidden pb-[env(safe-area-inset-bottom)]">
-        <div className="mx-auto grid max-w-md grid-cols-5">
+        <div className="mx-auto grid max-w-md grid-cols-4">
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
             const active = isActive(href);
             return (

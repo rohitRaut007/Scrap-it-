@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
 import { OrderCard } from "@/components/orders/order-card";
 import { LogPickupButton } from "@/components/orders/log-pickup-button";
+import { EarningsSection } from "@/components/earnings/earnings-section";
 import { useProfile, useSummary } from "@/hooks/use-portal";
 import { firstName, formatInr } from "@/lib/format";
 
@@ -166,6 +167,8 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      <EarningsSection />
     </div>
   );
 }
