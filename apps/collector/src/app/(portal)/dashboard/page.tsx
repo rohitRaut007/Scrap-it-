@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
+import { StaleDataNotice } from "@/components/ui/stale-data-notice";
 import { OrderCard } from "@/components/orders/order-card";
 import { LogPickupButton } from "@/components/orders/log-pickup-button";
 import { EarningsSection } from "@/components/earnings/earnings-section";
@@ -53,6 +54,7 @@ export default function DashboardPage() {
       </div>
 
       {error && !summary && <ErrorState onRetry={() => mutate()} />}
+      {error && summary && <StaleDataNotice />}
 
       {/* Today's earnings hero */}
       {isLoading || !summary ? (

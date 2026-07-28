@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/lib/supabase";
-import { getRoleFromJwt } from "@/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -40,13 +39,14 @@ export default function LoginPage() {
         return;
       }
 
-      const token = data.session?.access_token;
-      if (!token) {
+      if (!data.user) {
         setError(t("errorGeneric"));
         return;
       }
 
-      const role = getRoleFromJwt(token);
+      // Read role directly off the verified user object returned by a
+      // successful sign-in — no manual JWT decoding needed.
+      const role = data.user.app_metadata?.role;
       if (role !== "collector") {
         await supabase.auth.signOut();
         setError(t("errorNotCollector"));

@@ -44,6 +44,16 @@ import {
 import { nextAction } from "@/lib/order-utils";
 import { revalidateCollectorData } from "@/lib/revalidate";
 
+/** Defense-in-depth: only ever render/link https URLs, even though the
+ * backend is expected to only ever return storage URLs in this shape. */
+function isHttpsUrl(url: string): boolean {
+  try {
+    return new URL(url).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export default function OrderDetailPage({
   params,
 }: {
@@ -52,7 +62,7 @@ export default function OrderDetailPage({
   const { id } = use(params);
   const router = useRouter();
   const t = useTranslations("orders");
-  const { data: order, isLoading, mutate } = useOrder(id);
+  const { data: order, isLoading, error, mutate } = useOrder(id);
   const [busy, setBusy] = useState(false);
   const [completeOpen, setCompleteOpen] = useState(false);
   const [celebratedPayout, setCelebratedPayout] = useState<number | null>(null);
@@ -61,14 +71,22 @@ export default function OrderDetailPage({
     setBusy(true);
     try {
       await fn();
-      await Promise.all([mutate(), revalidateCollectorData()]);
-      if (successMsg) toast.success(successMsg);
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : t("toastGenericError"));
       await mutate();
-    } finally {
       setBusy(false);
+      return;
     }
+    // The action itself succeeded — a follow-up revalidation hiccup
+    // shouldn't be reported as if the action had failed.
+    if (successMsg) toast.success(successMsg);
+    await mutate();
+    try {
+      await revalidateCollectorData();
+    } catch {
+      // Non-fatal — other collector-data views will catch up on next fetch.
+    }
+    setBusy(false);
   };
 
   if (isLoading && !order) {
@@ -83,16 +101,26 @@ export default function OrderDetailPage({
   }
 
   if (!order) {
+    const isNotFound = error instanceof ApiError && error.status === 404;
     return (
       <div className="rounded-2xl border border-dashed p-10 text-center">
         <XCircle className="mx-auto h-9 w-9 text-muted-foreground/50" />
-        <p className="mt-3 text-sm font-medium">{t("notFoundTitle")}</p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {t("notFoundHint")}
+        <p className="mt-3 text-sm font-medium">
+          {isNotFound ? t("notFoundTitle") : t("loadErrorTitle")}
         </p>
-        <Button variant="outline" size="sm" className="mt-4" asChild>
-          <Link href="/orders">{t("backToPickups")}</Link>
-        </Button>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {isNotFound ? t("notFoundHint") : t("loadErrorHint")}
+        </p>
+        <div className="mt-4 flex items-center justify-center gap-2">
+          {!isNotFound && (
+            <Button variant="outline" size="sm" onClick={() => mutate()}>
+              {t("retry")}
+            </Button>
+          )}
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/orders">{t("backToPickups")}</Link>
+          </Button>
+        </div>
       </div>
     );
   }
@@ -194,7 +222,7 @@ export default function OrderDetailPage({
           {order.customerPhone && (
             <div className="flex gap-2">
               <Button size="icon" variant="outline" className="rounded-full" asChild>
-                <a href={`tel:${order.customerPhone.replace(/\s/g, "")}`} aria-label={t("callCustomer")}>
+                <a href={`tel:${order.customerPhone.replace(/[^\d+]/g, "")}`} aria-label={t("callCustomer")}>
                   <Phone className="h-4 w-4" />
                 </a>
               </Button>
@@ -294,11 +322,11 @@ export default function OrderDetailPage({
       )}
 
       {/* Photos */}
-      {order.photoUrls.length > 0 && (
+      {order.photoUrls.filter(isHttpsUrl).length > 0 && (
         <div className="rounded-2xl border bg-card p-4 shadow-xs">
           <h2 className="text-sm font-semibold">{t("scrapPhotos")}</h2>
           <div className="mt-3 grid grid-cols-3 gap-2">
-            {order.photoUrls.map((url, i) => (
+            {order.photoUrls.filter(isHttpsUrl).map((url, i) => (
               <a key={url} href={url} target="_blank" rel="noopener noreferrer">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img

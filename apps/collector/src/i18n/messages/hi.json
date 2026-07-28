@@ -11,7 +11,8 @@
     "errorMessage": "सर्वर से कनेक्ट नहीं हो पाया। अपना इंटरनेट जांचें और फिर कोशिश करें।",
     "new": "नया",
     "on": "चालू",
-    "off": "बंद"
+    "off": "बंद",
+    "staleDataNotice": "रीफ़्रेश नहीं हो सका — पिछला ज्ञात डेटा दिखाया जा रहा है।"
   },
   "nav": {
     "brand": "Scrap-it",
@@ -89,7 +90,8 @@
       "enRoute": "रास्ते में",
       "arriving": "पहुंच रहे हैं",
       "completed": "पूर्ण",
-      "cancelled": "रद्द"
+      "cancelled": "रद्द",
+      "unknown": "अज्ञात"
     },
     "stepAccepted": "स्वीकृत",
     "stepEnRoute": "रास्ते में",
@@ -97,6 +99,9 @@
     "stepDone": "पूर्ण",
     "notFoundTitle": "पिकअप नहीं मिला",
     "notFoundHint": "हो सकता है इसे किसी और कलेक्टर ने ले लिया हो या यह रद्द हो गया हो।",
+    "loadErrorTitle": "यह पिकअप लोड नहीं हो सका",
+    "loadErrorHint": "अपना कनेक्शन जांचें और फिर से कोशिश करें।",
+    "retry": "फिर से कोशिश करें",
     "backToPickups": "पिकअप पर वापस जाएं",
     "cancelledNotice": "यह पिकअप रद्द कर दिया गया था।",
     "completedBannerTitle": "पिकअप पूरा हुआ",
@@ -156,6 +161,8 @@
     "title": "तौलें और पूरा करें",
     "description": "हर सामग्री का वज़न दर्ज करें। भुगतान आपकी अपनी सेव की गई दर पर तय होगा — आप इस पिकअप के लिए इसे बदल सकते हैं।",
     "noMaterials": "इस बुकिंग में कोई सामग्री सूचीबद्ध नहीं है। अगर ग्राहक के पास तौलने के लिए स्क्रैप है तो सपोर्ट से संपर्क करें।",
+    "rateCardLoading": "आपकी दरें लोड हो रही हैं…",
+    "rateCardLoadError": "आपकी दरें लोड नहीं हो सकीं। अपना कनेक्शन जांचें और फिर से कोशिश करें।",
     "kgTotal": "कुल {weight} किग्रा",
     "customerPayout": "ग्राहक भुगतान",
     "ratePlaceholder": "दर",
@@ -174,7 +181,8 @@
     "save": "दरें सेव करें",
     "saving": "सेव हो रहा है…",
     "toastSaved": "दरें सेव हो गईं",
-    "toastError": "आपकी दरें सेव नहीं हो पाईं।"
+    "toastError": "आपकी दरें सेव नहीं हो पाईं।",
+    "noCategories": "अभी दरें सेट करने के लिए कोई श्रेणी नहीं है।"
   },
   "earnings": {
     "title": "कमाई",
@@ -221,6 +229,7 @@
     "shopAddressPlaceholder": "जैसे Shop 4, Market Road",
     "gstLabel": "GST नंबर (वैकल्पिक)",
     "gstPlaceholder": "जैसे 27ABCDE1234F1Z5",
+    "gstFormatHint": "15 अक्षर — राज्य कोड, PAN, और एंटिटी कोड।",
     "showOnReceiptLabel": "डिफ़ॉल्ट रूप से रसीदों पर दिखाएं",
     "showOnReceiptHint": "प्रिंट करते समय आप किसी भी एक रसीद के लिए इसे चालू या बंद कर सकते हैं।",
     "bookingLinkTitle": "आपका पर्सनल बुकिंग लिंक",
@@ -266,6 +275,10 @@
     "emptyHint": "आपके मासिक क्लाइंट के लिए बनाए गए बिल यहां दिखेंगे।",
     "pageOf": "पेज {page} / {total}",
     "backToInvoices": "बिलों पर वापस जाएं",
+    "notFoundTitle": "बिल नहीं मिला",
+    "notFoundHint": "हो सकता है इसे हटा दिया गया हो या आपके पास इसकी पहुंच न हो।",
+    "clientFallback": "क्लाइंट",
+    "shareUnavailable": "अभी इस बिल को शेयर करना उपलब्ध नहीं है।",
     "invoiceNoShort": "{number}",
     "itemsSectionTitle": "आइटम",
     "generateNextMonth": "अगले महीने का बिल बनाएं",
@@ -276,6 +289,8 @@
     "yourBusinessPlaceholder": "आपके व्यवसाय का नाम",
     "siteNamePlaceholder": "साइट का नाम",
     "toastGenerated": "बिल तैयार हो गया",
+    "cloneLoadError": "कॉपी करने के लिए बिल लोड नहीं हो सका। इसके बजाय नया बिल शुरू किया जा रहा है।",
+    "clientsLoadError": "आपके क्लाइंट लोड नहीं हो सके। आप फिर भी नीचे नया क्लाइंट जोड़ सकते हैं।",
     "clientSectionTitle": "क्लाइंट",
     "selectClientPlaceholder": "क्लाइंट चुनें",
     "addNewClient": "+ नया क्लाइंट जोड़ें",

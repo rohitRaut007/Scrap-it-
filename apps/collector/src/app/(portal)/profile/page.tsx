@@ -34,7 +34,10 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    if (profile) {
+    // Skip re-seeding while the form is open for editing — otherwise a
+    // background revalidation (window focus, another mutation elsewhere)
+    // would silently overwrite the collector's in-progress unsaved edits.
+    if (profile && !editing) {
       setForm({
         name: profile.name ?? "",
         phone: profile.phone ?? "",
@@ -42,7 +45,7 @@ export default function ProfilePage() {
         serviceArea: profile.serviceArea ?? "",
       });
     }
-  }, [profile]);
+  }, [profile, editing]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,6 +158,7 @@ export default function ProfilePage() {
               onChange={(v) => setForm((f) => ({ ...f, name: v }))}
               placeholder={t("namePlaceholder")}
               disabled={saving}
+              maxLength={120}
             />
             <Field
               id="phone"
@@ -164,6 +168,7 @@ export default function ProfilePage() {
               placeholder={t("phonePlaceholder")}
               disabled={saving}
               inputMode="tel"
+              maxLength={20}
             />
             <Field
               id="vehicleInfo"
@@ -172,12 +177,14 @@ export default function ProfilePage() {
               onChange={(v) => setForm((f) => ({ ...f, vehicleInfo: v }))}
               placeholder={t("vehiclePlaceholder")}
               disabled={saving}
+              maxLength={160}
             />
             <Field
               id="serviceArea"
               label={t("serviceAreaLabel")}
               value={form.serviceArea}
               onChange={(v) => setForm((f) => ({ ...f, serviceArea: v }))}
+              maxLength={160}
               placeholder={t("serviceAreaPlaceholder")}
               disabled={saving}
             />
@@ -241,6 +248,7 @@ function Field({
   placeholder,
   disabled,
   inputMode,
+  maxLength,
 }: {
   id: string;
   label: string;
@@ -249,6 +257,7 @@ function Field({
   placeholder?: string;
   disabled?: boolean;
   inputMode?: "tel";
+  maxLength?: number;
 }) {
   return (
     <div className="space-y-1.5">
@@ -260,6 +269,7 @@ function Field({
         placeholder={placeholder}
         disabled={disabled}
         inputMode={inputMode}
+        maxLength={maxLength}
         className="h-10"
       />
     </div>

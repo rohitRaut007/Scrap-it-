@@ -68,10 +68,11 @@ function NewInvoiceContent() {
   const cloneFromId = searchParams.get("cloneFrom");
 
   const { data: profile } = useProfile();
-  const { data: clients } = useClients();
-  const { data: cloneSource } = useInvoice(cloneFromId);
+  const { data: clients, error: clientsError } = useClients();
+  const { data: cloneSource, error: cloneError } = useInvoice(cloneFromId);
 
   const [step, setStep] = useState<Step>("billType");
+  const [userInteracted, setUserInteracted] = useState(false);
   const [billType, setBillType] = useState<BillType | null>(null);
 
   const [clientId, setClientId] = useState("");
@@ -103,6 +104,14 @@ function NewInvoiceContent() {
   const [submitting, setSubmitting] = useState(false);
   const [generatedId, setGeneratedId] = useState<string | null>(null);
   const [prefilled, setPrefilled] = useState(false);
+
+  // The clone-from-invoice fetch is an explicitly user-invoked action (via a
+  // link) — a failure there shouldn't fail silently.
+  useEffect(() => {
+    if (cloneFromId && cloneError) {
+      toast.error(t("cloneLoadError"));
+    }
+  }, [cloneFromId, cloneError, t]);
 
   // Default payableTo from the collector's saved profile, once, unless cloning.
   useEffect(() => {
@@ -139,9 +148,12 @@ function NewInvoiceContent() {
   }, [billType, termsAndConditions, profile, t]);
 
   // "Generate next month" — clone everything from the source invoice, and
-  // skip straight to the Details step since bill type + client are already fixed.
+  // skip straight to the Details step since bill type + client are already
+  // fixed. Skipped once the user has manually navigated the wizard, so a
+  // slow-resolving clone fetch can't yank them out of a step they've
+  // already started filling in.
   useEffect(() => {
-    if (cloneSource && !prefilled) {
+    if (cloneSource && !prefilled && !userInteracted) {
       setBillType(cloneSource.billType);
       setClientId(cloneSource.client.id);
       setPeriod(nextBillingPeriod(cloneSource.billingMonth, cloneSource.billingYear));
@@ -159,7 +171,7 @@ function NewInvoiceContent() {
       setPrefilled(true);
       setStep("details");
     }
-  }, [cloneSource, prefilled, profile]);
+  }, [cloneSource, prefilled, profile, userInteracted]);
 
   const filteredClients = useMemo(
     () => (clients ?? []).filter((c) => !billType || resolveBillType(c.type) === billType),
@@ -183,7 +195,12 @@ function NewInvoiceContent() {
       newClient.siteName.trim().length > 0 &&
       newClient.addressText.trim().length > 0
     : Boolean(clientId);
-  const detailsStepValid = description.trim().length > 0 && parsedQuantity > 0 && parsedRate > 0;
+  const detailsStepValid =
+    description.trim().length > 0 &&
+    parsedQuantity > 0 &&
+    parsedQuantity <= 1_000_000 &&
+    parsedRate > 0 &&
+    parsedRate <= 10_000_000;
 
   const previewInput: InvoicePreviewInput | null = useMemo(() => {
     if (!billType) return null;
@@ -235,10 +252,12 @@ function NewInvoiceContent() {
   };
 
   const goNext = () => {
+    setUserInteracted(true);
     const idx = STEPS.indexOf(step);
     if (idx < STEPS.length - 1) setStep(STEPS[idx + 1]);
   };
   const goBack = () => {
+    setUserInteracted(true);
     const idx = STEPS.indexOf(step);
     if (idx > 0) setStep(STEPS[idx - 1]);
   };
@@ -261,6 +280,9 @@ function NewInvoiceContent() {
           phone: newClient.phone.trim() || undefined,
         });
         resolvedClientId = created.id;
+        // Persist immediately: if createInvoice below fails and the user
+        // retries, this stops a second client record from being created.
+        setClientId(created.id);
       }
 
       const invoice = await collectorApi.createInvoice({
@@ -317,6 +339,9 @@ function NewInvoiceContent() {
         <div className="space-y-4">
           <div className="rounded-2xl border bg-card p-4 shadow-xs space-y-3.5">
             <h2 className="text-sm font-semibold">{t("clientSectionTitle")}</h2>
+            {clientsError && (
+              <p className="text-xs text-destructive">{t("clientsLoadError")}</p>
+            )}
             <ClientPicker
               clients={filteredClients}
               value={clientId}
@@ -349,6 +374,7 @@ function NewInvoiceContent() {
                   onChange={(v) => setNewClient((c) => ({ ...c, entityName: v }))}
                   placeholder={t("entityNamePlaceholder")}
                   disabled={submitting}
+                  maxLength={160}
                 />
                 <Field
                   id="siteName"
@@ -356,6 +382,7 @@ function NewInvoiceContent() {
                   value={newClient.siteName}
                   onChange={(v) => setNewClient((c) => ({ ...c, siteName: v }))}
                   disabled={submitting}
+                  maxLength={160}
                 />
                 {isCommercial && (
                   <div className="space-y-1.5">
@@ -394,6 +421,7 @@ function NewInvoiceContent() {
                     setNewClient((c) => ({ ...c, premisesType: v, premisesTypeTouched: true }))
                   }
                   disabled={submitting}
+                  maxLength={60}
                 />
                 <Field
                   id="gstin"
@@ -402,6 +430,7 @@ function NewInvoiceContent() {
                   onChange={(v) => setNewClient((c) => ({ ...c, gstin: v }))}
                   placeholder={t("gstinPlaceholder")}
                   disabled={submitting}
+                  maxLength={15}
                 />
                 <Field
                   id="clientAddress"
@@ -409,6 +438,7 @@ function NewInvoiceContent() {
                   value={newClient.addressText}
                   onChange={(v) => setNewClient((c) => ({ ...c, addressText: v }))}
                   disabled={submitting}
+                  maxLength={300}
                 />
               </div>
             )}
@@ -468,6 +498,7 @@ function NewInvoiceContent() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   disabled={submitting}
+                  maxLength={200}
                   className="h-10"
                 />
               ) : (
@@ -509,6 +540,7 @@ function NewInvoiceContent() {
               onChange={setPayableTo}
               placeholder={t("payableToPlaceholder")}
               disabled={submitting}
+              maxLength={120}
             />
           </div>
 
@@ -533,6 +565,7 @@ function NewInvoiceContent() {
                     onChange={setReferencePoNumber}
                     placeholder={t("referencePoNumberPlaceholder")}
                     disabled={submitting}
+                    maxLength={60}
                   />
                   <Field
                     id="termsOfPayment"
@@ -540,6 +573,7 @@ function NewInvoiceContent() {
                     value={termsOfPayment}
                     onChange={setTermsOfPayment}
                     disabled={submitting}
+                    maxLength={120}
                   />
                   <div className="space-y-1.5">
                     <Label htmlFor="termsAndConditions">{t("termsAndConditionsLabel")}</Label>
@@ -548,6 +582,7 @@ function NewInvoiceContent() {
                       value={termsAndConditions}
                       onChange={(e) => setTermsAndConditions(e.target.value)}
                       disabled={submitting}
+                      maxLength={1000}
                       rows={4}
                     />
                   </div>
@@ -673,6 +708,7 @@ function Field({
   placeholder,
   disabled,
   inputMode,
+  maxLength,
 }: {
   id: string;
   label: string;
@@ -681,6 +717,7 @@ function Field({
   placeholder?: string;
   disabled?: boolean;
   inputMode?: "tel" | "numeric" | "decimal";
+  maxLength?: number;
 }) {
   return (
     <div className="space-y-1.5">
@@ -692,6 +729,7 @@ function Field({
         placeholder={placeholder}
         disabled={disabled}
         inputMode={inputMode}
+        maxLength={maxLength}
         className="h-10"
       />
     </div>

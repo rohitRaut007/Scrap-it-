@@ -39,6 +39,9 @@ yarn-error.*
 # turborepo
 .turbo
 
+# Next.js
+.next/
+
 # vercel
 .vercel
 

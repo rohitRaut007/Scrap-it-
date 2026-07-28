@@ -11,7 +11,8 @@
     "errorMessage": "सर्व्हरशी संपर्क होऊ शकला नाही. तुमचे इंटरनेट तपासा आणि पुन्हा प्रयत्न करा.",
     "new": "नवीन",
     "on": "चालू",
-    "off": "बंद"
+    "off": "बंद",
+    "staleDataNotice": "रिफ्रेश करता आले नाही — शेवटचा माहीत असलेला डेटा दाखवत आहोत."
   },
   "nav": {
     "brand": "Scrap-it",
@@ -89,7 +90,8 @@
       "enRoute": "मार्गावर",
       "arriving": "पोहोचत आहे",
       "completed": "पूर्ण",
-      "cancelled": "रद्द"
+      "cancelled": "रद्द",
+      "unknown": "अज्ञात"
     },
     "stepAccepted": "स्वीकारले",
     "stepEnRoute": "मार्गावर",
@@ -97,6 +99,9 @@
     "stepDone": "पूर्ण",
     "notFoundTitle": "पिकअप सापडला नाही",
     "notFoundHint": "कदाचित हा दुसऱ्या कलेक्टरने घेतला असेल किंवा रद्द झाला असेल.",
+    "loadErrorTitle": "हा पिकअप लोड करता आला नाही",
+    "loadErrorHint": "तुमचे कनेक्शन तपासा आणि पुन्हा प्रयत्न करा.",
+    "retry": "पुन्हा प्रयत्न करा",
     "backToPickups": "पिकअपकडे परत जा",
     "cancelledNotice": "हा पिकअप रद्द करण्यात आला होता.",
     "completedBannerTitle": "पिकअप पूर्ण झाला",
@@ -156,6 +161,8 @@
     "title": "वजन करा आणि पूर्ण करा",
     "description": "प्रत्येक साहित्याचे वजन नोंदवा. पेमेंट तुमच्या स्वतःच्या सेव्ह केलेल्या दरानुसार ठरेल — तुम्ही या पिकअपसाठी तो बदलू शकता.",
     "noMaterials": "या बुकिंगमध्ये कोणतेही साहित्य नमूद केलेले नाही. ग्राहकाकडे वजन करण्यासाठी स्क्रॅप असल्यास सपोर्टशी संपर्क साधा.",
+    "rateCardLoading": "तुमचे दर लोड होत आहेत…",
+    "rateCardLoadError": "तुमचे दर लोड करता आले नाहीत. कनेक्शन तपासा आणि पुन्हा प्रयत्न करा.",
     "kgTotal": "एकूण {weight} किलो",
     "customerPayout": "ग्राहक पेमेंट",
     "ratePlaceholder": "दर",
@@ -174,7 +181,8 @@
     "save": "दर सेव्ह करा",
     "saving": "सेव्ह होत आहे…",
     "toastSaved": "दर सेव्ह झाले",
-    "toastError": "तुमचे दर सेव्ह होऊ शकले नाहीत."
+    "toastError": "तुमचे दर सेव्ह होऊ शकले नाहीत.",
+    "noCategories": "अजून दर सेट करण्यासाठी कोणतीही श्रेणी नाही."
   },
   "earnings": {
     "title": "कमाई",
@@ -221,6 +229,7 @@
     "shopAddressPlaceholder": "उदा. Shop 4, Market Road",
     "gstLabel": "GST क्रमांक (ऐच्छिक)",
     "gstPlaceholder": "उदा. 27ABCDE1234F1Z5",
+    "gstFormatHint": "15 अक्षरे — राज्य कोड, PAN, आणि entity कोड.",
     "showOnReceiptLabel": "डीफॉल्टनुसार पावतीवर दाखवा",
     "showOnReceiptHint": "प्रिंट करताना तुम्ही कोणत्याही एका पावतीसाठी हे चालू किंवा बंद करू शकता.",
     "bookingLinkTitle": "तुमची वैयक्तिक बुकिंग लिंक",
@@ -266,6 +275,10 @@
     "emptyHint": "तुमच्या मासिक क्लायंटसाठी तयार केलेली बिले इथे दिसतील.",
     "pageOf": "पान {page} / {total}",
     "backToInvoices": "बिलांकडे परत जा",
+    "notFoundTitle": "बिल सापडले नाही",
+    "notFoundHint": "कदाचित हे काढून टाकले असेल किंवा तुम्हाला याचा अ‍ॅक्सेस नसेल.",
+    "clientFallback": "क्लायंट",
+    "shareUnavailable": "सध्या हे बिल शेअर करणे उपलब्ध नाही.",
     "invoiceNoShort": "{number}",
     "itemsSectionTitle": "आयटम",
     "generateNextMonth": "पुढील महिन्याचे बिल तयार करा",
@@ -276,6 +289,8 @@
     "yourBusinessPlaceholder": "तुमच्या व्यवसायाचे नाव",
     "siteNamePlaceholder": "साइटचे नाव",
     "toastGenerated": "बिल तयार झाले",
+    "cloneLoadError": "कॉपी करण्यासाठी बिल लोड करता आले नाही. त्याऐवजी नवीन बिल सुरू करत आहोत.",
+    "clientsLoadError": "तुमचे क्लायंट लोड करता आले नाहीत. तरीही तुम्ही खाली नवीन क्लायंट जोडू शकता.",
     "clientSectionTitle": "क्लायंट",
     "selectClientPlaceholder": "क्लायंट निवडा",
     "addNewClient": "+ नवीन क्लायंट जोडा",

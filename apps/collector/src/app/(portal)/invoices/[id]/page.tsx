@@ -51,14 +51,21 @@ export default function InvoiceDetailPage({
     setBusy(true);
     try {
       await collectorApi.updateInvoiceStatus(id, status);
-      await mutate();
-      await revalidateCollectorData("invoices");
-      toast.success(t("toastStatusUpdated"));
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : t("toastError"));
-    } finally {
       setBusy(false);
+      return;
     }
+    // The status update itself succeeded — a follow-up revalidation hiccup
+    // shouldn't be reported as if the update had failed.
+    toast.success(t("toastStatusUpdated"));
+    await mutate();
+    try {
+      await revalidateCollectorData("invoices");
+    } catch {
+      // Non-fatal — other collector-data views will catch up on next fetch.
+    }
+    setBusy(false);
   };
 
   if (isLoading && !invoice) {
@@ -71,10 +78,18 @@ export default function InvoiceDetailPage({
   }
 
   if ((error || !invoice) && !isLoading) {
+    const isNotFound = error instanceof ApiError && error.status === 404;
     return (
       <div className="space-y-4">
         <BackLink />
-        <ErrorState onRetry={() => mutate()} />
+        {isNotFound ? (
+          <div className="rounded-2xl border border-dashed p-10 text-center">
+            <p className="text-sm font-medium">{t("notFoundTitle")}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t("notFoundHint")}</p>
+          </div>
+        ) : (
+          <ErrorState onRetry={() => mutate()} />
+        )}
       </div>
     );
   }
@@ -89,7 +104,7 @@ export default function InvoiceDetailPage({
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2 text-base font-semibold">
             <Building2 className="h-4.5 w-4.5 text-primary shrink-0" />
-            {invoice.client.entityName || invoice.client.siteName}
+            {invoice.client?.entityName || invoice.client?.siteName || t("clientFallback")}
           </div>
           <InvoiceStatusBadge status={invoice.status} />
         </div>

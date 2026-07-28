@@ -27,30 +27,37 @@ export class ApiError extends Error {
   }
 }
 
+const GENERIC_ERROR_MESSAGE = "Something went wrong. Please try again.";
+
 /**
  * Parse the status code and message from the api-client's error string:
  * "HTTP 422: {"message":"...","statusCode":422}"
+ *
+ * Only a well-formed `{message}` body (our own backend's deliberate,
+ * user-facing error strings) is ever shown verbatim — anything else
+ * (a malformed body, a JSON parse failure, a network-level TypeError)
+ * falls back to a generic message instead of leaking raw technical text.
  */
 function parseApiError(err: unknown): ApiError {
   if (err instanceof Error) {
     const match = /^HTTP (\d+): (.+)$/.exec(err.message);
     if (match) {
       const status = parseInt(match[1], 10);
-      let message = match[2];
       try {
-        const body = JSON.parse(message) as { message?: string | string[] };
+        const body = JSON.parse(match[2]) as { message?: string | string[] };
         if (Array.isArray(body.message)) {
-          message = body.message.join(", ");
-        } else if (typeof body.message === "string") {
-          message = body.message;
+          return new ApiError(status, body.message.join(", "));
+        }
+        if (typeof body.message === "string") {
+          return new ApiError(status, body.message);
         }
       } catch {
-        // keep raw message
+        // fall through — don't leak the raw response body
       }
-      return new ApiError(status, message);
+      return new ApiError(status, GENERIC_ERROR_MESSAGE);
     }
   }
-  return new ApiError(0, String(err));
+  return new ApiError(0, GENERIC_ERROR_MESSAGE);
 }
 
 const _client = createApiClient({
@@ -65,7 +72,16 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     return await _client.request<T>(path, init);
   } catch (err) {
-    throw parseApiError(err);
+    const apiError = parseApiError(err);
+    if (apiError.status === 401) {
+      // Session is expired/invalid — force a clean re-auth rather than
+      // leaving the app in a half-authenticated state. Runs outside React's
+      // render tree, so a hard navigation is the right tool here.
+      void supabase.auth.signOut().finally(() => {
+        window.location.href = "/login?reason=expired";
+      });
+    }
+    throw apiError;
   }
 }
 

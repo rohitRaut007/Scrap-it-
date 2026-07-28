@@ -8,7 +8,11 @@ export type OrderStatus =
   | "completed"
   | "cancelled";
 
-/** Maps a status to its translation key under the `orders.status` namespace. */
+/** Maps a status to its translation key under the `orders.status` namespace.
+ * Falls back to "unknown" for any value outside the current enum — the
+ * status ultimately comes from an API response, not a value TypeScript can
+ * actually guarantee at runtime, so an unrecognized status must not crash
+ * every screen that renders a StatusBadge. */
 export function orderStatusMessageKey(status: OrderStatus): string {
   const map: Record<OrderStatus, string> = {
     scheduled: "scheduled",
@@ -18,7 +22,7 @@ export function orderStatusMessageKey(status: OrderStatus): string {
     completed: "completed",
     cancelled: "cancelled",
   };
-  return map[status];
+  return map[status] ?? "unknown";
 }
 
 export function orderStatusClasses(status: OrderStatus): string {

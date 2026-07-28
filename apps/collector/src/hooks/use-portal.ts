@@ -33,8 +33,10 @@ export function useMyOrders(scope: "active" | "history", page = 1) {
 }
 
 export function useOrder(id: string | null) {
-  return useSWR(id ? ["collector/order", id] : null, () =>
-    collectorApi.order(id!),
+  return useSWR(
+    id ? ["collector/order", id] : null,
+    () => collectorApi.order(id!),
+    { refreshInterval: LIVE_REFRESH_MS },
   );
 }
 

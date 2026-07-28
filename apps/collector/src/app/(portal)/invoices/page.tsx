@@ -73,12 +73,12 @@ function InvoicesContent() {
             {tCommon("previous")}
           </Button>
           <span className="text-xs text-muted-foreground">
-            {t("pageOf", { page, total: Math.ceil(data.total / data.pageSize) })}
+            {t("pageOf", { page, total: Math.ceil(data.total / Math.max(data.pageSize, 1)) })}
           </span>
           <Button
             variant="outline"
             size="sm"
-            disabled={page >= Math.ceil(data.total / data.pageSize)}
+            disabled={page >= Math.ceil(data.total / Math.max(data.pageSize, 1))}
             onClick={() => setPage((p) => p + 1)}
           >
             {tCommon("next")}

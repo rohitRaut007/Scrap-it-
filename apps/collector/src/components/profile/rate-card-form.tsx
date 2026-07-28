@@ -15,25 +15,36 @@ export function RateCardForm() {
   const t = useTranslations("rateCard");
   const { data: rateCard, isLoading, error, mutate } = useRateCard();
   const [rates, setRates] = useState<Record<string, string>>({});
+  const [touchedIds, setTouchedIds] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!rateCard) return;
+    // Resync every category the user hasn't directly edited this session
+    // from the latest server data; skip touched ones so an active edit is
+    // never silently overwritten by a background revalidation.
     setRates((prev) => {
       const next = { ...prev };
       for (const item of rateCard) {
-        if (!(item.id in next)) {
+        if (!touchedIds.has(item.id)) {
           next[item.id] = item.rateInrPerKg != null ? String(item.rateInrPerKg) : "";
         }
       }
       return next;
     });
-  }, [rateCard]);
+  }, [rateCard, touchedIds]);
+
+  const handleRateChange = (categoryId: string, value: string) => {
+    setRates((r) => ({ ...r, [categoryId]: value }));
+    setTouchedIds((ids) => (ids.has(categoryId) ? ids : new Set(ids).add(categoryId)));
+  };
 
   const handleSave = async () => {
     const items = Object.entries(rates)
       .map(([categoryId, raw]) => ({ categoryId, rateInrPerKg: parseFloat(raw) }))
-      .filter((i) => Number.isFinite(i.rateInrPerKg) && i.rateInrPerKg >= 0);
+      .filter(
+        (i) => Number.isFinite(i.rateInrPerKg) && i.rateInrPerKg >= 0 && i.rateInrPerKg <= 100000,
+      );
     if (items.length === 0) return;
 
     setSaving(true);
@@ -60,6 +71,17 @@ export function RateCardForm() {
 
   if (error && !rateCard) {
     return <ErrorState onRetry={() => mutate()} />;
+  }
+
+  if (rateCard && rateCard.length === 0) {
+    return (
+      <div className="space-y-4">
+        <p className="text-sm text-muted-foreground">{t("description")}</p>
+        <div className="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+          {t("noCategories")}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -90,13 +112,12 @@ export function RateCardForm() {
                   type="number"
                   inputMode="decimal"
                   min="0"
+                  max="100000"
                   step="0.5"
                   placeholder="0"
                   className="h-11 w-24 text-right"
                   value={raw}
-                  onChange={(e) =>
-                    setRates((r) => ({ ...r, [item.id]: e.target.value }))
-                  }
+                  onChange={(e) => handleRateChange(item.id, e.target.value)}
                   disabled={saving}
                 />
                 <span className="text-sm text-muted-foreground">{t("perKg")}</span>

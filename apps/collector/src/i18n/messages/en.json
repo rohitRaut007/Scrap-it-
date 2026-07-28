@@ -11,7 +11,8 @@
     "errorMessage": "Could not reach the server. Check your connection and try again.",
     "new": "New",
     "on": "On",
-    "off": "Off"
+    "off": "Off",
+    "staleDataNotice": "Couldn't refresh — showing the last known data."
   },
   "nav": {
     "brand": "Scrap-it",
@@ -89,7 +90,8 @@
       "enRoute": "On the way",
       "arriving": "Arriving",
       "completed": "Completed",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "unknown": "Unknown"
     },
     "stepAccepted": "Accepted",
     "stepEnRoute": "On the way",
@@ -97,6 +99,9 @@
     "stepDone": "Done",
     "notFoundTitle": "Pickup not found",
     "notFoundHint": "It may have been taken by another collector or cancelled.",
+    "loadErrorTitle": "Couldn't load this pickup",
+    "loadErrorHint": "Check your connection and try again.",
+    "retry": "Retry",
     "backToPickups": "Back to pickups",
     "cancelledNotice": "This pickup was cancelled.",
     "completedBannerTitle": "Pickup completed",
@@ -156,6 +161,8 @@
     "title": "Weigh & complete",
     "description": "Enter the weight for each material. The payout uses your own saved rate — you can adjust it for this pickup.",
     "noMaterials": "This booking has no materials listed. Contact support if the customer has scrap to weigh.",
+    "rateCardLoading": "Loading your rates…",
+    "rateCardLoadError": "Couldn't load your rates. Check your connection and try again.",
     "kgTotal": "{weight} kg total",
     "customerPayout": "Customer payout",
     "ratePlaceholder": "Rate",
@@ -174,7 +181,8 @@
     "save": "Save rates",
     "saving": "Saving…",
     "toastSaved": "Rates saved",
-    "toastError": "Could not save your rates."
+    "toastError": "Could not save your rates.",
+    "noCategories": "No categories to set rates for yet."
   },
   "earnings": {
     "title": "Earnings",
@@ -221,6 +229,7 @@
     "shopAddressPlaceholder": "e.g. Shop 4, Market Road",
     "gstLabel": "GST number (optional)",
     "gstPlaceholder": "e.g. 27ABCDE1234F1Z5",
+    "gstFormatHint": "15 characters — state code, PAN, and entity code.",
     "showOnReceiptLabel": "Show on receipts by default",
     "showOnReceiptHint": "You can still turn this on or off for any single receipt when you print it.",
     "bookingLinkTitle": "Your personal booking link",
@@ -266,6 +275,10 @@
     "emptyHint": "Bills you generate for your monthly clients will show up here.",
     "pageOf": "Page {page} of {total}",
     "backToInvoices": "Back to invoices",
+    "notFoundTitle": "Invoice not found",
+    "notFoundHint": "It may have been removed or you may not have access to it.",
+    "clientFallback": "Client",
+    "shareUnavailable": "Sharing isn't available for this invoice right now.",
     "invoiceNoShort": "{number}",
     "itemsSectionTitle": "Items",
     "generateNextMonth": "Generate next month",
@@ -276,6 +289,8 @@
     "yourBusinessPlaceholder": "Your business name",
     "siteNamePlaceholder": "Site name",
     "toastGenerated": "Invoice generated",
+    "cloneLoadError": "Couldn't load the invoice to copy from. Starting a fresh invoice instead.",
+    "clientsLoadError": "Couldn't load your clients. You can still add a new one below.",
     "clientSectionTitle": "Client",
     "selectClientPlaceholder": "Select a client",
     "addNewClient": "+ Add new client",

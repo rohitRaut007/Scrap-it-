@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Inbox, PackageCheck, Truck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
+import { StaleDataNotice } from "@/components/ui/stale-data-notice";
 import { Button } from "@/components/ui/button";
 import { OrderCard } from "@/components/orders/order-card";
 import { LogPickupButton } from "@/components/orders/log-pickup-button";
@@ -143,13 +144,13 @@ function OrdersContent() {
           <span className="text-xs text-muted-foreground">
             {t("pageOf", {
               page,
-              total: Math.ceil(current.data.total / current.data.pageSize),
+              total: Math.ceil(current.data.total / Math.max(current.data.pageSize, 1)),
             })}
           </span>
           <Button
             variant="outline"
             size="sm"
-            disabled={page >= Math.ceil(current.data.total / current.data.pageSize)}
+            disabled={page >= Math.ceil(current.data.total / Math.max(current.data.pageSize, 1))}
             onClick={() => setPage((p) => p + 1)}
           >
             {tCommon("next")}
@@ -211,6 +212,7 @@ function OrdersList({
 
   return (
     <div className="space-y-3">
+      {error ? <StaleDataNotice /> : null}
       {response.data.map((order) => (
         <OrderCard key={order.id} order={order} />
       ))}

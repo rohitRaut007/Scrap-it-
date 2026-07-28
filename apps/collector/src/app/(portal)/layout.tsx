@@ -2,7 +2,6 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@supabase/ssr";
 import { PortalShell } from "@/components/layout/portal-shell";
-import { getRoleFromJwt } from "@/lib/auth";
 
 export default async function PortalLayout({
   children,
@@ -26,16 +25,19 @@ export default async function PortalLayout({
     },
   );
 
+  // getUser() re-verifies the session against the Supabase Auth server —
+  // unlike getSession(), which just reads the (unverified) JWT from cookies.
+  // This is the app's sole authorization gate, so it must use the verified call.
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!session) redirect("/login");
+  if (!user) redirect("/login");
 
-  const role = getRoleFromJwt(session.access_token);
+  const role = user.app_metadata?.role;
   if (role !== "collector") {
     redirect("/login?reason=unauthorized");
   }
 
-  return <PortalShell userEmail={session.user.email}>{children}</PortalShell>;
+  return <PortalShell userEmail={user.email}>{children}</PortalShell>;
 }

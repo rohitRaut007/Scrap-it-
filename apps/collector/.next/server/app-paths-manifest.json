@@ -1,9 +1,0 @@
-{
-  "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/(portal)/dashboard/page": "app/(portal)/dashboard/page.js",
-  "/(portal)/invoices/page": "app/(portal)/invoices/page.js",
-  "/(portal)/profile/page": "app/(portal)/profile/page.js",
-  "/(portal)/invoices/new/page": "app/(portal)/invoices/new/page.js",
-  "/(portal)/orders/page": "app/(portal)/orders/page.js",
-  "/(portal)/invoices/[id]/page": "app/(portal)/invoices/[id]/page.js"
-}

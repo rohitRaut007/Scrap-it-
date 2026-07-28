@@ -32,13 +32,17 @@ export function InvoiceDetailsForm({ profile, onSaved }: InvoiceDetailsFormProps
   });
 
   useEffect(() => {
-    setForm({
-      businessTagline: profile.businessTagline ?? "",
-      payableTo: profile.payableTo ?? "",
-      accentColor: profile.accentColor ?? "",
-      defaultTermsAndConditions: profile.defaultTermsAndConditions ?? "",
-    });
-  }, [profile]);
+    // Skip re-seeding while open for editing — a background revalidation
+    // shouldn't silently clobber in-progress unsaved edits.
+    if (!editing) {
+      setForm({
+        businessTagline: profile.businessTagline ?? "",
+        payableTo: profile.payableTo ?? "",
+        accentColor: profile.accentColor ?? "",
+        defaultTermsAndConditions: profile.defaultTermsAndConditions ?? "",
+      });
+    }
+  }, [profile, editing]);
 
   const accentInvalid =
     form.accentColor.trim() !== "" && !HEX_COLOR_RE.test(form.accentColor.trim());
@@ -48,14 +52,24 @@ export function InvoiceDetailsForm({ profile, onSaved }: InvoiceDetailsFormProps
     if (accentInvalid) return;
     setSaving(true);
     try {
-      await collectorApi.updateProfile(form);
-      await onSaved();
+      await collectorApi.updateProfile({
+        ...form,
+        accentColor: form.accentColor.trim(),
+      });
+      // The save itself succeeded — reflect that regardless of whether the
+      // follow-up revalidation below succeeds.
       setEditing(false);
       toast.success(t("toastSettingsUpdated"));
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : t("toastError"));
+      return;
     } finally {
       setSaving(false);
+    }
+    try {
+      await onSaved();
+    } catch {
+      // Non-fatal — the profile data will catch up on next fetch/focus.
     }
   };
 
@@ -91,6 +105,7 @@ export function InvoiceDetailsForm({ profile, onSaved }: InvoiceDetailsFormProps
               }
               placeholder={t("taglinePlaceholder")}
               disabled={saving}
+              maxLength={160}
               className="h-10"
             />
           </div>
@@ -102,6 +117,7 @@ export function InvoiceDetailsForm({ profile, onSaved }: InvoiceDetailsFormProps
               onChange={(e) => setForm((f) => ({ ...f, payableTo: e.target.value }))}
               placeholder={t("payableToPlaceholder")}
               disabled={saving}
+              maxLength={120}
               className="h-10"
             />
           </div>
@@ -142,6 +158,7 @@ export function InvoiceDetailsForm({ profile, onSaved }: InvoiceDetailsFormProps
               }
               placeholder={t("termsAndConditionsPlaceholder")}
               disabled={saving}
+              maxLength={1000}
               rows={4}
             />
           </div>

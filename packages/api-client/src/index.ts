@@ -20,7 +20,11 @@ export function createApiClient(options: ApiClientOptions): ScrapItApiClient {
     const headers = new Headers(init?.headers);
     const token = await options.getAccessToken?.();
     if (token) headers.set("Authorization", `Bearer ${token}`);
-    const res = await fetch(url, { ...init, headers });
+    const res = await fetch(url, {
+      ...init,
+      headers,
+      signal: init?.signal ?? AbortSignal.timeout(20_000),
+    });
     if (!res.ok) {
       const body = await res.text();
       throw new Error(`HTTP ${res.status}: ${body}`);

@@ -32,13 +32,17 @@ export function BusinessDetailsForm({
   });
 
   useEffect(() => {
-    setForm({
-      shopName: profile.shopName ?? "",
-      shopAddressText: profile.shopAddressText ?? "",
-      gstNumber: profile.gstNumber ?? "",
-      showBusinessDetailsOnReceipt: profile.showBusinessDetailsOnReceipt,
-    });
-  }, [profile]);
+    // Skip re-seeding while open for editing — a background revalidation
+    // shouldn't silently clobber in-progress unsaved edits.
+    if (!editing) {
+      setForm({
+        shopName: profile.shopName ?? "",
+        shopAddressText: profile.shopAddressText ?? "",
+        gstNumber: profile.gstNumber ?? "",
+        showBusinessDetailsOnReceipt: profile.showBusinessDetailsOnReceipt,
+      });
+    }
+  }, [profile, editing]);
 
   const draftHasAnyField = Boolean(
     form.shopName.trim() || form.shopAddressText.trim() || form.gstNumber.trim(),
@@ -49,13 +53,21 @@ export function BusinessDetailsForm({
     setSaving(true);
     try {
       await collectorApi.updateProfile(form);
-      await onSaved();
+      // The save itself succeeded — reflect that regardless of whether the
+      // follow-up revalidation below succeeds, so a transient refresh
+      // failure can't masquerade as "your save failed."
       setEditing(false);
       toast.success(t("toastUpdated"));
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : t("toastError"));
+      return;
     } finally {
       setSaving(false);
+    }
+    try {
+      await onSaved();
+    } catch {
+      // Non-fatal — the profile data will catch up on next fetch/focus.
     }
   };
 
@@ -92,6 +104,7 @@ export function BusinessDetailsForm({
               }
               placeholder={t("shopNamePlaceholder")}
               disabled={saving}
+              maxLength={120}
               className="h-10"
             />
           </div>
@@ -105,6 +118,7 @@ export function BusinessDetailsForm({
               }
               placeholder={t("shopAddressPlaceholder")}
               disabled={saving}
+              maxLength={300}
               className="h-10"
             />
           </div>
@@ -118,8 +132,10 @@ export function BusinessDetailsForm({
               }
               placeholder={t("gstPlaceholder")}
               disabled={saving}
+              maxLength={30}
               className="h-10"
             />
+            <p className="text-xs text-muted-foreground">{t("gstFormatHint")}</p>
           </div>
           {draftHasAnyField && (
             <div className="flex items-center justify-between gap-3 rounded-xl border p-3">

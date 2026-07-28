@@ -26,6 +26,16 @@ export function InvoiceShareButton({ invoice, profile }: InvoiceShareButtonProps
 
   const monthLabel = tMonth(monthMessageKey(invoice.billingMonth));
 
+  // Defensive: a missing client relation (soft-deleted / data edge case)
+  // would otherwise throw inside buildDocument()/handleWhatsAppText below.
+  if (!invoice.client) {
+    return (
+      <p className="rounded-2xl border border-dashed p-4 text-center text-sm text-muted-foreground">
+        {t("shareUnavailable")}
+      </p>
+    );
+  }
+
   const buildDocument = () => {
     const businessName = profile.shopName || profile.name || "";
     const accentColor = profile.accentColor;
@@ -116,6 +126,7 @@ export function InvoiceShareButton({ invoice, profile }: InvoiceShareButtonProps
       if (err instanceof DOMException && err.name === "AbortError") {
         // user cancelled the native share sheet — not an error
       } else {
+        console.error("Failed to generate/share invoice PDF:", err);
         toast.error(t("toastError"));
       }
     } finally {

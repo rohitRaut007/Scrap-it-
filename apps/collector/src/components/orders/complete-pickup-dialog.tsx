@@ -36,7 +36,7 @@ export function CompletePickupDialog({
   onCompleted,
 }: CompletePickupDialogProps) {
   const t = useTranslations("completePickup");
-  const { data: rateCard } = useRateCard();
+  const { data: rateCard, isLoading: rateCardLoading, error: rateCardError } = useRateCard();
   const [weights, setWeights] = useState<Record<string, string>>({});
   const [rates, setRates] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -52,11 +52,16 @@ export function CompletePickupDialog({
         const rawWeight = weights[c.categoryId] ?? "";
         const parsedWeight = parseFloat(rawWeight);
         const weightKg =
-          Number.isFinite(parsedWeight) && parsedWeight > 0 ? parsedWeight : 0;
+          Number.isFinite(parsedWeight) && parsedWeight > 0 && parsedWeight <= 10000
+            ? parsedWeight
+            : 0;
         const savedRate = rateByCategory.get(c.categoryId) ?? null;
         const rawRate = rates[c.categoryId] ?? (savedRate != null ? String(savedRate) : "");
         const parsedRate = parseFloat(rawRate);
-        const rateInrPerKg = Number.isFinite(parsedRate) && parsedRate >= 0 ? parsedRate : null;
+        const rateInrPerKg =
+          Number.isFinite(parsedRate) && parsedRate >= 0 && parsedRate <= 100000
+            ? parsedRate
+            : null;
         return {
           ...c,
           weightKg,
@@ -116,6 +121,14 @@ export function CompletePickupDialog({
               {t("noMaterials")}
             </p>
           )}
+          {rateCardLoading && (
+            <p className="text-sm text-muted-foreground">{t("rateCardLoading")}</p>
+          )}
+          {rateCardError && (
+            <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+              {t("rateCardLoadError")}
+            </p>
+          )}
           {lines.map((line) => (
             <div key={line.categoryId} className="rounded-xl border p-3">
               <div className="flex items-center gap-3">
@@ -133,6 +146,7 @@ export function CompletePickupDialog({
                     type="number"
                     inputMode="decimal"
                     min="0"
+                    max="10000"
                     step="0.1"
                     placeholder="0.0"
                     className="h-11 w-24 text-right"
@@ -154,6 +168,7 @@ export function CompletePickupDialog({
                   type="number"
                   inputMode="decimal"
                   min="0"
+                  max="100000"
                   step="0.5"
                   placeholder={t("ratePlaceholder")}
                   className="h-9 w-24 text-right text-xs"
@@ -201,7 +216,7 @@ export function CompletePickupDialog({
             <Button
               className="flex-1"
               onClick={handleSubmit}
-              disabled={!hasWeight || submitting}
+              disabled={!hasWeight || submitting || rateCardLoading || Boolean(rateCardError)}
             >
               {submitting ? t("completing") : t("complete")}
             </Button>
