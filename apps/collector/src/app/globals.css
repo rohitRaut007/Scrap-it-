@@ -125,6 +125,33 @@
   animation: row-flash 1.4s ease-out forwards;
 }
 
+/* Layered, ink-tinted shadows — warm charcoal, not generic black, so
+   elevation reads on-brand instead of like a stock UI kit. */
+@utility shadow-elevation-1 {
+  box-shadow:
+    0 1px 2px rgba(26, 25, 24, 0.04),
+    0 6px 16px -6px rgba(26, 25, 24, 0.10);
+}
+@utility shadow-elevation-2 {
+  box-shadow:
+    0 2px 4px rgba(26, 25, 24, 0.06),
+    0 16px 32px -12px rgba(26, 25, 24, 0.16);
+}
+/* Cash-tinted — for the dashboard hero card specifically. */
+@utility shadow-elevation-hero {
+  box-shadow:
+    0 4px 10px rgba(29, 94, 62, 0.18),
+    0 24px 48px -16px rgba(29, 94, 62, 0.30);
+}
+
+/* Subtle paper-grain texture (SVG feTurbulence data-URI — no new asset,
+   no new dependency). Used once, on the hero card, to give the "paper"
+   concept actual texture instead of leaving it purely metaphorical. */
+@utility bg-paper-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

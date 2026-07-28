@@ -16,6 +16,7 @@ import { ErrorState } from "@/components/ui/error-state";
 import { OrderCard } from "@/components/orders/order-card";
 import { LogPickupButton } from "@/components/orders/log-pickup-button";
 import { EarningsSection } from "@/components/earnings/earnings-section";
+import { RecentPickupsSection } from "@/components/earnings/recent-pickups-section";
 import { useProfile, useSummary } from "@/hooks/use-portal";
 import { firstName, formatInr } from "@/lib/format";
 
@@ -57,21 +58,22 @@ export default function DashboardPage() {
       {isLoading || !summary ? (
         <Skeleton className="h-36 rounded-3xl" />
       ) : (
-        <div className="relative overflow-hidden rounded-3xl bg-cash p-6 text-paper shadow-lg shadow-cash/20">
-          <div className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full bg-white/10" />
-          <div className="pointer-events-none absolute -right-16 top-10 h-40 w-40 rounded-full bg-white/5" />
-          <p className="font-mono text-xs uppercase tracking-[1.5px] text-paper/85">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-cash to-[#153f2b] p-6 text-paper shadow-elevation-hero">
+          <div className="pointer-events-none absolute inset-0 bg-paper-grain opacity-[0.05] mix-blend-overlay" />
+          <div className="pointer-events-none absolute -right-10 -top-12 h-48 w-48 rounded-full bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.18),transparent_70%)]" />
+          <div className="pointer-events-none absolute -right-20 top-16 h-40 w-40 rounded-full bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.10),transparent_70%)]" />
+          <p className="relative font-mono text-xs uppercase tracking-[1.5px] text-paper/85">
             {t("todayEarnings")}
           </p>
-          <p className="mt-1 font-display text-4xl tracking-tight">
+          <p className="relative mt-1 font-display text-4xl tracking-tight">
             {formatInr(summary.todayEarningsInr)}
           </p>
-          <div className="mt-3 flex items-center gap-4 text-sm text-paper/85">
-            <span className="flex items-center gap-1.5">
+          <div className="relative mt-3 flex items-center gap-2 text-sm text-paper/90">
+            <span className="flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1">
               <Package className="h-4 w-4" />
               {t("pickupsDone", { count: summary.todayCompleted })}
             </span>
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1">
               <TrendingUp className="h-4 w-4" />
               {t("weekEarnings", { amount: formatInr(summary.weekEarningsInr) })}
             </span>
@@ -83,7 +85,7 @@ export default function DashboardPage() {
       {summary && summary.availableOrders > 0 && (
         <Link
           href="/orders?tab=new"
-          className="flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-4 transition-colors hover:bg-primary/10"
+          className="flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-4 shadow-elevation-1 transition-shadow hover:bg-primary/10 hover:shadow-elevation-2"
         >
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
             <BellRing className="h-5 w-5" />
@@ -113,16 +115,19 @@ export default function DashboardPage() {
             icon={IndianRupee}
             label={t("statThisMonth")}
             value={formatInr(summary.monthEarningsInr)}
+            accent="rust"
           />
           <StatTile
             icon={CalendarCheck}
             label={t("statTotalPickups")}
             value={String(summary.totalCompleted)}
+            accent="ink"
           />
           <StatTile
             icon={Star}
             label={t("statRating")}
             value={summary.rating != null ? summary.rating.toFixed(1) : tCommon("new")}
+            accent="signal"
           />
         </div>
       )}
@@ -148,9 +153,11 @@ export default function DashboardPage() {
         ) : summary?.nextOrder ? (
           <OrderCard order={summary.nextOrder} />
         ) : (
-          <div className="rounded-2xl border border-dashed p-8 text-center">
-            <Package className="mx-auto h-8 w-8 text-muted-foreground/50" />
-            <p className="mt-2 text-sm font-medium">{t("noActivePickups")}</p>
+          <div className="rounded-2xl border bg-card/50 p-8 text-center shadow-elevation-1">
+            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-muted">
+              <Package className="h-6 w-6 text-muted-foreground/70" />
+            </div>
+            <p className="mt-3 text-sm font-medium">{t("noActivePickups")}</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {summary && summary.availableOrders > 0
                 ? t("noActivePickupsHintAvailable")
@@ -168,24 +175,41 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <EarningsSection />
+      <RecentPickupsSection />
+
+      <div className="border-t border-rule pt-5">
+        <EarningsSection />
+      </div>
     </div>
   );
 }
+
+const STAT_ACCENT_CLASSES = {
+  rust: "bg-rust/10 text-rust",
+  ink: "bg-ink/10 text-ink",
+  signal: "bg-signal/15 text-signal",
+  cash: "bg-cash/10 text-cash",
+} as const;
 
 function StatTile({
   icon: Icon,
   label,
   value,
+  accent,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string;
+  accent: keyof typeof STAT_ACCENT_CLASSES;
 }) {
   return (
-    <div className="rounded-2xl border bg-card p-3.5 shadow-xs">
-      <Icon className="h-4 w-4 text-primary" />
-      <p className="mt-2 font-mono text-lg font-semibold leading-tight">{value}</p>
+    <div className="rounded-2xl border bg-card p-3.5 shadow-elevation-1 transition-shadow hover:shadow-elevation-2">
+      <div
+        className={`flex size-8 items-center justify-center rounded-full ${STAT_ACCENT_CLASSES[accent]}`}
+      >
+        <Icon className="h-4 w-4" />
+      </div>
+      <p className="mt-2.5 font-mono text-lg font-semibold leading-tight">{value}</p>
       <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[1.5px] text-muted-foreground">{label}</p>
     </div>
   );

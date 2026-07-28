@@ -146,9 +146,11 @@
     "setRateLink": "अपनी दर सेट करें",
     "save": "पिकअप सेव करें",
     "saving": "सेव हो रहा है…",
-    "toastLogged": "पिकअप लॉग हो गया",
-    "toastLoggedAmount": "पिकअप लॉग हो गया · {amount}",
-    "toastError": "पिकअप सेव नहीं हो पाया।"
+    "toastError": "पिकअप सेव नहीं हो पाया।",
+    "successTitle": "पिकअप लॉग हो गया",
+    "successSubtitle": "ग्राहक को भुगतान किया गया · {weight} एकत्र किया",
+    "logAnother": "एक और पिकअप लॉग करें",
+    "done": "हो गया"
   },
   "completePickup": {
     "title": "तौलें और पूरा करें",

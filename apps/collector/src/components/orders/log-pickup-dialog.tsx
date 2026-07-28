@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { NotebookPen, X } from "lucide-react";
+import { NotebookPen, PartyPopper, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -17,26 +17,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ReceiptPanel } from "@/components/receipts/receipt-panel";
 import { useRateCard } from "@/hooks/use-portal";
 import { collectorApi, ApiError } from "@/lib/api";
-import { formatInr } from "@/lib/format";
+import { formatInr, formatWeight } from "@/lib/format";
 import { revalidateCollectorData } from "@/lib/revalidate";
 import { cn } from "@/lib/utils";
+import type { CollectorOrder } from "@/lib/types";
 
 interface LogPickupDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onLogged: (payoutInr: number | null) => void;
 }
 
 export function LogPickupDialog({
   open,
   onOpenChange,
-  onLogged,
 }: LogPickupDialogProps) {
   const t = useTranslations("logPickup");
   const tCommon = useTranslations("common");
   const { data: rateCard, isLoading: rateCardLoading } = useRateCard();
+  const [step, setStep] = useState<"form" | "success">("form");
+  const [createdOrder, setCreatedOrder] = useState<CollectorOrder | null>(null);
+  const [receiptGenerating, setReceiptGenerating] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [addressText, setAddressText] = useState("");
@@ -95,6 +98,8 @@ export function LogPickupDialog({
     setSelectedIds([]);
     setWeights({});
     setRates({});
+    setStep("form");
+    setCreatedOrder(null);
   };
 
   const handleSubmit = async () => {
@@ -116,9 +121,8 @@ export function LogPickupDialog({
         items,
       });
       await revalidateCollectorData("earnings");
-      onOpenChange(false);
-      reset();
-      onLogged(created.payoutInr);
+      setCreatedOrder(created);
+      setStep("success");
     } catch (err) {
       toast.error(
         err instanceof ApiError ? err.message : t("toastError"),
@@ -128,11 +132,27 @@ export function LogPickupDialog({
     }
   };
 
+  const handleLogAnother = () => {
+    setCustomerName("");
+    setCustomerPhone("");
+    setAddressText("");
+    setSelectedIds([]);
+    setWeights({});
+    setRates({});
+    setCreatedOrder(null);
+    setStep("form");
+  };
+
+  const handleDone = () => {
+    onOpenChange(false);
+    reset();
+  };
+
   return (
     <Dialog
       open={open}
       onOpenChange={(o) => {
-        if (submitting) return;
+        if (submitting || receiptGenerating) return;
         if (!o) reset();
         onOpenChange(o);
       }}
@@ -148,6 +168,53 @@ export function LogPickupDialog({
           </DialogDescription>
         </DialogHeader>
 
+        {step === "success" && createdOrder ? (
+          <>
+            <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
+              <div className="rounded-2xl border border-cash/25 bg-cash/10 p-5 text-center">
+                <PartyPopper className="mx-auto h-7 w-7 text-cash" />
+                <p className="mt-2 text-sm font-medium text-cash">
+                  {t("successTitle")}
+                </p>
+                <p className="font-mono text-2xl font-semibold text-cash">
+                  {formatInr(createdOrder.payoutInr)}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {t("successSubtitle", {
+                    weight: formatWeight(createdOrder.totalWeightKg),
+                  })}
+                </p>
+              </div>
+              <ReceiptPanel
+                order={createdOrder}
+                onReceiptNumberAssigned={(receiptNumber) =>
+                  setCreatedOrder((o) => (o ? { ...o, receiptNumber } : o))
+                }
+                onGeneratingChange={setReceiptGenerating}
+              />
+            </div>
+            <DialogFooter className="shrink-0 flex-col gap-3 border-t px-5 py-4 sm:flex-col">
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handleLogAnother}
+                  disabled={receiptGenerating}
+                >
+                  {t("logAnother")}
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={handleDone}
+                  disabled={receiptGenerating}
+                >
+                  {t("done")}
+                </Button>
+              </div>
+            </DialogFooter>
+          </>
+        ) : (
+          <>
         {/* Scrollable middle — everything else lives here */}
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
           <div className="space-y-1.5">
@@ -316,6 +383,8 @@ export function LogPickupDialog({
             </Button>
           </div>
         </DialogFooter>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -5,13 +5,14 @@ import { IndianRupee, Package, Weight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
 import { EarningsChart } from "@/components/earnings/earnings-chart";
-import { OrderCard } from "@/components/orders/order-card";
 import { useEarnings } from "@/hooks/use-portal";
 import { formatInr, formatWeight } from "@/lib/format";
 
-/** Chart-only history + lifetime stats + recent completed pickups. Today/this
- * week/this month are intentionally NOT repeated here — the dashboard hero
- * and quick stats above this section already show those three numbers. */
+/** Chart + lifetime stats — the analytical "how am I trending" block.
+ * Today/this week/this month are intentionally NOT repeated here — the
+ * dashboard hero and quick stats above this section already show those
+ * three numbers. Recent completed pickups live in RecentPickupsSection,
+ * grouped with "Next pickup" instead of down here. */
 export function EarningsSection() {
   const t = useTranslations("earnings");
   const { data, isLoading, error, mutate } = useEarnings(14);
@@ -42,7 +43,7 @@ export function EarningsSection() {
       <h2 className="text-base font-semibold">{t("title")}</h2>
 
       {/* Chart */}
-      <div className="rounded-2xl border bg-card p-4 shadow-xs">
+      <div className="rounded-2xl border bg-card p-4 shadow-elevation-1">
         <EarningsChart days={data.days} />
       </div>
 
@@ -52,55 +53,50 @@ export function EarningsSection() {
           icon={IndianRupee}
           label={t("totalEarned")}
           value={formatInr(data.totalInr)}
+          accent="cash"
         />
         <LifetimeTile
           icon={Package}
           label={t("pickupsDone")}
           value={String(data.totalPickups)}
+          accent="rust"
         />
         <LifetimeTile
           icon={Weight}
           label={t("scrapCollected")}
           value={formatWeight(data.totalWeightKg)}
+          accent="signal"
         />
-      </div>
-
-      {/* Recent completed pickups */}
-      <div>
-        <h3 className="mb-2.5 text-base font-semibold">{t("recentPickups")}</h3>
-        {data.recentOrders.length === 0 ? (
-          <div className="rounded-2xl border border-dashed p-8 text-center">
-            <Package className="mx-auto h-8 w-8 text-muted-foreground/50" />
-            <p className="mt-2 text-sm font-medium">{t("noCompletedTitle")}</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {t("noCompletedHint")}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {data.recentOrders.map((order) => (
-              <OrderCard key={order.id} order={order} />
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
 }
 
+const LIFETIME_ACCENT_CLASSES = {
+  cash: "bg-cash/10 text-cash",
+  rust: "bg-rust/10 text-rust",
+  signal: "bg-signal/15 text-signal",
+} as const;
+
 function LifetimeTile({
   icon: Icon,
   label,
   value,
+  accent,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string;
+  accent: keyof typeof LIFETIME_ACCENT_CLASSES;
 }) {
   return (
-    <div className="rounded-2xl border bg-card p-3.5 shadow-xs">
-      <Icon className="h-4 w-4 text-primary" />
-      <p className="mt-2 font-mono text-base font-semibold leading-tight">{value}</p>
+    <div className="rounded-2xl border bg-card p-3.5 shadow-elevation-1 transition-shadow hover:shadow-elevation-2">
+      <div
+        className={`flex size-8 items-center justify-center rounded-full ${LIFETIME_ACCENT_CLASSES[accent]}`}
+      >
+        <Icon className="h-4 w-4" />
+      </div>
+      <p className="mt-2.5 font-mono text-base font-semibold leading-tight">{value}</p>
       <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[1.5px] text-muted-foreground">{label}</p>
     </div>
   );

@@ -146,9 +146,11 @@
     "setRateLink": "Set your rate",
     "save": "Save pickup",
     "saving": "Saving…",
-    "toastLogged": "Pickup logged",
-    "toastLoggedAmount": "Pickup logged · {amount}",
-    "toastError": "Could not save the pickup."
+    "toastError": "Could not save the pickup.",
+    "successTitle": "Pickup logged",
+    "successSubtitle": "paid to customer · {weight} collected",
+    "logAnother": "Log another pickup",
+    "done": "Done"
   },
   "completePickup": {
     "title": "Weigh & complete",
