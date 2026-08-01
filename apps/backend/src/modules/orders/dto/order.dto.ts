@@ -42,3 +42,16 @@ export class OrderListResponse {
 export class ActiveOrderResponse {
   data!: OrderDto | null;
 }
+
+/** Result of a guest (no-account) booking made from a collector's `/book/:slug` page. */
+export class GuestBookingResultDto {
+  orderId!: string;
+  scheduledAt!: string;
+  /** False if the slug was stale/inactive and the order fell back to the open pool. */
+  assignedDirect!: boolean;
+  collectorName!: string | null;
+}
+
+export class GuestBookingResponse {
+  data!: GuestBookingResultDto;
+}

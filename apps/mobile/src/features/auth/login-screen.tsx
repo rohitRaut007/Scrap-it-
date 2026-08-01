@@ -26,6 +26,7 @@ import {
 import { authDebugLog } from "@/lib/auth-debug";
 import { api, ApiError } from "@/lib/api";
 import { authService } from "@/services/authService";
+import { referralService } from "@/services/referralService";
 import { useAppTheme } from "@/lib/theme";
 import type { MeResponse } from "@/api/auth";
 
@@ -114,7 +115,8 @@ export function LoginScreen() {
       if (!me.user?.id) {
         throw new Error(t("auth.login.profileLoadError"));
       }
-      router.replace("/home");
+      const pendingSlug = await referralService.getPendingSlug();
+      router.replace(pendingSlug ? "/pickup" : "/home");
     } catch (e) {
       setError(describeError(e));
     } finally {

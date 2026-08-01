@@ -7,15 +7,40 @@ import type {
   CollectorOrder,
   CollectorProfile,
   CollectorSummary,
+  GuestBookingPayload,
+  GuestBookingResult,
   Invoice,
   InvoiceListResponse,
   InvoiceStatus,
   OrderListResponse,
+  PublicCollectorProfile,
   RateCardItem,
 } from "./types";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3002";
+
+/**
+ * Unauthenticated lookup for the public `/book/:slug` landing page — a plain
+ * `fetch` (not the Supabase-token-attaching client above), since this runs
+ * server-side for a stranger who scanned a QR, not a signed-in collector.
+ * Returns null for an unknown/inactive slug (never throws) so the page can
+ * render its friendly fallback instead of a stack trace.
+ */
+export async function getPublicCollectorBySlug(
+  slug: string,
+): Promise<PublicCollectorProfile | null> {
+  try {
+    const res = await fetch(
+      `${BASE_URL}/public/collectors/${encodeURIComponent(slug)}`,
+      { next: { revalidate: 60 } },
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as PublicCollectorProfile;
+  } catch {
+    return null;
+  }
+}
 
 export class ApiError extends Error {
   constructor(
@@ -28,6 +53,54 @@ export class ApiError extends Error {
 }
 
 const GENERIC_ERROR_MESSAGE = "Something went wrong. Please try again.";
+
+/**
+ * Submits a no-account booking from the public `/book/:slug` page — a plain
+ * `fetch` (no Supabase token, this is an anonymous visitor), hitting the
+ * public write endpoint directly rather than through `collectorApi`'s
+ * authenticated client. Surfaces the backend's own validation/rate-limit
+ * messages verbatim (they're already written to be customer-facing); falls
+ * back to a generic message for anything else (network error, malformed body).
+ */
+export async function submitGuestBooking(
+  slug: string,
+  payload: GuestBookingPayload,
+): Promise<GuestBookingResult> {
+  let res: Response;
+  try {
+    res = await fetch(
+      `${BASE_URL}/public/collectors/${encodeURIComponent(slug)}/book`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      },
+    );
+  } catch {
+    throw new ApiError(0, GENERIC_ERROR_MESSAGE);
+  }
+
+  const text = await res.text();
+  let body: unknown;
+  try {
+    body = text ? JSON.parse(text) : undefined;
+  } catch {
+    body = undefined;
+  }
+
+  if (!res.ok) {
+    const raw =
+      body && typeof body === "object" && "message" in body
+        ? (body as { message?: string | string[] }).message
+        : undefined;
+    const message = Array.isArray(raw)
+      ? raw.join(", ")
+      : (raw ?? GENERIC_ERROR_MESSAGE);
+    throw new ApiError(res.status, message);
+  }
+
+  return (body as { data: GuestBookingResult }).data;
+}
 
 /**
  * Parse the status code and message from the api-client's error string:

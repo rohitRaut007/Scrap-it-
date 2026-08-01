@@ -16,6 +16,8 @@ export type CreateOrderInput = {
   addressId: string;
   notes?: string;
   photoStorageKeys?: string[];
+  /** Set when booking through a collector's QR/link — assigns the order to them directly. */
+  collectorSlug?: string;
 };
 
 export const orderService = {

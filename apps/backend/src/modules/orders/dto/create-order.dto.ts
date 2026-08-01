@@ -6,6 +6,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Matches,
   MaxLength,
 } from "class-validator";
 
@@ -33,4 +34,16 @@ export class CreateOrderDto {
   @IsString({ each: true })
   @MaxLength(256, { each: true })
   photoStorageKeys?: string[];
+
+  /**
+   * Set when the customer booked through a collector's personal QR/booking
+   * link — resolved server-side to an active collector and assigned
+   * directly, bypassing the open pool. Silently ignored (falls back to the
+   * normal pool flow) if the slug is unknown or that collector is inactive.
+   */
+  @IsOptional()
+  @IsString()
+  @MaxLength(60)
+  @Matches(/^[a-z0-9-]+$/)
+  collectorSlug?: string;
 }

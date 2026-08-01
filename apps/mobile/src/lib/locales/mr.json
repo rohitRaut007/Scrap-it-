@@ -241,6 +241,12 @@
     "confirmPickup": "पिकअपची पुष्टी करा",
     "scheduleFailedTitle": "पिकअप शेड्यूल करता आले नाही",
     "scheduleFailedBody": "काहीतरी चूक झाली. कृपया पुन्हा प्रयत्न करा.",
+    "directBooking": {
+      "bannerTitle": "{{name}} सोबत थेट बुकिंग",
+      "bannerTitleFallback": "या कलेक्टरसोबत थेट बुकिंग",
+      "bannerSubtitle": "खात्रीशीर — हे पिकअप थेट त्यांच्याकडेच जाईल, मॅच होण्याची वाट पाहावी लागणार नाही.",
+      "remove": "काढा"
+    },
     "categories": {
       "title": "तुम्ही काय रिसायकल करत आहात?",
       "subtitle": "एक किंवा अधिक वस्तू निवडा"

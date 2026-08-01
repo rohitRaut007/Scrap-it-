@@ -35,6 +35,10 @@ export interface PickupFlowDraft {
   addressId: string | null;
   addressLabel: string;
   addressLine: string;
+  /** Set when this booking came from a collector's QR/link — assigned directly, guaranteed. */
+  collectorSlug: string | null;
+  /** Display name for the direct-booking banner; null while still resolving or unknown. */
+  collectorName: string | null;
 }
 
 export function createEmptyPickupDraft(): PickupFlowDraft {
@@ -47,5 +51,7 @@ export function createEmptyPickupDraft(): PickupFlowDraft {
     addressId: null,
     addressLabel: "",
     addressLine: "",
+    collectorSlug: null,
+    collectorName: null,
   };
 }

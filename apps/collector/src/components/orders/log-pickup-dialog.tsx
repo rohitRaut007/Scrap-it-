@@ -36,7 +36,7 @@ export function LogPickupDialog({
 }: LogPickupDialogProps) {
   const t = useTranslations("logPickup");
   const tCommon = useTranslations("common");
-  const { data: rateCard, isLoading: rateCardLoading } = useRateCard();
+  const { data: rateCard, isLoading: rateCardLoading } = useRateCard(open);
   const [step, setStep] = useState<"form" | "success">("form");
   const [createdOrder, setCreatedOrder] = useState<CollectorOrder | null>(null);
   const [receiptGenerating, setReceiptGenerating] = useState(false);

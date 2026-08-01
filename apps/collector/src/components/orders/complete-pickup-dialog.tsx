@@ -36,7 +36,7 @@ export function CompletePickupDialog({
   onCompleted,
 }: CompletePickupDialogProps) {
   const t = useTranslations("completePickup");
-  const { data: rateCard, isLoading: rateCardLoading, error: rateCardError } = useRateCard();
+  const { data: rateCard, isLoading: rateCardLoading, error: rateCardError } = useRateCard(open);
   const [weights, setWeights] = useState<Record<string, string>>({});
   const [rates, setRates] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);

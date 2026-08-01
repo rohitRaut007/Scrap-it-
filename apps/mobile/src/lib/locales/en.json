@@ -241,6 +241,12 @@
     "confirmPickup": "Confirm pickup",
     "scheduleFailedTitle": "Could not schedule pickup",
     "scheduleFailedBody": "Something went wrong. Please try again.",
+    "directBooking": {
+      "bannerTitle": "Booking directly with {{name}}",
+      "bannerTitleFallback": "Booking directly with this collector",
+      "bannerSubtitle": "Guaranteed — this pickup goes straight to them, no waiting to be matched.",
+      "remove": "Remove"
+    },
     "categories": {
       "title": "What are you recycling?",
       "subtitle": "Select one or more items"

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import {
   BadRequestException,
   ConflictException,
@@ -13,12 +14,17 @@ import {
   Prisma,
 } from "@prisma/client";
 import { PrismaService } from "../../database/prisma.service";
+import { CollectorPortalService } from "../collectors/collector-portal.service";
 import { UploadsService } from "../uploads/uploads.service";
 import { CancelOrderDto } from "./dto/cancel-order.dto";
 import { CreateOrderDto } from "./dto/create-order.dto";
+import { GuestBookingDto } from "./dto/guest-booking.dto";
 import { ListOrdersQueryDto } from "./dto/list-orders-query.dto";
-import { OrderDto } from "./dto/order.dto";
+import { GuestBookingResultDto, OrderDto } from "./dto/order.dto";
 import { RateOrderDto } from "./dto/rate-order.dto";
+
+/** A guest who has booked more than this many times in 24h is almost certainly spam/abuse. */
+const GUEST_BOOKINGS_PER_DAY_LIMIT = 3;
 
 const ACTIVE_STATUSES: OrderStatus[] = [
   OrderStatus.scheduled,
@@ -51,6 +57,7 @@ export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly uploads: UploadsService,
+    private readonly collectorPortal: CollectorPortalService,
   ) {}
 
   async list(userId: string, query: ListOrdersQueryDto) {
@@ -114,13 +121,7 @@ export class OrdersService {
       }
     }
 
-    const scheduledAt = new Date(dto.scheduledAt);
-    if (Number.isNaN(scheduledAt.getTime())) {
-      throw new BadRequestException("Invalid scheduledAt");
-    }
-    if (scheduledAt.getTime() <= Date.now()) {
-      throw new BadRequestException("scheduledAt must be in the future");
-    }
+    const scheduledAt = this.parseFutureScheduledAt(dto.scheduledAt);
 
     const address = await this.prisma.address.findFirst({
       where: { id: dto.addressId, userId },
@@ -129,14 +130,7 @@ export class OrdersService {
       throw new BadRequestException("Address not found");
     }
 
-    const categoryIds = Array.from(new Set(dto.categoryIds));
-    const categoryRows = await this.prisma.category.findMany({
-      where: { id: { in: categoryIds }, active: true },
-      select: { id: true },
-    });
-    if (categoryRows.length !== categoryIds.length) {
-      throw new BadRequestException("Unknown or inactive category in categoryIds");
-    }
+    const categoryIds = await this.validateCategoryIds(dto.categoryIds);
 
     const photoKeys = Array.from(new Set(dto.photoStorageKeys ?? []));
     if (photoKeys.length > 0) {
@@ -150,36 +144,23 @@ export class OrdersService {
       }
     }
 
-    const created = await this.prisma.$transaction(async (tx) => {
-      const order = await tx.pickupOrder.create({
-        data: {
-          customerId: userId,
-          status: OrderStatus.scheduled,
-          scheduledAt,
-          addressId: address.id,
-          notes: dto.notes,
-          categories: {
-            create: categoryIds.map((categoryId) => ({ categoryId })),
-          },
-          photos:
-            photoKeys.length > 0
-              ? {
-                  create: photoKeys.map((storageKey) => ({
-                    storageKey,
-                    contentType: contentTypeFromKey(storageKey),
-                  })),
-                }
-              : undefined,
-          timeline: {
-            create: {
-              eventType: "created",
-              metadata: { actorId: userId, actorRole: "customer" },
-            },
-          },
-        },
-        include: ORDER_INCLUDE,
-      });
-      return order;
+    // A stale/mistyped slug must never block a booking — fall back to the
+    // normal open-pool flow (collectorId stays null) instead of erroring.
+    const directCollector = dto.collectorSlug
+      ? await this.collectorPortal.resolveActiveCollectorBySlug(
+          dto.collectorSlug,
+        )
+      : null;
+
+    const created = await this.persistOrder({
+      customerId: userId,
+      addressId: address.id,
+      scheduledAt,
+      notes: dto.notes,
+      categoryIds,
+      photoKeys,
+      directCollectorId: directCollector?.id ?? null,
+      actorRole: "customer",
     });
 
     const dtoOut = await this.toDto(created);
@@ -195,6 +176,183 @@ export class OrdersService {
     }
 
     return dtoOut;
+  }
+
+  /**
+   * A booking made from a collector's public `/book/:slug` page by someone
+   * with no account. Resolves (or creates) a lightweight "guest" identity
+   * from their phone number instead of a JWT — see `normalizeIndianPhone`.
+   * Always resolves the collector directly (this only exists on their own
+   * page); falls back to the open pool if they've gone inactive since the
+   * page loaded, same as the authenticated flow above.
+   */
+  async createGuestBooking(
+    slug: string,
+    dto: GuestBookingDto,
+  ): Promise<GuestBookingResultDto> {
+    const scheduledAt = this.parseFutureScheduledAt(dto.scheduledAt);
+    const categoryIds = await this.validateCategoryIds(dto.categoryIds);
+    const phone = normalizeIndianPhone(dto.phone);
+    if (!phone) {
+      throw new BadRequestException(
+        "Enter a valid 10-digit Indian mobile number",
+      );
+    }
+
+    const guestEmail = `guest+${phone.slice(1)}@guest.scrapit.local`;
+    const guestUser = await this.prisma.user.upsert({
+      where: { email: guestEmail },
+      update: { name: dto.name.trim(), phone },
+      create: {
+        id: randomUUID(),
+        email: guestEmail,
+        name: dto.name.trim(),
+        phone,
+        role: "customer",
+      },
+    });
+
+    const recentCount = await this.prisma.pickupOrder.count({
+      where: {
+        customerId: guestUser.id,
+        createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+      },
+    });
+    if (recentCount >= GUEST_BOOKINGS_PER_DAY_LIMIT) {
+      throw new UnprocessableEntityException(
+        "You've already got a few pickups booked today — we'll be in touch soon. Contact support if you need another one urgently.",
+      );
+    }
+
+    const address = await this.prisma.address.create({
+      data: {
+        userId: guestUser.id,
+        line1: dto.addressLine.trim(),
+        city: dto.city.trim(),
+        latitude: dto.latitude,
+        longitude: dto.longitude,
+      },
+    });
+
+    const directCollector =
+      await this.collectorPortal.resolveActiveCollectorBySlug(slug);
+
+    const created = await this.persistOrder({
+      customerId: guestUser.id,
+      addressId: address.id,
+      scheduledAt,
+      notes: dto.notes,
+      categoryIds,
+      photoKeys: [],
+      directCollectorId: directCollector?.id ?? null,
+      actorRole: "customer",
+    });
+
+    return {
+      orderId: created.id,
+      scheduledAt: created.scheduledAt.toISOString(),
+      assignedDirect: directCollector != null,
+      collectorName: directCollector?.user.name ?? null,
+    };
+  }
+
+  private parseFutureScheduledAt(raw: string): Date {
+    const scheduledAt = new Date(raw);
+    if (Number.isNaN(scheduledAt.getTime())) {
+      throw new BadRequestException("Invalid scheduledAt");
+    }
+    if (scheduledAt.getTime() <= Date.now()) {
+      throw new BadRequestException("scheduledAt must be in the future");
+    }
+    return scheduledAt;
+  }
+
+  private async validateCategoryIds(rawIds: string[]): Promise<string[]> {
+    const categoryIds = Array.from(new Set(rawIds));
+    const categoryRows = await this.prisma.category.findMany({
+      where: { id: { in: categoryIds }, active: true },
+      select: { id: true },
+    });
+    if (categoryRows.length !== categoryIds.length) {
+      throw new BadRequestException(
+        "Unknown or inactive category in categoryIds",
+      );
+    }
+    return categoryIds;
+  }
+
+  /** Shared PickupOrder-creation core for both the authenticated and guest booking paths. */
+  private async persistOrder(params: {
+    customerId: string;
+    addressId: string;
+    scheduledAt: Date;
+    notes: string | undefined;
+    categoryIds: string[];
+    photoKeys: string[];
+    directCollectorId: string | null;
+    actorRole: "customer";
+  }): Promise<OrderWithRelations> {
+    const {
+      customerId,
+      addressId,
+      scheduledAt,
+      notes,
+      categoryIds,
+      photoKeys,
+      directCollectorId,
+      actorRole,
+    } = params;
+
+    return this.prisma.$transaction(async (tx) => {
+      return tx.pickupOrder.create({
+        data: {
+          customerId,
+          status: directCollectorId
+            ? OrderStatus.assigned
+            : OrderStatus.scheduled,
+          scheduledAt,
+          addressId,
+          notes,
+          collectorId: directCollectorId ?? undefined,
+          bookingSource: directCollectorId ? "direct" : undefined,
+          categories: {
+            create: categoryIds.map((categoryId) => ({ categoryId })),
+          },
+          photos:
+            photoKeys.length > 0
+              ? {
+                  create: photoKeys.map((storageKey) => ({
+                    storageKey,
+                    contentType: contentTypeFromKey(storageKey),
+                  })),
+                }
+              : undefined,
+          timeline: {
+            create: directCollectorId
+              ? [
+                  {
+                    eventType: "created",
+                    metadata: { actorId: customerId, actorRole },
+                  },
+                  {
+                    eventType: "assigned",
+                    metadata: {
+                      actorId: customerId,
+                      actorRole,
+                      collectorId: directCollectorId,
+                      bookingSource: "direct",
+                    },
+                  },
+                ]
+              : {
+                  eventType: "created",
+                  metadata: { actorId: customerId, actorRole },
+                },
+          },
+        },
+        include: ORDER_INCLUDE,
+      });
+    });
   }
 
   async cancel(
@@ -338,6 +496,24 @@ function formatAddressLine(address: Address): string {
   return [address.line1, address.line2, address.city, address.region]
     .filter((part): part is string => Boolean(part && part.trim().length > 0))
     .join(", ");
+}
+
+/**
+ * Canonicalizes an Indian mobile number to `+91XXXXXXXXXX` so the same
+ * person entering "9876543210", "+91 98765 43210", or "091-98765-43210"
+ * always resolves to the same guest identity. Returns null (never throws)
+ * for anything that doesn't reduce to a plausible 10-digit mobile number —
+ * callers turn that into a normal validation error.
+ */
+function normalizeIndianPhone(raw: string): string | null {
+  let digits = raw.replace(/[^\d]/g, "");
+  if (digits.length === 12 && digits.startsWith("91")) {
+    digits = digits.slice(2);
+  } else if (digits.length === 11 && digits.startsWith("0")) {
+    digits = digits.slice(1);
+  }
+  if (!/^[6-9]\d{9}$/.test(digits)) return null;
+  return `+91${digits}`;
 }
 
 function contentTypeFromKey(key: string): string {

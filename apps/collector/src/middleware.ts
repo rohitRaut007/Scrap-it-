@@ -31,8 +31,12 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isLoginPage = request.nextUrl.pathname === "/login";
+  // The booking landing page (/book/[slug]) is what a customer's scanned QR
+  // resolves to — it must stay public, or every scan bounces into the
+  // collector-only login screen instead of the customer's booking flow.
+  const isPublicBookingPage = request.nextUrl.pathname.startsWith("/book/");
 
-  if (!user && !isLoginPage) {
+  if (!user && !isLoginPage && !isPublicBookingPage) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 

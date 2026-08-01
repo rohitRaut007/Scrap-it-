@@ -24,9 +24,13 @@ export function useAvailableOrders(page = 1) {
   );
 }
 
-export function useMyOrders(scope: "active" | "history", page = 1) {
+export function useMyOrders(
+  scope: "active" | "history",
+  page = 1,
+  enabled = true,
+) {
   return useSWR(
-    ["collector/orders", scope, page],
+    enabled ? ["collector/orders", scope, page] : null,
     () => collectorApi.myOrders(scope, page),
     { refreshInterval: scope === "active" ? LIVE_REFRESH_MS : undefined },
   );
@@ -47,8 +51,8 @@ export function useEarnings(days = 30) {
 }
 
 /** Rates change daily, not live — no polling. */
-export function useRateCard() {
-  return useSWR("collector/rate-card", () => collectorApi.rateCard());
+export function useRateCard(enabled = true) {
+  return useSWR(enabled ? "collector/rate-card" : null, () => collectorApi.rateCard());
 }
 
 /** Clients change rarely — no polling. */

@@ -15,6 +15,7 @@ import { PhotosStep } from "@/features/pickup/components/steps/photos-step";
 import { LocationStep } from "@/features/pickup/components/steps/location-step";
 import { ReviewStep } from "@/features/pickup/components/steps/review-step";
 import { PickupStepHeader } from "@/features/pickup/components/progress/pickup-step-header";
+import { DirectBookingBanner } from "@/features/pickup/components/direct-booking-banner";
 import { buildPickupAddressOptions } from "@/features/pickup/constants/pickup-addresses";
 import { PICKUP_TIME_SLOTS } from "@/features/pickup/constants/time-slots";
 import {
@@ -25,6 +26,8 @@ import { upcomingDateKeys } from "@/features/pickup/lib/schedule-date-utils";
 import { addressService } from "@/services/addressService";
 import { categoryService } from "@/services/categoryService";
 import { pickupService } from "@/services/pickupService";
+import { referralService } from "@/services/referralService";
+import { collectorLookupService } from "@/services/collectorLookupService";
 import type {
   AddressSummary,
   Category,
@@ -62,6 +65,37 @@ export function PickupFlowScreen() {
   useEffect(() => {
     void categoryService.list().then(setCategories);
   }, []);
+
+  // Resolve a pending collector slug (from a scanned QR/booking link) once,
+  // on entry to the flow — the slug survives a login/signup hop via
+  // referralService, this screen is where it's finally consumed.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const slug = await referralService.getPendingSlug();
+      if (!slug || cancelled) return;
+      patchDraft({ collectorSlug: slug });
+      const collector = await collectorLookupService.bySlug(slug).catch(() => null);
+      if (cancelled) return;
+      if (!collector) {
+        // Stale/invalid slug — fall back to the normal open-pool flow
+        // silently, same as the backend does for an unknown collectorSlug.
+        await referralService.clearPendingSlug();
+        patchDraft({ collectorSlug: null });
+        return;
+      }
+      patchDraft({ collectorName: collector.name });
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const removeDirectBooking = useCallback(() => {
+    void referralService.clearPendingSlug();
+    patchDraft({ collectorSlug: null, collectorName: null });
+  }, [patchDraft]);
 
   const refreshAddresses = useCallback(() => {
     return addressService
@@ -149,7 +183,11 @@ export function PickupFlowScreen() {
         photoStorageKeys: photoStorageKeys.length
           ? photoStorageKeys
           : undefined,
+        collectorSlug: draft.collectorSlug ?? undefined,
       });
+      if (draft.collectorSlug) {
+        await referralService.clearPendingSlug();
+      }
       setSuccessOrder(order);
     } catch (error) {
       console.warn("schedulePickup failed", error);
@@ -190,6 +228,13 @@ export function PickupFlowScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        {draft.collectorSlug ? (
+          <DirectBookingBanner
+            collectorName={draft.collectorName}
+            onRemove={removeDirectBooking}
+          />
+        ) : null}
+
         {stepId === "categories" ? (
           <CategoriesStep
             categories={categories}

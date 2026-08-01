@@ -14,7 +14,8 @@
         "NSLocationWhenInUseUsageDescription": "Scrap-it uses your location to show nearby pickups and route tracking.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Scrap-it uses your location during active pickup tracking.",
         "NSPhotoLibraryUsageDescription": "Scrap-it needs access to your photo library so you can attach reference images for pickup estimation."
-      }
+      },
+      "associatedDomains": ["applinks:scrapit.app"]
     },
     "android": {
       "usesCleartextTraffic": true,
@@ -29,6 +30,20 @@
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "scrapit.app",
+              "pathPrefix": "/book"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
       ]
     },
     "androidStatusBar": {

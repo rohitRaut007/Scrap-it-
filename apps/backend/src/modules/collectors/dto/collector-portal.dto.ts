@@ -36,6 +36,8 @@ export interface CollectorOrderDto {
   source: "app" | "manual";
   /** Sequential per-collector receipt number; null until a receipt has been printed once. */
   receiptNumber: number | null;
+  /** "direct" = the customer booked through this collector's own QR/booking link. */
+  bookingSource: "direct" | null;
 }
 
 export interface CollectorOrderListResponse {
@@ -113,4 +115,18 @@ export interface CollectorRateCardItemDto {
   /** Null when the collector hasn't set a rate for this category yet. */
   rateInrPerKg: number | null;
   iconKey: string;
+}
+
+/**
+ * What a scanned booking QR / link is allowed to reveal to a stranger before
+ * they've booked anything — deliberately excludes phone, email, and any
+ * financial/business fields that CollectorProfileDto carries for the
+ * authenticated collector themselves.
+ */
+export interface PublicCollectorProfileDto {
+  name: string | null;
+  rating: number | null;
+  serviceArea: string | null;
+  bookingSlug: string;
+  rateCard: CollectorRateCardItemDto[];
 }

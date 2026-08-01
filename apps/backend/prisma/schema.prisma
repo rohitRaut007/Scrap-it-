@@ -68,6 +68,15 @@ enum CollectorStatus {
   suspended
 }
 
+/// How a PickupOrder got its collector assignment. Null means the ordinary
+/// open-pool flow (collectorId starts null, a collector later claims it).
+/// `direct` means the customer booked through a collector's personal QR/
+/// booking-link and the order was assigned to that collector at creation —
+/// it never enters the open pool.
+enum BookingSource {
+  direct
+}
+
 model User {
   id               String   @id @db.Uuid
   email            String   @unique
@@ -242,6 +251,9 @@ model PickupOrder {
   scheduledAt   DateTime
   addressId     String      @db.Uuid
   collectorId   String?     @db.Uuid
+  /// Set only when collectorId was assigned directly at creation via a
+  /// collector's QR/booking-link, rather than claimed later from the open pool.
+  bookingSource BookingSource?
   etaMinutes    Int?
   totalWeightKg Float?
   /// Total ₹ payout to the customer, computed at completion (Σ weightKg × baseRateInr).

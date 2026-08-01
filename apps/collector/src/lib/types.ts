@@ -35,6 +35,8 @@ export interface CollectorOrder {
   source: "app" | "manual";
   /** Sequential per-collector receipt number; null until a receipt has been printed once. */
   receiptNumber: number | null;
+  /** "direct" = the customer booked through this collector's own QR/booking link. */
+  bookingSource: "direct" | null;
 }
 
 export interface OrderListResponse {
@@ -110,6 +112,36 @@ export interface RateCardItem {
   /** Null when the collector hasn't set a rate for this category yet. */
   rateInrPerKg: number | null;
   iconKey: string;
+}
+
+/** What a scanned booking QR/link is allowed to see — the public `/book/:slug` page. */
+export interface PublicCollectorProfile {
+  name: string | null;
+  rating: number | null;
+  serviceArea: string | null;
+  bookingSlug: string;
+  rateCard: RateCardItem[];
+}
+
+/** Payload for a no-account booking submitted from the public `/book/:slug` page. */
+export interface GuestBookingPayload {
+  name: string;
+  phone: string;
+  addressLine: string;
+  city: string;
+  latitude?: number;
+  longitude?: number;
+  categoryIds: string[];
+  scheduledAt: string;
+  notes?: string;
+}
+
+export interface GuestBookingResult {
+  orderId: string;
+  scheduledAt: string;
+  /** False if the collector had gone inactive and the booking fell back to the open pool. */
+  assignedDirect: boolean;
+  collectorName: string | null;
 }
 
 // --- Invoices ---

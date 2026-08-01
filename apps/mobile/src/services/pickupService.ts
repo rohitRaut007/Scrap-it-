@@ -7,6 +7,7 @@ export type SchedulePickupInput = {
   scheduledAt: string;
   photoStorageKeys?: string[];
   notes?: string;
+  collectorSlug?: string;
 };
 
 export const pickupService = {

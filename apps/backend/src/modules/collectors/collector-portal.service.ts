@@ -37,9 +37,14 @@ import {
   CollectorRateCardItemDto,
   CollectorSummaryDto,
   EarningsDayDto,
+  PublicCollectorProfileDto,
 } from "./dto/collector-portal.dto";
 
-const BOOKING_BASE_URL = "https://scrapit.app/book";
+// Defaults to the collector portal's local dev server so the QR/booking
+// link actually resolves during local testing — set BOOKING_BASE_URL to the
+// real domain (e.g. https://scrapit.app/book) once that's live.
+const BOOKING_BASE_URL =
+  process.env.BOOKING_BASE_URL ?? "http://localhost:3004/book";
 
 /** Statuses the collector is actively working. */
 const ACTIVE_STATUSES: OrderStatus[] = [
@@ -157,6 +162,58 @@ export class CollectorPortalService {
       data: { userId: authUser.id, bookingSlug: slug },
       include: { user: true },
     });
+  }
+
+  /**
+   * Resolve an active collector by their permanent booking slug — the only
+   * lookup a booking QR/link is allowed to perform. Returns null (never
+   * throws) for an unknown or suspended slug, so callers can fall back
+   * silently instead of hard-failing on a stale printed card.
+   */
+  async resolveActiveCollectorBySlug(
+    slug: string,
+  ): Promise<CollectorWithUser | null> {
+    const collector = await this.prisma.collector.findUnique({
+      where: { bookingSlug: slug },
+      include: { user: true },
+    });
+    if (!collector || collector.status !== "active") return null;
+    return collector;
+  }
+
+  /**
+   * Public-facing profile for the booking landing page (`/book/:slug`) — the
+   * only fields a stranger scanning the QR is allowed to see. Never phone,
+   * email, or any business/invoice field on CollectorProfileDto.
+   */
+  async getPublicProfileBySlug(slug: string): Promise<PublicCollectorProfileDto> {
+    const collector = await this.resolveActiveCollectorBySlug(slug);
+    if (!collector) throw new NotFoundException("Collector not found");
+
+    const [categories, rates] = await Promise.all([
+      this.prisma.category.findMany({
+        where: { active: true },
+        orderBy: { name: "asc" },
+      }),
+      this.prisma.collectorCategoryRate.findMany({
+        where: { collectorId: collector.id },
+      }),
+    ]);
+    const rateByCategory = new Map(rates.map((r) => [r.categoryId, r.rateInrPerKg]));
+
+    return {
+      name: collector.user.name,
+      rating: collector.rating,
+      serviceArea: collector.serviceArea,
+      bookingSlug: slug,
+      rateCard: categories.map((c) => ({
+        id: c.id,
+        name: c.name,
+        rateLabel: c.rateLabel,
+        rateInrPerKg: rateByCategory.get(c.id) ?? null,
+        iconKey: c.iconKey,
+      })),
+    };
   }
 
   private async generateUniqueSlug(base: string): Promise<string> {
@@ -970,6 +1027,7 @@ export class CollectorPortalService {
       isAvailable,
       source: "app",
       receiptNumber: order.receiptNumber ?? null,
+      bookingSource: order.bookingSource === "direct" ? "direct" : null,
     };
   }
 
@@ -1163,6 +1221,7 @@ export class CollectorPortalService {
       isAvailable: false,
       source: "manual",
       receiptNumber: log.receiptNumber ?? null,
+      bookingSource: null,
     };
   }
 

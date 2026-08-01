@@ -33,5 +33,7 @@ export async function createApp(expressInstance?: Express): Promise<INestApplica
     credentials: true,
   });
 
+  app.enableShutdownHooks();
+
   return app;
 }
