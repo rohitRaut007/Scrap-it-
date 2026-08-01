@@ -512,7 +512,7 @@ function normalizeIndianPhone(raw: string): string | null {
   } else if (digits.length === 11 && digits.startsWith("0")) {
     digits = digits.slice(1);
   }
-  if (!/^[6-9]\d{9}$/.test(digits)) return null;
+  if (!/^\d{10}$/.test(digits)) return null;
   return `+91${digits}`;
 }
 

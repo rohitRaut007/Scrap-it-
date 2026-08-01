@@ -125,6 +125,29 @@
   animation: row-flash 1.4s ease-out forwards;
 }
 
+/* Gentle ambient bob for the decorative shapes on the booking-success
+   ticket card — continuous, not an enter/exit transition. */
+@keyframes ticket-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+@utility animate-ticket-float {
+  animation: ticket-float 2.6s ease-in-out infinite;
+}
+
+/* Stock-ticker style scroll for the /book page's rate strip — enters from
+   the right, exits left, restarts (not a seamless duplicated-content loop;
+   a ticker resetting from off-screen right reads as authentic, not janky). */
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+@utility animate-ticker-scroll {
+  animation: ticker-scroll 22s linear infinite;
+}
+
 /* Layered, ink-tinted shadows — warm charcoal, not generic black, so
    elevation reads on-brand instead of like a stock UI kit. */
 @utility shadow-elevation-1 {

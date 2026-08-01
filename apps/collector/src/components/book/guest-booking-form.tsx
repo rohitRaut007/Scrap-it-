@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Check, MapPin, PartyPopper } from "lucide-react";
+import confetti from "canvas-confetti";
+import { Check, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { submitGuestBooking, ApiError } from "@/lib/api";
+import { reverseGeocode } from "@/lib/geocode";
 import { cn } from "@/lib/utils";
 import type { GuestBookingResult, RateCardItem } from "@/lib/types";
 
@@ -46,6 +48,25 @@ function buildScheduledIso(dateOffset: number, startHour: number): string {
   return d.toISOString();
 }
 
+/**
+ * Keeps the phone field to a bare 10-digit Indian mobile number as the user
+ * types or pastes — strips everything but digits, drops a pasted "+91"/"0"
+ * prefix, and caps the length. Mirrors the backend's `normalizeIndianPhone`
+ * so what's on screen always matches what the API will accept, instead of
+ * letting the user type something that only fails once submitted.
+ */
+function sanitizePhoneInput(raw: string): string {
+  let digits = raw.replace(/\D/g, "");
+  if (digits.length > 10 && digits.startsWith("91")) {
+    digits = digits.slice(2);
+  } else if (digits.length === 11 && digits.startsWith("0")) {
+    digits = digits.slice(1);
+  }
+  return digits.slice(0, 10);
+}
+
+const PHONE_PATTERN = /^\d{10}$/;
+
 export function GuestBookingForm({
   bookingSlug,
   collectorName,
@@ -63,13 +84,28 @@ export function GuestBookingForm({
   const [city, setCity] = useState(serviceArea ?? "");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [phoneTouched, setPhoneTouched] = useState(false);
   const [notes, setNotes] = useState("");
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<GuestBookingResult | null>(null);
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
+  const celebrated = useRef(false);
+
+  useEffect(() => {
+    if (!result || celebrated.current) return;
+    celebrated.current = true;
+    confetti({
+      particleCount: 70,
+      spread: 75,
+      startVelocity: 32,
+      origin: { y: 0.55 },
+      colors: ["#B84E1C", "#1D5E3E", "#EDBB33"],
+    });
+  }, [result]);
 
   // If the page stays open across midnight or into a window that just
   // passed, keep the selection valid instead of letting it silently point
@@ -106,24 +142,49 @@ export function GuestBookingForm({
   }, [locale, t]);
 
   const handleUseLocation = () => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setLocationError(t("locationUnsupported"));
+      return;
+    }
+    if (typeof window !== "undefined" && !window.isSecureContext) {
+      setLocationError(t("locationInsecureContext"));
+      return;
+    }
     setLocating(true);
+    setLocationError(null);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setCoords({ lat: latitude, lng: longitude });
+        const address = await reverseGeocode(latitude, longitude);
+        if (address) {
+          if (address.addressLine) setAddressLine((prev) => prev || address.addressLine);
+          if (address.city) setCity((prev) => prev || address.city);
+        }
         setLocating(false);
       },
-      () => setLocating(false),
-      { timeout: 8000 },
+      (err) => {
+        setLocating(false);
+        setLocationError(
+          err.code === err.PERMISSION_DENIED
+            ? t("locationPermissionDenied")
+            : err.code === err.TIMEOUT
+              ? t("locationTimeout")
+              : t("locationUnavailable"),
+        );
+      },
+      { timeout: 8000, enableHighAccuracy: true },
     );
   };
+
+  const phoneValid = PHONE_PATTERN.test(phone);
 
   const canSubmit =
     categoryIds.length > 0 &&
     addressLine.trim().length > 0 &&
     city.trim().length > 0 &&
     name.trim().length > 0 &&
-    phone.trim().length >= 10 &&
+    phoneValid &&
     !submitting;
 
   const handleSubmit = async () => {
@@ -161,16 +222,56 @@ export function GuestBookingForm({
     });
     return (
       <div className="space-y-3">
-        <div className="rounded-2xl border border-cash/25 bg-cash/10 p-5 text-center">
-          <PartyPopper className="mx-auto h-7 w-7 text-cash" />
-          <p className="mt-2 text-sm font-semibold text-cash">
-            {result.assignedDirect
-              ? t("successDirect", {
-                  name: result.collectorName ?? collectorName ?? t("metaTitleFallback"),
-                })
-              : t("successPool")}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">{when}</p>
+        <div className="animate-in zoom-in-95 fade-in relative overflow-hidden rounded-2xl border border-cash/25 bg-cash/10 shadow-elevation-1 duration-300">
+          <div className="pointer-events-none absolute inset-0 bg-paper-grain opacity-[0.04] mix-blend-overlay" />
+
+          {/* Decorative floating shapes — purely ambient, no semantic meaning. */}
+          <span
+            aria-hidden
+            className="animate-ticket-float absolute top-4 left-5 text-lg text-signal/70 [animation-delay:0ms]"
+          >
+            +
+          </span>
+          <span
+            aria-hidden
+            className="animate-ticket-float absolute top-8 right-8 text-sm text-rust/60 [animation-delay:400ms]"
+          >
+            ○
+          </span>
+          <span
+            aria-hidden
+            className="animate-ticket-float absolute bottom-10 left-9 text-base text-cash/60 [animation-delay:800ms]"
+          >
+            ✦
+          </span>
+          <span
+            aria-hidden
+            className="animate-ticket-float absolute right-6 bottom-6 text-lg text-signal/70 [animation-delay:1200ms]"
+          >
+            +
+          </span>
+
+          <div className="relative p-6 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-cash/15">
+              <Check className="h-8 w-8 text-cash" strokeWidth={2.5} />
+            </div>
+            <p className="mt-4 font-display text-3xl tracking-tight text-cash">
+              {t("bookedHeadline")}
+            </p>
+            <p className="mt-1.5 text-sm font-medium text-cash/90">
+              {result.assignedDirect
+                ? t("successDirect", {
+                    name: result.collectorName ?? collectorName ?? t("metaTitleFallback"),
+                  })
+                : t("successPool")}
+            </p>
+
+            <div className="relative -mx-6 mt-5 border-t border-dashed border-cash/30 pt-4">
+              <span className="absolute -top-2.5 -left-2.5 h-5 w-5 rounded-full bg-background" />
+              <span className="absolute -top-2.5 -right-2.5 h-5 w-5 rounded-full bg-background" />
+              <p className="font-mono text-xs text-muted-foreground">{when}</p>
+            </div>
+          </div>
         </div>
         {!nudgeDismissed && (
           <div className="flex items-center justify-between gap-2 rounded-xl border bg-muted/40 px-3.5 py-2.5">
@@ -295,6 +396,9 @@ export function GuestBookingForm({
             {locating ? t("locating") : coords ? t("located") : t("useLocation")}
           </Button>
         </div>
+        {locationError ? (
+          <p className="text-xs text-destructive">{locationError}</p>
+        ) : null}
       </div>
 
       {/* Who */}
@@ -313,12 +417,22 @@ export function GuestBookingForm({
           <Label htmlFor="guest-phone">{t("phoneLabel")}</Label>
           <Input
             id="guest-phone"
-            inputMode="tel"
+            type="tel"
+            inputMode="numeric"
+            autoComplete="tel-national"
+            maxLength={10}
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(e) => setPhone(sanitizePhoneInput(e.target.value))}
+            onBlur={() => setPhoneTouched(true)}
             placeholder={t("phonePlaceholder")}
+            aria-invalid={phoneTouched && phone.length > 0 && !phoneValid}
             className="h-10"
           />
+          {phoneTouched && phone.length > 0 && !phoneValid && (
+            <p className="text-xs font-medium text-destructive">
+              {t("phoneInvalid")}
+            </p>
+          )}
         </div>
       </div>
 
