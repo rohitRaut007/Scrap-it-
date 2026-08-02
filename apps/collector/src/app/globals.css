@@ -175,6 +175,17 @@
   background-repeat: repeat;
 }
 
+/* Flat, offset "letterpress" shadows — no blur, so they read as print/stamp
+   drop-shadows rather than the soft shadow-elevation-* set above. Reserved
+   for a few deliberate accents (primary CTAs, small stamped marks), not a
+   replacement for the soft set used on ordinary cards. */
+@utility shadow-hard-ink {
+  box-shadow: 4px 4px 0 0 var(--color-ink);
+}
+@utility shadow-hard-ink-sm {
+  box-shadow: 2px 2px 0 0 var(--color-ink);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

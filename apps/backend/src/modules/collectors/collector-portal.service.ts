@@ -199,7 +199,7 @@ export class CollectorPortalService {
         where: { collectorId: collector.id },
       }),
     ]);
-    const rateByCategory = new Map(rates.map((r) => [r.categoryId, r.rateInrPerKg]));
+    const rateByCategory = new Map(rates.map((r) => [r.categoryId, r]));
 
     return {
       name: collector.user.name,
@@ -210,8 +210,9 @@ export class CollectorPortalService {
         id: c.id,
         name: c.name,
         rateLabel: c.rateLabel,
-        rateInrPerKg: rateByCategory.get(c.id) ?? null,
+        rateInrPerKg: rateByCategory.get(c.id)?.rateInrPerKg ?? null,
         iconKey: c.iconKey,
+        rateUpdatedAt: rateByCategory.get(c.id)?.updatedAt.toISOString() ?? null,
       })),
     };
   }
@@ -1109,13 +1110,14 @@ export class CollectorPortalService {
         where: { collectorId: collector.id },
       }),
     ]);
-    const rateByCategory = new Map(rates.map((r) => [r.categoryId, r.rateInrPerKg]));
+    const rateByCategory = new Map(rates.map((r) => [r.categoryId, r]));
     return categories.map((c) => ({
       id: c.id,
       name: c.name,
       rateLabel: c.rateLabel,
-      rateInrPerKg: rateByCategory.get(c.id) ?? null,
+      rateInrPerKg: rateByCategory.get(c.id)?.rateInrPerKg ?? null,
       iconKey: c.iconKey,
+      rateUpdatedAt: rateByCategory.get(c.id)?.updatedAt.toISOString() ?? null,
     }));
   }
 

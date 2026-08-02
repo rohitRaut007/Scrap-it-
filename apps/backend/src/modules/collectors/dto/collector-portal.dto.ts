@@ -115,6 +115,12 @@ export interface CollectorRateCardItemDto {
   /** Null when the collector hasn't set a rate for this category yet. */
   rateInrPerKg: number | null;
   iconKey: string;
+  /**
+   * When this rate was last set/changed — null alongside a null rate.
+   * Surfaced so the rate ticker can show "updated Xd ago" instead of
+   * implying a live feed for what is really a manually-set number.
+   */
+  rateUpdatedAt: string | null;
 }
 
 /**

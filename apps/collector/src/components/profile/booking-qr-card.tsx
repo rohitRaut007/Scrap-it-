@@ -70,26 +70,28 @@ export function BookingQrCard({ bookingUrl, collectorName }: BookingQrCardProps)
   };
 
   return (
-    <div className="rounded-2xl border bg-card p-4 shadow-xs">
-      <h2 className="flex items-center gap-2 text-sm font-semibold">
-        <QrCode className="h-4 w-4 text-primary" />
+    <div className="rounded-2xl border border-ink/15 bg-card p-4 shadow-elevation-1">
+      <h2 className="flex items-center gap-1.5 font-mono text-xs font-semibold tracking-[0.2em] text-rust uppercase">
+        <QrCode className="h-3.5 w-3.5" />
         {t("bookingLinkTitle")}
       </h2>
-      <p className="mt-1 text-xs text-muted-foreground">
+      <p className="mt-1.5 text-xs text-muted-foreground">
         {t("bookingLinkDescription")}
       </p>
 
       <div className="mt-4 flex flex-col items-center">
-        {qrDataUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={qrDataUrl}
-            alt={t("qrAlt", { url: bookingUrl })}
-            className="h-44 w-44 rounded-xl border"
-          />
-        ) : (
-          <Skeleton className="h-44 w-44 rounded-xl" />
-        )}
+        <div className="rounded-2xl border-2 border-ink bg-paper p-3.5 shadow-hard-ink">
+          {qrDataUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={qrDataUrl}
+              alt={t("qrAlt", { url: bookingUrl })}
+              className="h-40 w-40"
+            />
+          ) : (
+            <Skeleton className="h-40 w-40" />
+          )}
+        </div>
         <p className="mt-3 break-all text-center font-mono text-xs text-muted-foreground">
           {bookingUrl.replace(/^https?:\/\//, "")}
         </p>
@@ -100,7 +102,7 @@ export function BookingQrCard({ bookingUrl, collectorName }: BookingQrCardProps)
           {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
           {copied ? t("copied") : t("copyLink")}
         </Button>
-        <Button className="gap-2" onClick={handleShare}>
+        <Button className="gap-2 shadow-hard-ink-sm" onClick={handleShare}>
           <Share2 className="h-4 w-4" />
           {t("share")}
         </Button>

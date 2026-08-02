@@ -1,11 +1,11 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Badge } from "@/components/ui/badge";
+import { Stamp } from "@/components/ui/stamp";
 import { cn } from "@/lib/utils";
 import {
-  orderStatusClasses,
   orderStatusMessageKey,
+  orderStatusTone,
   type OrderStatus,
 } from "@/lib/order-utils";
 
@@ -18,11 +18,8 @@ export function StatusBadge({
 }) {
   const t = useTranslations("orders.status");
   return (
-    <Badge
-      variant="secondary"
-      className={cn("border-0 font-medium", orderStatusClasses(status), className)}
-    >
+    <Stamp tone={orderStatusTone(status)} className={cn(className)}>
       {t(orderStatusMessageKey(status))}
-    </Badge>
+    </Stamp>
   );
 }

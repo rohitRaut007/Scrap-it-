@@ -1,3 +1,4 @@
+import type { StampTone } from "@/components/ui/stamp";
 import type { InvoiceStatus } from "./types";
 
 export function invoiceStatusMessageKey(status: InvoiceStatus): string {
@@ -10,11 +11,12 @@ export function invoiceStatusMessageKey(status: InvoiceStatus): string {
   return map[status];
 }
 
-export function invoiceStatusClasses(status: InvoiceStatus): string {
-  if (status === "PAID") return "bg-cash/15 text-cash";
-  if (status === "OVERDUE") return "bg-destructive/15 text-destructive";
-  if (status === "SENT") return "bg-primary/15 text-primary";
-  return "bg-muted text-muted-foreground"; // DRAFT
+/** Status semantics mapped to a `Stamp` tone for the rubber-stamp badge style. */
+export function invoiceStatusTone(status: InvoiceStatus): StampTone {
+  if (status === "PAID") return "cash";
+  if (status === "OVERDUE") return "destructive";
+  if (status === "SENT") return "rust";
+  return "muted"; // DRAFT
 }
 
 const MONTH_KEYS = [

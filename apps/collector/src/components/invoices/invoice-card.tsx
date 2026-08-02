@@ -15,7 +15,7 @@ export function InvoiceCard({ invoice }: { invoice: Invoice }) {
   return (
     <Link
       href={`/invoices/${invoice.id}`}
-      className="block rounded-2xl border bg-card p-4 shadow-xs transition-all hover:shadow-md hover:border-primary/30 active:scale-[0.99]"
+      className="block rounded-2xl border border-ink/15 bg-card p-4 shadow-elevation-1 transition-shadow hover:border-ink/30 hover:shadow-elevation-2 active:scale-[0.99]"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 text-sm font-semibold">
@@ -26,7 +26,7 @@ export function InvoiceCard({ invoice }: { invoice: Invoice }) {
       </div>
 
       <div className="mt-2.5 flex items-center justify-between gap-3">
-        <span className="text-sm text-muted-foreground">
+        <span className="font-mono text-xs text-muted-foreground">
           {tMonth(monthMessageKey(invoice.billingMonth))} {invoice.billingYear}
           {invoice.billNumber != null && ` · ${t("invoiceNoShort", { number: invoice.billNumber })}`}
         </span>

@@ -1,5 +1,7 @@
 // Status semantics match apps/admin/src/lib/order-utils.ts and mobile exactly.
 
+import type { StampTone } from "@/components/ui/stamp";
+
 export type OrderStatus =
   | "scheduled"
   | "assigned"
@@ -25,13 +27,12 @@ export function orderStatusMessageKey(status: OrderStatus): string {
   return map[status] ?? "unknown";
 }
 
-export function orderStatusClasses(status: OrderStatus): string {
-  if (status === "completed") return "bg-cash/15 text-cash";
-  if (status === "en_route" || status === "arriving")
-    return "bg-signal/30 text-ink";
-  if (status === "cancelled") return "bg-muted text-muted-foreground";
-  // scheduled, assigned
-  return "bg-primary/15 text-primary";
+/** Status semantics mapped to a `Stamp` tone for the rubber-stamp badge style. */
+export function orderStatusTone(status: OrderStatus): StampTone {
+  if (status === "completed") return "cash";
+  if (status === "en_route" || status === "arriving") return "signal";
+  if (status === "cancelled") return "muted";
+  return "rust";
 }
 
 /** The collector's forward path through a pickup. */

@@ -72,9 +72,11 @@ export function BusinessDetailsForm({
   };
 
   return (
-    <div className="rounded-2xl border bg-card p-4 shadow-xs">
+    <div className="rounded-2xl border border-ink/15 bg-card p-4 shadow-elevation-1">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">{t("businessDetailsTitle")}</h2>
+        <h2 className="font-mono text-xs font-semibold tracking-[0.2em] text-rust uppercase">
+          {t("businessDetailsTitle")}
+        </h2>
         {!editing && (
           <Button
             variant="ghost"

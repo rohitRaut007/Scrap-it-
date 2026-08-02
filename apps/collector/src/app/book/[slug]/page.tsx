@@ -4,7 +4,12 @@ import { Star } from "lucide-react";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { OpenAppButton } from "@/components/book/open-app-button";
 import { GuestBookingForm } from "@/components/book/guest-booking-form";
-import { RateTicker, ratesToTickerEntries } from "@/components/book/rate-ticker";
+import {
+  RateTicker,
+  formatTickerLabel,
+  oldestRateUpdatedAt,
+  ratesToTickerEntries,
+} from "@/components/book/rate-ticker";
 import { getPublicCollectorBySlug } from "@/lib/api";
 import { initials } from "@/lib/format";
 
@@ -64,6 +69,7 @@ export default async function BookPage({ params }: PageProps) {
     <>
       <RateTicker
         entries={ratesToTickerEntries(collector.rateCard, t("tickerFallback"))}
+        label={formatTickerLabel(t, oldestRateUpdatedAt(collector.rateCard))}
       />
       <Shell>
         <div className="relative overflow-hidden rounded-2xl border bg-card p-5 shadow-elevation-1">

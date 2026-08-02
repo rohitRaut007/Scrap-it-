@@ -112,6 +112,8 @@ export interface RateCardItem {
   /** Null when the collector hasn't set a rate for this category yet. */
   rateInrPerKg: number | null;
   iconKey: string;
+  /** When this rate was last set/changed; null alongside a null rate. */
+  rateUpdatedAt: string | null;
 }
 
 /** What a scanned booking QR/link is allowed to see — the public `/book/:slug` page. */

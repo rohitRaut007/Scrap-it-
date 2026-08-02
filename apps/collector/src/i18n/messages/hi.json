@@ -17,10 +17,17 @@
   "nav": {
     "brand": "Scrap-it",
     "portalName": "कलेक्टर पोर्टल",
+    "tagline": "आपका रोज़ का अख़बार",
     "dashboard": "होम",
     "orders": "पिकअप",
     "invoices": "बिल",
-    "profile": "प्रोफ़ाइल"
+    "profile": "प्रोफ़ाइल",
+    "dashboardSubtitle": "फ्रंट पेज · अवलोकन",
+    "ordersSubtitle": "रूट शीट · कतार",
+    "invoicesSubtitle": "लेजर · खाता",
+    "profileSubtitle": "बायलाइन · परिचय",
+    "navIndexLabel": "सूची",
+    "navSectionsLabel": "विभाग"
   },
   "language": {
     "label": "भाषा",
@@ -65,7 +72,17 @@
     "noActivePickups": "कोई सक्रिय पिकअप नहीं",
     "noActivePickupsHintAvailable": "नए पिकअप फ़ीड में इंतज़ार कर रहे हैं।",
     "noActivePickupsHint": "आपके क्षेत्र की नई बुकिंग यहां दिखेंगी।",
-    "browseAvailable": "उपलब्ध पिकअप देखें →"
+    "browseAvailable": "उपलब्ध पिकअप देखें →",
+    "frontPageLabel": "फ्रंट पेज",
+    "subheadAvailable": "{count, plural, one {# पिकअप कतार में है।} other {# पिकअप कतार में हैं।}} जब आप तैयार हों।",
+    "subheadNone": "सब निपट गया। जब आप तैयार हों।",
+    "todaysTakeLabel": "आज की कमाई",
+    "filedSinceMidnight": "आधी रात से दर्ज",
+    "offToFreshStart": "आज की शुरुआत बाकी है।",
+    "metaThisWeek": "इस हफ्ते",
+    "metaPickupsToday": "आज के पिकअप",
+    "metaActiveNow": "अभी सक्रिय",
+    "atAGlanceLabel": "एक नज़र में"
   },
   "orders": {
     "title": "पिकअप",
@@ -199,6 +216,7 @@
     "chartPickups": "{count, plural, one {# पिकअप} other {# पिकअप}}"
   },
   "profile": {
+    "bylineLabel": "बायलाइन",
     "title": "प्रोफ़ाइल",
     "addName": "अपना नाम जोड़ें",
     "ratingNew": "नया",
@@ -251,6 +269,11 @@
     "metaDescription": "Scrap-it पर सीधे {name} के साथ बुक करें — सही दाम, आपके सामने तौला जाएगा।",
     "verifiedBadge": "सत्यापित Scrap-it कलेक्टर",
     "tickerFallback": "सीधे बुक करें · इंतज़ार नहीं · सही दाम · आपके सामने तौला जाएगा",
+    "tickerLabel": "दरें",
+    "tickerUpdatedToday": "आज अपडेट हुईं",
+    "tickerUpdatedDaysAgo": "{count, plural, one {# दिन पहले अपडेट हुईं} other {# दिन पहले अपडेट हुईं}}",
+    "tickerUpdatedWeeksAgo": "{count, plural, one {# हफ़्ता पहले अपडेट हुईं} other {# हफ़्ते पहले अपडेट हुईं}}",
+    "tickerUpdatedMonthsAgo": "{count, plural, one {# महीना पहले अपडेट हुईं} other {# महीने पहले अपडेट हुईं}}",
     "ratingNew": "नया कलेक्टर",
     "serviceAreaLabel": "सेवा क्षेत्र",
     "notSetYet": "पिकअप के समय",
@@ -318,6 +341,7 @@
     "poweredBy": "Scrap-it द्वारा संचालित"
   },
   "invoice": {
+    "ledgerLabel": "लेजर",
     "listTitle": "बिल",
     "newInvoice": "नया बिल",
     "emptyTitle": "अभी तक कोई बिल नहीं",
@@ -427,7 +451,6 @@
     "clientGstinLabel": "क्लाइंट GSTIN :",
     "slNoHeader": "क्र.सं.",
     "descriptionOfServicesHeader": "सेवाओं का विवरण",
-    "periodHeader": "अवधि",
     "perHeader": "प्रति",
     "amountInWordsLabelCommercial": "राशि शब्दों में :",
     "termsAndConditionsHeading": "नियम व शर्तें",

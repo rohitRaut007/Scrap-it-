@@ -94,7 +94,10 @@ function NewInvoiceContent() {
   const [descriptionCustom, setDescriptionCustom] = useState(false);
   const [description, setDescription] = useState("");
   const [quantity, setQuantity] = useState("");
+  const [quantityCustom, setQuantityCustom] = useState(false);
   const [rate, setRate] = useState("");
+  const [unit, setUnit] = useState("");
+  const [unitCustom, setUnitCustom] = useState(false);
   const [payableTo, setPayableTo] = useState("");
   const [referencePoNumber, setReferencePoNumber] = useState("");
   const [termsOfPayment, setTermsOfPayment] = useState("");
@@ -127,6 +130,24 @@ function NewInvoiceContent() {
       setDescription(DEFAULT_ITEM_DESCRIPTION[billType]);
     }
   }, [billType, descriptionCustom]);
+
+  // Same pattern for the "Per" unit — defaults to the bill type's canned
+  // unit (e.g. "Month" for commercial) but is a real, editable input now
+  // rather than a silent constant, mirroring the description preset above.
+  useEffect(() => {
+    if (billType && !unitCustom) {
+      setUnit(DEFAULT_ITEM_UNIT[billType]);
+    }
+  }, [billType, unitCustom]);
+
+  // Commercial invoices used to hardcode quantity to 1 with no input at
+  // all; it's a real field now, so seed a sensible starting value the
+  // first time Commercial is selected instead of leaving it blank.
+  useEffect(() => {
+    if (billType === "COMMERCIAL" && !quantityCustom) {
+      setQuantity("1");
+    }
+  }, [billType, quantityCustom]);
 
   useEffect(() => {
     if (billType === "COMMERCIAL" && !termsOfPayment) {
@@ -163,7 +184,10 @@ function NewInvoiceContent() {
         setDescription(firstItem.description);
         setDescriptionCustom(firstItem.description !== DEFAULT_ITEM_DESCRIPTION[cloneSource.billType]);
         setQuantity(String(firstItem.quantity));
+        setQuantityCustom(true);
         setRate(String(firstItem.rate));
+        setUnit(firstItem.unit);
+        setUnitCustom(true);
       }
       setReferencePoNumber(cloneSource.referencePoNumber ?? "");
       setTermsOfPayment(cloneSource.termsOfPayment ?? "");
@@ -186,9 +210,10 @@ function NewInvoiceContent() {
   const isNewClient = clientId === NEW_CLIENT_VALUE;
   const isCommercial = billType === "COMMERCIAL";
 
-  const parsedQuantity = isCommercial ? 1 : Number(quantity) || 0;
+  const parsedQuantity = Number(quantity) || 0;
   const parsedRate = Number(rate) || 0;
-  const resolvedUnit = billType ? DEFAULT_ITEM_UNIT[billType] : "Units";
+  const resolvedUnit =
+    unit.trim() || (billType ? DEFAULT_ITEM_UNIT[billType] : "Units");
 
   const clientStepValid = isNewClient
     ? newClient.entityName.trim().length > 0 &&
@@ -513,17 +538,18 @@ function NewInvoiceContent() {
                 </button>
               )}
             </div>
-            <div className={`grid gap-2 ${isCommercial ? "grid-cols-1" : "grid-cols-2"}`}>
-              {!isCommercial && (
-                <Field
-                  id="quantity"
-                  label={t("itemQtyPlaceholder")}
-                  value={quantity}
-                  onChange={setQuantity}
-                  inputMode="decimal"
-                  disabled={submitting}
-                />
-              )}
+            <div className={`grid gap-2 ${isCommercial ? "grid-cols-3" : "grid-cols-2"}`}>
+              <Field
+                id="quantity"
+                label={t("itemQtyPlaceholder")}
+                value={quantity}
+                onChange={(v) => {
+                  setQuantity(v);
+                  setQuantityCustom(true);
+                }}
+                inputMode="decimal"
+                disabled={submitting}
+              />
               <Field
                 id="rate"
                 label={t("itemRatePlaceholder")}
@@ -532,6 +558,20 @@ function NewInvoiceContent() {
                 inputMode="decimal"
                 disabled={submitting}
               />
+              {isCommercial && (
+                <Field
+                  id="unit"
+                  label={t("perHeader")}
+                  value={unit}
+                  onChange={(v) => {
+                    setUnit(v);
+                    setUnitCustom(true);
+                  }}
+                  placeholder={DEFAULT_ITEM_UNIT.COMMERCIAL}
+                  disabled={submitting}
+                  maxLength={30}
+                />
+              )}
             </div>
             <Field
               id="payableTo"

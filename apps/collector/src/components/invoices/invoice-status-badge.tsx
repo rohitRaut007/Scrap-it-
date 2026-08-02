@@ -1,11 +1,11 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Badge } from "@/components/ui/badge";
+import { Stamp } from "@/components/ui/stamp";
 import { cn } from "@/lib/utils";
 import {
-  invoiceStatusClasses,
   invoiceStatusMessageKey,
+  invoiceStatusTone,
 } from "@/lib/invoice-utils";
 import type { InvoiceStatus } from "@/lib/types";
 
@@ -18,11 +18,8 @@ export function InvoiceStatusBadge({
 }) {
   const t = useTranslations("invoice.status");
   return (
-    <Badge
-      variant="secondary"
-      className={cn("border-0 font-medium", invoiceStatusClasses(status), className)}
-    >
+    <Stamp tone={invoiceStatusTone(status)} className={cn(className)}>
       {t(invoiceStatusMessageKey(status))}
-    </Badge>
+    </Stamp>
   );
 }

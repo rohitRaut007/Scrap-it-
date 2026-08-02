@@ -1,7 +1,12 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { RateTicker, ratesToTickerEntries } from "@/components/book/rate-ticker";
+import {
+  RateTicker,
+  formatTickerLabel,
+  oldestRateUpdatedAt,
+  ratesToTickerEntries,
+} from "@/components/book/rate-ticker";
 import { useRateCard } from "@/hooks/use-portal";
 
 /**
@@ -13,11 +18,13 @@ import { useRateCard } from "@/hooks/use-portal";
 export function PortalRateTicker() {
   const t = useTranslations("book");
   const { data: rateCard } = useRateCard();
+  const items = rateCard ?? [];
 
   // Show the brand-tagline fallback while loading rather than nothing —
   // the ticker is a fixture of the shell, it shouldn't flash empty on
   // every page navigation while SWR's cache is still warming up.
-  const entries = ratesToTickerEntries(rateCard ?? [], t("tickerFallback"));
+  const entries = ratesToTickerEntries(items, t("tickerFallback"));
+  const label = formatTickerLabel(t, oldestRateUpdatedAt(items));
 
-  return <RateTicker entries={entries} sticky={false} />;
+  return <RateTicker entries={entries} label={label} sticky={false} />;
 }

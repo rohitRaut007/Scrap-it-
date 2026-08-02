@@ -50,19 +50,19 @@ export function OrderCard({ order }: OrderCardProps) {
     <Link
       href={`/orders/${order.id}`}
       className={cn(
-        "block rounded-2xl border bg-card p-4 shadow-xs transition-all",
-        "hover:shadow-md hover:border-primary/30 active:scale-[0.99]",
+        "block rounded-2xl border border-ink/15 bg-card p-4 shadow-elevation-1 transition-shadow",
+        "hover:border-ink/30 hover:shadow-elevation-2 active:scale-[0.99]",
       )}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2 text-sm font-semibold">
+        <div className="flex items-center gap-2 font-mono text-sm font-semibold">
           <Clock className="h-4 w-4 text-primary shrink-0" />
           {formatScheduledAt(order.scheduledAt)}
         </div>
         {isDone && order.payoutInr != null ? (
           <div className="flex items-center gap-1.5">
             {order.source === "manual" && (
-              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+              <span className="rounded-xs bg-muted px-1.5 py-0.5 font-mono text-[9px] font-medium tracking-wide text-muted-foreground uppercase">
                 {t("loggedBadge")}
               </span>
             )}
@@ -85,7 +85,7 @@ export function OrderCard({ order }: OrderCardProps) {
           {order.categories.map((c) => (
             <span
               key={c.categoryId}
-              className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground"
+              className="rounded-full border border-ink/20 px-2.5 py-1 font-mono text-[11px] font-medium"
             >
               {c.name}
               <span className="ml-1 text-muted-foreground">{c.rateLabel}</span>
@@ -110,14 +110,14 @@ export function OrderCard({ order }: OrderCardProps) {
             </span>
           )}
           {isDone && order.totalWeightKg != null && (
-            <span>{formatWeight(order.totalWeightKg)}</span>
+            <span className="font-mono">{formatWeight(order.totalWeightKg)}</span>
           )}
         </div>
 
         {order.isAvailable ? (
           <Button
             size="sm"
-            className="h-9 rounded-full px-5 font-semibold"
+            className="h-9 rounded-full px-5 font-semibold shadow-hard-ink-sm"
             onClick={handleAccept}
             disabled={accepting}
           >

@@ -7,6 +7,7 @@ import { FileText, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
+import { SectionEyebrow } from "@/components/ui/section-eyebrow";
 import { InvoiceCard } from "@/components/invoices/invoice-card";
 import { useInvoices } from "@/hooks/use-portal";
 
@@ -24,11 +25,20 @@ function InvoicesContent() {
   const [page, setPage] = useState(1);
   const { data, isLoading, error, mutate } = useInvoices(page);
 
+  const dateline = new Date().toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
     <div className="space-y-4">
+      <SectionEyebrow label={t("ledgerLabel")} dateline={dateline} />
+
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold tracking-tight">{t("listTitle")}</h1>
-        <Button asChild size="sm" className="gap-1.5">
+        <h1 className="font-display text-4xl tracking-tight">{t("listTitle")}</h1>
+        <Button asChild size="sm" className="gap-1.5 shadow-hard-ink-sm">
           <Link href="/invoices/new">
             <Plus className="h-4 w-4" />
             {t("newInvoice")}

@@ -53,7 +53,7 @@ export function buildCommercialInvoiceMessages(t: Translator): CommercialInvoice
     clientGstinLabel: t("clientGstinLabel"),
     slNoHeader: t("slNoHeader"),
     descriptionOfServicesHeader: t("descriptionOfServicesHeader"),
-    periodHeader: t("periodHeader"),
+    qtyHeader: t("qtyHeader"),
     rateHeader: t("rateHeader"),
     perHeader: t("perHeader"),
     amountHeader: t("amountHeader"),

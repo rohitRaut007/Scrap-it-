@@ -50,7 +50,7 @@ export const DEFAULT_ITEM_DESCRIPTION: Record<BillType, string> = {
 /** Default unit for the single pre-filled line item per bill type. */
 export const DEFAULT_ITEM_UNIT: Record<BillType, string> = {
   RESIDENTIAL: "Units",
-  COMMERCIAL: "Month",
+  COMMERCIAL: "Unit",
 };
 
 /** Suggested premises-type line under the client's entity name, editable but pre-filled. */

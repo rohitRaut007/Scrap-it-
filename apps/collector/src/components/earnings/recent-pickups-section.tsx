@@ -26,7 +26,9 @@ export function RecentPickupsSection() {
   if (error && !data) {
     return (
       <div className="space-y-2.5">
-        <h2 className="text-base font-semibold">{t("recentPickups")}</h2>
+        <h2 className="font-mono text-xs font-semibold tracking-[0.2em] text-rust uppercase">
+          {t("recentPickups")}
+        </h2>
         <ErrorState onRetry={() => mutate()} />
       </div>
     );
@@ -36,7 +38,9 @@ export function RecentPickupsSection() {
 
   return (
     <div>
-      <h2 className="mb-2.5 text-base font-semibold">{t("recentPickups")}</h2>
+      <h2 className="mb-2.5 font-mono text-xs font-semibold tracking-[0.2em] text-rust uppercase">
+        {t("recentPickups")}
+      </h2>
       {data.recentOrders.length === 0 ? (
         <div className="rounded-2xl border bg-card/50 p-8 text-center shadow-elevation-1">
           <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-muted">

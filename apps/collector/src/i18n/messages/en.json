@@ -17,10 +17,17 @@
   "nav": {
     "brand": "Scrap-it",
     "portalName": "Collector Portal",
+    "tagline": "The Collector's Daily",
     "dashboard": "Home",
     "orders": "Pickups",
     "invoices": "Invoices",
-    "profile": "Profile"
+    "profile": "Profile",
+    "dashboardSubtitle": "Front Page · Overview",
+    "ordersSubtitle": "Route Sheet · Queue",
+    "invoicesSubtitle": "The Ledger · Khaata",
+    "profileSubtitle": "Byline · Correspondent",
+    "navIndexLabel": "Index",
+    "navSectionsLabel": "Sections"
   },
   "language": {
     "label": "Language",
@@ -65,7 +72,17 @@
     "noActivePickups": "No active pickups",
     "noActivePickupsHintAvailable": "New pickups are waiting in the feed.",
     "noActivePickupsHint": "New bookings in your area will appear here.",
-    "browseAvailable": "Browse available pickups →"
+    "browseAvailable": "Browse available pickups →",
+    "frontPageLabel": "Front Page",
+    "subheadAvailable": "{count, plural, one {# pickup on the wire.} other {# pickups on the wire.}} Ready when you are.",
+    "subheadNone": "All caught up. Ready when you are.",
+    "todaysTakeLabel": "Today's Take",
+    "filedSinceMidnight": "Filed since midnight",
+    "offToFreshStart": "Off to a fresh start.",
+    "metaThisWeek": "This week",
+    "metaPickupsToday": "Pickups today",
+    "metaActiveNow": "Active now",
+    "atAGlanceLabel": "At a Glance"
   },
   "orders": {
     "title": "Pickups",
@@ -199,6 +216,7 @@
     "chartPickups": "{count, plural, one {# pickup} other {# pickups}}"
   },
   "profile": {
+    "bylineLabel": "Byline",
     "title": "Profile",
     "addName": "Add your name",
     "ratingNew": "New",
@@ -251,6 +269,11 @@
     "metaDescription": "Book directly with {name} on Scrap-it — fair rates, weighed in front of you.",
     "verifiedBadge": "Verified Scrap-it Collector",
     "tickerFallback": "Book directly · No waiting · Fair rates · Weighed in front of you",
+    "tickerLabel": "Rates",
+    "tickerUpdatedToday": "Updated today",
+    "tickerUpdatedDaysAgo": "Updated {count, plural, one {# day ago} other {# days ago}}",
+    "tickerUpdatedWeeksAgo": "Updated {count, plural, one {# week ago} other {# weeks ago}}",
+    "tickerUpdatedMonthsAgo": "Updated {count, plural, one {# month ago} other {# months ago}}",
     "ratingNew": "New collector",
     "serviceAreaLabel": "Serves",
     "notSetYet": "At pickup",
@@ -318,6 +341,7 @@
     "poweredBy": "Powered by Scrap-it"
   },
   "invoice": {
+    "ledgerLabel": "The Ledger",
     "listTitle": "Invoices",
     "newInvoice": "New invoice",
     "emptyTitle": "No invoices yet",
@@ -427,7 +451,6 @@
     "clientGstinLabel": "Client GSTIN :",
     "slNoHeader": "Sl No",
     "descriptionOfServicesHeader": "Description of Services",
-    "periodHeader": "Period",
     "perHeader": "Per",
     "amountInWordsLabelCommercial": "Amount in Words :",
     "termsAndConditionsHeading": "Terms & Conditions",

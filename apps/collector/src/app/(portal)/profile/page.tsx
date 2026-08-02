@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
+import { SectionEyebrow } from "@/components/ui/section-eyebrow";
 import { BookingQrCard } from "@/components/profile/booking-qr-card";
 import { BusinessDetailsForm } from "@/components/profile/business-details-form";
 import { InvoiceDetailsForm } from "@/components/profile/invoice-details-form";
@@ -90,22 +91,24 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
+      <SectionEyebrow label={t("bylineLabel")} />
+      <h1 className="font-display text-4xl tracking-tight">{t("title")}</h1>
 
       {/* Identity card */}
-      <div className="rounded-2xl border bg-card p-5 shadow-xs">
-        <div className="flex items-center gap-4">
+      <div className="relative overflow-hidden rounded-2xl border border-ink/15 bg-card p-5 shadow-elevation-1">
+        <div className="pointer-events-none absolute inset-0 bg-paper-grain opacity-[0.05] mix-blend-overlay" />
+        <div className="relative flex items-center gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">
             {initials(profile.name)}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="truncate text-lg font-bold">
+            <p className="truncate font-display text-3xl leading-tight tracking-tight">
               {profile.name ?? t("addName")}
             </p>
             <p className="truncate text-xs text-muted-foreground">
               {profile.serviceArea ?? profile.email}
             </p>
-            <div className="mt-1 flex items-center gap-3 text-xs">
+            <div className="mt-1.5 flex items-center gap-3 font-mono text-xs">
               <span className="flex items-center gap-1 font-semibold">
                 <Star className="h-3.5 w-3.5 fill-signal text-signal" />
                 {profile.rating != null ? profile.rating.toFixed(1) : t("ratingNew")}
@@ -119,7 +122,7 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
-        <p className="mt-3 text-[11px] text-muted-foreground">
+        <p className="relative mt-3 font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
           {t("memberSince", { date: formatDate(profile.memberSince) })}
         </p>
       </div>
@@ -133,9 +136,11 @@ export default function ProfilePage() {
       )}
 
       {/* Details / edit form */}
-      <div className="rounded-2xl border bg-card p-4 shadow-xs">
+      <div className="rounded-2xl border border-ink/15 bg-card p-4 shadow-elevation-1">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">{t("yourDetails")}</h2>
+          <h2 className="font-mono text-xs font-semibold tracking-[0.2em] text-rust uppercase">
+            {t("yourDetails")}
+          </h2>
           {!editing && (
             <Button
               variant="ghost"

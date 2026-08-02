@@ -25,7 +25,7 @@ export interface CommercialInvoiceMessages {
   clientGstinLabel: string;
   slNoHeader: string;
   descriptionOfServicesHeader: string;
-  periodHeader: string;
+  qtyHeader: string;
   rateHeader: string;
   perHeader: string;
   amountHeader: string;
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   metaBold: { fontWeight: "bold" },
   colSlNo: { width: "7%" },
   colDescription: { width: "35%" },
-  colPeriod: { width: "14%" },
+  colQty: { width: "14%" },
   colRate: { width: "14%" },
   colPer: { width: "12%" },
   colAmount: { width: "18%" },
@@ -188,8 +188,8 @@ export function CommercialInvoiceDocument({
               >
                 {m.descriptionOfServicesHeader}
               </Text>
-              <Text style={[sharedStyles.cell, styles.colPeriod, sharedStyles.headerCellText]}>
-                {m.periodHeader}
+              <Text style={[sharedStyles.cell, styles.colQty, sharedStyles.headerCellText]}>
+                {m.qtyHeader}
               </Text>
               <Text style={[sharedStyles.cell, styles.colRate, sharedStyles.headerCellText]}>
                 {m.rateHeader}
@@ -210,8 +210,8 @@ export function CommercialInvoiceDocument({
                 <Text style={[sharedStyles.cell, styles.colDescription]}>
                   {item.description}
                 </Text>
-                <Text style={[sharedStyles.cell, styles.colPeriod]}>
-                  {formatQuantity(item.quantity)} {item.unit}
+                <Text style={[sharedStyles.cell, styles.colQty]}>
+                  {formatQuantity(item.quantity)}
                 </Text>
                 <Text style={[sharedStyles.cell, styles.colRate]}>
                   {formatRate(item.rate)}
@@ -226,7 +226,7 @@ export function CommercialInvoiceDocument({
             <View style={sharedStyles.totalRow}>
               <Text style={[sharedStyles.cell, styles.colSlNo]} />
               <Text style={[sharedStyles.cell, styles.colDescription]} />
-              <Text style={[sharedStyles.cell, styles.colPeriod]} />
+              <Text style={[sharedStyles.cell, styles.colQty]} />
               <Text style={[sharedStyles.cell, styles.colRate]} />
               <Text style={[sharedStyles.cell, styles.colPer, sharedStyles.bold]}>
                 {m.totalLabel}
