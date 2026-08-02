@@ -22,12 +22,7 @@
     "orders": "Pickups",
     "invoices": "Invoices",
     "profile": "Profile",
-    "dashboardSubtitle": "Front Page · Overview",
-    "ordersSubtitle": "Route Sheet · Queue",
-    "invoicesSubtitle": "The Ledger · Khaata",
-    "profileSubtitle": "Byline · Correspondent",
-    "navIndexLabel": "Index",
-    "navSectionsLabel": "Sections"
+    "support": "Help & Support"
   },
   "language": {
     "label": "Language",
@@ -76,15 +71,10 @@
     "frontPageLabel": "Front Page",
     "subheadAvailable": "{count, plural, one {# pickup on the wire.} other {# pickups on the wire.}} Ready when you are.",
     "subheadNone": "All caught up. Ready when you are.",
-    "todaysTakeLabel": "Today's Take",
-    "filedSinceMidnight": "Filed since midnight",
-    "offToFreshStart": "Off to a fresh start.",
-    "metaThisWeek": "This week",
-    "metaPickupsToday": "Pickups today",
-    "metaActiveNow": "Active now",
     "atAGlanceLabel": "At a Glance"
   },
   "orders": {
+    "routeSheetLabel": "Route Sheet",
     "title": "Pickups",
     "tabNew": "New",
     "tabActive": "Active",

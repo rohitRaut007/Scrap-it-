@@ -196,6 +196,7 @@ export function LogPickupDialog({
             <DialogFooter className="shrink-0 flex-col gap-3 border-t px-5 py-4 sm:flex-col">
               <div className="flex gap-2">
                 <Button
+                  size="xl"
                   variant="outline"
                   className="flex-1"
                   onClick={handleLogAnother}
@@ -204,6 +205,7 @@ export function LogPickupDialog({
                   {t("logAnother")}
                 </Button>
                 <Button
+                  size="xl"
                   className="flex-1"
                   onClick={handleDone}
                   disabled={receiptGenerating}
@@ -371,6 +373,7 @@ export function LogPickupDialog({
           </div>
           <div className="flex gap-2">
             <Button
+              size="xl"
               variant="outline"
               className="flex-1"
               onClick={() => onOpenChange(false)}
@@ -378,7 +381,7 @@ export function LogPickupDialog({
             >
               {tCommon("cancel")}
             </Button>
-            <Button className="flex-1" onClick={handleSubmit} disabled={!canSubmit}>
+            <Button size="xl" className="flex-1" onClick={handleSubmit} disabled={!canSubmit}>
               {submitting ? t("saving") : t("save")}
             </Button>
           </div>

@@ -5,7 +5,11 @@ import { useTranslations } from "next-intl";
 import {
   ArrowRight,
   BellRing,
+  CalendarCheck,
+  IndianRupee,
   Package,
+  Star,
+  TrendingUp,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
@@ -66,44 +70,32 @@ export default function DashboardPage() {
       {error && !summary && <ErrorState onRetry={() => mutate()} />}
       {error && summary && <StaleDataNotice />}
 
-      {/* Today's Take — the editorial hero */}
+      {/* Today's earnings hero */}
       {isLoading || !summary ? (
-        <Skeleton className="h-56 rounded-2xl" />
+        <Skeleton className="h-40 rounded-3xl" />
       ) : (
-        <div className="border-b border-ink pb-5">
-          <div className="flex items-baseline justify-between gap-3">
-            <p className="font-mono text-xs font-semibold tracking-[0.2em] text-rust uppercase">
-              {t("todaysTakeLabel")}
-            </p>
-            <p className="text-xs text-muted-foreground italic">
-              {t("filedSinceMidnight")}
-            </p>
-          </div>
-          <div className="mt-2 flex flex-wrap items-baseline gap-x-4 gap-y-1">
-            <p className="font-display text-6xl leading-[0.9] tracking-tight md:text-7xl">
-              {formatInr(summary.todayEarningsInr)}
-            </p>
-            {summary.todayCompleted === 0 && (
-              <p className="font-display text-lg text-muted-foreground">
-                {t("offToFreshStart")}
-              </p>
-            )}
-          </div>
-
-          <div className="mt-4 grid grid-cols-3 divide-x divide-dashed divide-rule border-t border-rule pt-3.5">
-            <MetaCell
-              label={t("metaThisWeek")}
-              value={formatInr(summary.weekEarningsInr)}
-              valueClassName="text-cash"
-            />
-            <MetaCell
-              label={t("metaPickupsToday")}
-              value={String(summary.todayCompleted)}
-            />
-            <MetaCell
-              label={t("metaActiveNow")}
-              value={String(summary.activeOrders)}
-            />
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-cash to-[#153f2b] p-6 text-paper shadow-elevation-hero">
+          <div className="pointer-events-none absolute -right-10 -top-12 h-48 w-48 rounded-full bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.18),transparent_70%)]" />
+          <div className="pointer-events-none absolute -right-20 top-16 h-40 w-40 rounded-full bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.10),transparent_70%)]" />
+          <p className="relative font-mono text-xs font-semibold uppercase tracking-[0.2em] text-paper/85">
+            {t("todayEarnings")}
+          </p>
+          <p className="relative mt-1.5 truncate font-display text-4xl leading-[0.9] tracking-tight sm:text-5xl md:text-6xl">
+            {formatInr(summary.todayEarningsInr)}
+          </p>
+          <div className="relative mt-4 flex flex-col items-start gap-2 text-sm text-paper/90 sm:flex-row sm:flex-wrap sm:items-center">
+            <span className="flex max-w-full items-center gap-1.5 truncate rounded-full bg-white/10 px-2.5 py-1">
+              <Package className="h-4 w-4 shrink-0" />
+              <span className="truncate">
+                {t("pickupsDone", { count: summary.todayCompleted })}
+              </span>
+            </span>
+            <span className="flex max-w-full items-center gap-1.5 truncate rounded-full bg-white/10 px-2.5 py-1">
+              <TrendingUp className="h-4 w-4 shrink-0" />
+              <span className="truncate">
+                {t("weekEarnings", { amount: formatInr(summary.weekEarningsInr) })}
+              </span>
+            </span>
           </div>
         </div>
       )}
@@ -135,22 +127,32 @@ export default function DashboardPage() {
           {t("atAGlanceLabel")}
         </p>
         {isLoading || !summary ? (
-          <Skeleton className="h-24 rounded-2xl" />
+          <div className="grid grid-cols-3 gap-3">
+            <Skeleton className="h-24 rounded-2xl" />
+            <Skeleton className="h-24 rounded-2xl" />
+            <Skeleton className="h-24 rounded-2xl" />
+          </div>
         ) : (
-          <div className="grid grid-cols-3 divide-x divide-rule border-y-2 border-ink">
-            <AtAGlanceCell
+          <div className="grid grid-cols-3 gap-3">
+            <StatCard
+              icon={IndianRupee}
               label={t("statThisMonth")}
               value={formatInr(summary.monthEarningsInr)}
+              accent="rust"
             />
-            <AtAGlanceCell
+            <StatCard
+              icon={CalendarCheck}
               label={t("statTotalPickups")}
               value={String(summary.totalCompleted)}
+              accent="ink"
             />
-            <AtAGlanceCell
+            <StatCard
+              icon={Star}
               label={t("statRating")}
               value={
                 summary.rating != null ? summary.rating.toFixed(1) : tCommon("new")
               }
+              accent="signal"
             />
           </div>
         )}
@@ -208,40 +210,38 @@ export default function DashboardPage() {
   );
 }
 
-function MetaCell({
+const STAT_ACCENT_CLASSES = {
+  rust: "bg-rust/10 text-rust",
+  ink: "bg-ink/10 text-ink",
+  signal: "bg-signal/15 text-signal",
+} as const;
+
+function StatCard({
+  icon: Icon,
   label,
   value,
-  valueClassName,
+  accent,
 }: {
+  icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string;
-  valueClassName?: string;
+  accent: keyof typeof STAT_ACCENT_CLASSES;
 }) {
   return (
-    <div className="px-3.5 first:pl-0 last:pr-0">
-      <p className="font-mono text-[10px] tracking-[0.15em] text-muted-foreground uppercase">
-        {label}
-      </p>
-      <p
+    <div className="min-w-0 rounded-2xl border bg-card p-3.5 shadow-elevation-1 transition-shadow hover:shadow-elevation-2">
+      <div
         className={cn(
-          "mt-1 font-display text-2xl leading-none tracking-tight",
-          valueClassName,
+          "flex size-8 items-center justify-center rounded-full",
+          STAT_ACCENT_CLASSES[accent],
         )}
       >
+        <Icon className="h-4 w-4" />
+      </div>
+      <p className="mt-2.5 truncate font-display text-2xl leading-none tracking-tight sm:text-3xl">
         {value}
       </p>
-    </div>
-  );
-}
-
-function AtAGlanceCell({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="px-4 py-4 first:pl-0 last:pr-0">
-      <p className="font-mono text-[10px] tracking-[0.15em] text-muted-foreground uppercase">
+      <p className="mt-1.5 truncate font-mono text-[10px] tracking-[0.15em] text-muted-foreground uppercase">
         {label}
-      </p>
-      <p className="mt-1.5 font-display text-4xl leading-none tracking-tight">
-        {value}
       </p>
     </div>
   );

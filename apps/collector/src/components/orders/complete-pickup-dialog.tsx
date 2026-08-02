@@ -206,6 +206,7 @@ export function CompletePickupDialog({
           </div>
           <div className="flex gap-2">
             <Button
+              size="xl"
               variant="outline"
               className="flex-1"
               onClick={() => onOpenChange(false)}
@@ -214,6 +215,7 @@ export function CompletePickupDialog({
               {t("back")}
             </Button>
             <Button
+              size="xl"
               className="flex-1"
               onClick={handleSubmit}
               disabled={!hasWeight || submitting || rateCardLoading || Boolean(rateCardError)}

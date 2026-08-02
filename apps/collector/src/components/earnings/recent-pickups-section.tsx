@@ -18,7 +18,10 @@ export function RecentPickupsSection() {
     return (
       <div className="space-y-2.5">
         <Skeleton className="h-5 w-32" />
-        <Skeleton className="h-20 w-full rounded-2xl" />
+        <div className="space-y-3">
+          <Skeleton className="h-40 rounded-2xl" />
+          <Skeleton className="h-40 rounded-2xl" />
+        </div>
       </div>
     );
   }

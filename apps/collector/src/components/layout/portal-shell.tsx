@@ -10,14 +10,15 @@ import {
   User,
   Recycle,
   LogOut,
+  MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
-import { DoubleRule } from "@/components/ui/double-rule";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { PortalRateTicker } from "@/components/layout/portal-rate-ticker";
 import { useSummary } from "@/hooks/use-portal";
+import { buildWhatsAppUrl, SUPPORT_WHATSAPP_NUMBER } from "@/lib/whatsapp";
 
 interface PortalShellProps {
   userEmail?: string;
@@ -35,26 +36,22 @@ export function PortalShell({ userEmail, children }: PortalShellProps) {
     {
       href: "/dashboard",
       label: t("dashboard"),
-      subtitle: t("dashboardSubtitle"),
       icon: Home,
     },
     {
       href: "/orders",
       label: t("orders"),
-      subtitle: t("ordersSubtitle"),
       icon: Package,
       badge: summary?.availableOrders,
     },
     {
       href: "/invoices",
       label: t("invoices"),
-      subtitle: t("invoicesSubtitle"),
       icon: FileText,
     },
     {
       href: "/profile",
       label: t("profile"),
-      subtitle: t("profileSubtitle"),
       icon: User,
     },
   ];
@@ -71,108 +68,73 @@ export function PortalShell({ userEmail, children }: PortalShellProps) {
     <div className="min-h-dvh bg-background">
       <PortalRateTicker />
       <div className="md:flex">
-        {/* Desktop sidebar — a newspaper masthead + front-page index */}
-        <aside className="hidden md:sticky md:top-0 md:flex md:h-dvh md:w-72 md:shrink-0 md:flex-col md:overflow-y-auto md:border-r md:bg-sidebar">
-          {/* Masthead */}
-          <div className="px-6 pt-6 pb-4">
-            <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center bg-primary text-primary-foreground shadow-hard-ink-sm">
-                <Recycle className="h-5.5 w-5.5" />
-              </div>
-              <div className="min-w-0">
-                <p className="font-display text-2xl leading-none tracking-tight">
-                  {t("brand")}
-                </p>
-                <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground italic">
-                  {t("tagline")}
-                </p>
-              </div>
+        {/* Desktop sidebar */}
+        <aside className="hidden md:sticky md:top-0 md:flex md:h-dvh md:w-64 md:shrink-0 md:flex-col md:overflow-y-auto md:border-r md:bg-sidebar">
+          <div className="flex h-16 items-center gap-2.5 border-b px-5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+              <Recycle className="h-5 w-5" />
             </div>
-          </div>
-          <DoubleRule className="mx-6" />
-
-          {/* Dateline */}
-          <div className="flex justify-between px-6 py-3 font-mono text-[10px] tracking-[0.15em] text-muted-foreground uppercase">
-            <span>{t("portalName")}</span>
-            <span>
-              {new Date().toLocaleDateString("en-IN", {
-                weekday: "short",
-                day: "2-digit",
-                month: "short",
-              })}
-            </span>
-          </div>
-
-          <div className="px-6 pb-1.5">
-            <div className="flex items-baseline justify-between border-b border-ink pb-2">
-              <span className="font-mono text-[10px] font-semibold tracking-[0.2em] text-foreground uppercase">
-                {t("navIndexLabel")}
-              </span>
-              <span className="font-mono text-[9px] tracking-wider text-muted-foreground uppercase">
-                {t("navSectionsLabel")}
-              </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold leading-tight">
+                {t("brand")}
+              </p>
+              <p className="truncate text-[11px] leading-tight text-muted-foreground">
+                {t("portalName")}
+              </p>
             </div>
           </div>
 
-          {/* Index nav */}
-          <nav className="flex-1 px-3 pt-1">
-            {NAV_ITEMS.map(({ href, label, subtitle, badge }, i) => {
+          <nav className="flex-1 space-y-1 p-3">
+            {NAV_ITEMS.map(({ href, label, icon: Icon, badge }) => {
               const active = isActive(href);
               return (
                 <Link
                   key={href}
                   href={href}
                   className={cn(
-                    "flex items-baseline gap-3 border-l-[3px] px-3 py-2.5 transition-colors",
+                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                     active
-                      ? "border-rust bg-background"
-                      : "border-transparent hover:bg-background/60",
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground",
                   )}
                 >
-                  <span
-                    className={cn(
-                      "font-mono text-[11px] font-semibold tracking-wide",
-                      active ? "text-rust" : "text-muted-foreground",
-                    )}
-                  >
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-display text-lg leading-none">{label}</p>
-                    <p className="mt-1 flex items-center gap-1.5 font-mono text-[9px] tracking-wider text-muted-foreground uppercase">
-                      {subtitle}
-                      {!!badge && badge > 0 && (
-                        <span className="rounded-xs bg-rust px-1 py-px font-mono text-[9px] font-semibold text-primary-foreground normal-case">
-                          {badge}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                  <span className="font-mono text-[10px] text-muted-foreground">
-                    p.{String(i + 1).padStart(2, "0")}
-                  </span>
+                  <Icon className="h-4.5 w-4.5 shrink-0" />
+                  <span className="flex-1 truncate">{label}</span>
+                  {!!badge && badge > 0 && (
+                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-rust px-1 font-mono text-[10px] font-semibold text-primary-foreground">
+                      {badge}
+                    </span>
+                  )}
                 </Link>
               );
             })}
           </nav>
 
           {/* Footer */}
-          <div className="px-6 pt-2 pb-5">
-            <DoubleRule className="mb-3" />
-            <p className="mb-2 truncate font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
-              {userEmail}
-            </p>
-            <div className="flex items-center gap-2">
+          <div className="border-t p-3">
+            <div className="flex items-center justify-between gap-2 px-3 pb-2">
+              <p className="truncate text-xs text-muted-foreground">
+                {userEmail}
+              </p>
               <LanguageSwitcher />
-              <Button
-                variant="ghost"
-                className="flex-1 justify-start gap-2.5 text-muted-foreground"
-                onClick={handleLogout}
-              >
-                <LogOut className="h-4 w-4" />
-                {tCommon("logout")}
-              </Button>
             </div>
+            <a
+              href={buildWhatsAppUrl(SUPPORT_WHATSAPP_NUMBER)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            >
+              <MessageCircle className="h-4 w-4 shrink-0" />
+              {t("support")}
+            </a>
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 text-muted-foreground"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4" />
+              {tCommon("logout")}
+            </Button>
           </div>
         </aside>
 
@@ -186,7 +148,18 @@ export function PortalShell({ userEmail, children }: PortalShellProps) {
               </div>
               <p className="text-sm font-bold leading-tight">{t("brand")}</p>
             </div>
-            <LanguageSwitcher />
+            <div className="flex items-center gap-1">
+              <a
+                href={buildWhatsAppUrl(SUPPORT_WHATSAPP_NUMBER)}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={t("support")}
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground"
+              >
+                <MessageCircle className="h-4.5 w-4.5" />
+              </a>
+              <LanguageSwitcher />
+            </div>
           </header>
 
           <main className="mx-auto w-full max-w-2xl px-4 pt-4 pb-24 md:max-w-6xl md:px-10 md:py-8">

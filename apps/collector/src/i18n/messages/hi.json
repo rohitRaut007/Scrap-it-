@@ -22,12 +22,7 @@
     "orders": "पिकअप",
     "invoices": "बिल",
     "profile": "प्रोफ़ाइल",
-    "dashboardSubtitle": "फ्रंट पेज · अवलोकन",
-    "ordersSubtitle": "रूट शीट · कतार",
-    "invoicesSubtitle": "लेजर · खाता",
-    "profileSubtitle": "बायलाइन · परिचय",
-    "navIndexLabel": "सूची",
-    "navSectionsLabel": "विभाग"
+    "support": "सहायता"
   },
   "language": {
     "label": "भाषा",
@@ -76,15 +71,10 @@
     "frontPageLabel": "फ्रंट पेज",
     "subheadAvailable": "{count, plural, one {# पिकअप कतार में है।} other {# पिकअप कतार में हैं।}} जब आप तैयार हों।",
     "subheadNone": "सब निपट गया। जब आप तैयार हों।",
-    "todaysTakeLabel": "आज की कमाई",
-    "filedSinceMidnight": "आधी रात से दर्ज",
-    "offToFreshStart": "आज की शुरुआत बाकी है।",
-    "metaThisWeek": "इस हफ्ते",
-    "metaPickupsToday": "आज के पिकअप",
-    "metaActiveNow": "अभी सक्रिय",
     "atAGlanceLabel": "एक नज़र में"
   },
   "orders": {
+    "routeSheetLabel": "रूट शीट",
     "title": "पिकअप",
     "tabNew": "नए",
     "tabActive": "सक्रिय",

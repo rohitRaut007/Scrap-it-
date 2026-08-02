@@ -72,8 +72,11 @@ export default function ProfilePage() {
     return (
       <div className="space-y-4">
         <Skeleton className="h-8 w-32" />
-        <Skeleton className="h-36 rounded-2xl" />
-        <Skeleton className="h-72 rounded-2xl" />
+        <Skeleton className="h-32 rounded-2xl" />
+        <Skeleton className="h-48 rounded-2xl" />
+        <Skeleton className="h-56 rounded-2xl" />
+        <Skeleton className="h-48 rounded-2xl" />
+        <Skeleton className="h-40 rounded-2xl" />
       </div>
     );
   }
@@ -81,7 +84,8 @@ export default function ProfilePage() {
   if (error && !profile) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
+        <SectionEyebrow label={t("bylineLabel")} />
+        <h1 className="font-display text-4xl tracking-tight">{t("title")}</h1>
         <ErrorState onRetry={() => mutate()} />
       </div>
     );
@@ -196,6 +200,7 @@ export default function ProfilePage() {
             <div className="flex gap-2.5 pt-1">
               <Button
                 type="button"
+                size="xl"
                 variant="outline"
                 className="flex-1"
                 onClick={() => setEditing(false)}
@@ -203,7 +208,7 @@ export default function ProfilePage() {
               >
                 {tCommon("cancel")}
               </Button>
-              <Button type="submit" className="flex-1" disabled={saving}>
+              <Button type="submit" size="xl" className="flex-1" disabled={saving}>
                 {saving ? t("saving") : t("saveChanges")}
               </Button>
             </div>

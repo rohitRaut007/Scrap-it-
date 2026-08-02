@@ -160,6 +160,7 @@ export function BusinessDetailsForm({
           <div className="flex gap-2.5 pt-1">
             <Button
               type="button"
+              size="xl"
               variant="outline"
               className="flex-1"
               onClick={() => setEditing(false)}
@@ -167,7 +168,7 @@ export function BusinessDetailsForm({
             >
               {tCommon("cancel")}
             </Button>
-            <Button type="submit" className="flex-1" disabled={saving}>
+            <Button type="submit" size="xl" className="flex-1" disabled={saving}>
               {saving ? t("saving") : t("saveChanges")}
             </Button>
           </div>

@@ -10,6 +10,7 @@ import { ensureInvoiceFontsRegistered } from "@/lib/invoice-fonts";
 import { buildResidentialBillMessages, buildCommercialInvoiceMessages } from "@/lib/invoice-messages";
 import { monthMessageKey } from "@/lib/invoice-utils";
 import { formatBillDate, formatCommercialDate, formatInr } from "@/lib/format";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import { InvoiceDocument } from "@/components/invoices/invoice-document";
 import type { CollectorProfile, Invoice } from "@/lib/types";
 
@@ -140,11 +141,7 @@ export function InvoiceShareButton({ invoice, profile }: InvoiceShareButtonProps
       month: monthLabel,
       amount: formatInr(invoice.total),
     });
-    window.open(
-      `https://wa.me/?text=${encodeURIComponent(text)}`,
-      "_blank",
-      "noopener,noreferrer",
-    );
+    window.open(buildWhatsAppUrl(undefined, text), "_blank", "noopener,noreferrer");
   };
 
   return (

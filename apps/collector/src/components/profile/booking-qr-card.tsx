@@ -7,6 +7,7 @@ import { Check, Copy, QrCode, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 
 interface BookingQrCardProps {
   bookingUrl: string;
@@ -62,11 +63,7 @@ export function BookingQrCard({ bookingUrl, collectorName }: BookingQrCardProps)
         // user cancelled — fall through to WhatsApp
       }
     }
-    window.open(
-      `https://wa.me/?text=${encodeURIComponent(shareText)}`,
-      "_blank",
-      "noopener,noreferrer",
-    );
+    window.open(buildWhatsAppUrl(undefined, shareText), "_blank", "noopener,noreferrer");
   };
 
   return (

@@ -7,6 +7,7 @@ import { Inbox, PackageCheck, Truck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
 import { StaleDataNotice } from "@/components/ui/stale-data-notice";
+import { SectionEyebrow } from "@/components/ui/section-eyebrow";
 import { Button } from "@/components/ui/button";
 import { OrderCard } from "@/components/orders/order-card";
 import { LogPickupButton } from "@/components/orders/log-pickup-button";
@@ -88,10 +89,19 @@ function OrdersContent() {
     active: active.data?.total,
   };
 
+  const dateline = new Date().toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
     <div className="space-y-4">
+      <SectionEyebrow label={t("routeSheetLabel")} dateline={dateline} />
+
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
+        <h1 className="font-display text-4xl tracking-tight">{t("title")}</h1>
         <LogPickupButton />
       </div>
 
@@ -104,7 +114,7 @@ function OrdersContent() {
             key={key}
             onClick={() => setTab(key)}
             className={cn(
-              "flex items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-all",
+              "flex items-center justify-center gap-1.5 rounded-lg py-3 text-sm font-medium transition-all",
               tab === key
                 ? cn("shadow-sm", activeClasses)
                 : "text-muted-foreground hover:text-foreground",

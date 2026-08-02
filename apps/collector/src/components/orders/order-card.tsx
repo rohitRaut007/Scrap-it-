@@ -116,8 +116,8 @@ export function OrderCard({ order }: OrderCardProps) {
 
         {order.isAvailable ? (
           <Button
-            size="sm"
-            className="h-9 rounded-full px-5 font-semibold shadow-hard-ink-sm"
+            size="xl"
+            className="rounded-full font-semibold shadow-hard-ink-sm"
             onClick={handleAccept}
             disabled={accepting}
           >

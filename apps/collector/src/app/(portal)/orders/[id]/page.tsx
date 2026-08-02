@@ -43,6 +43,7 @@ import {
 } from "@/lib/format";
 import { nextAction } from "@/lib/order-utils";
 import { revalidateCollectorData } from "@/lib/revalidate";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 
 /** Defense-in-depth: only ever render/link https URLs, even though the
  * backend is expected to only ever return storage URLs in this shape. */
@@ -221,14 +222,14 @@ export default function OrderDetailPage({
           </div>
           {order.customerPhone && (
             <div className="flex gap-2">
-              <Button size="icon" variant="outline" className="rounded-full" asChild>
+              <Button size="icon-xl" variant="outline" className="rounded-full" asChild>
                 <a href={`tel:${order.customerPhone.replace(/[^\d+]/g, "")}`} aria-label={t("callCustomer")}>
                   <Phone className="h-4 w-4" />
                 </a>
               </Button>
-              <Button size="icon" variant="outline" className="rounded-full" asChild>
+              <Button size="icon-xl" variant="outline" className="rounded-full" asChild>
                 <a
-                  href={`https://wa.me/${order.customerPhone.replace(/[^\d]/g, "")}`}
+                  href={buildWhatsAppUrl(order.customerPhone)}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={t("whatsappCustomer")}
@@ -347,8 +348,9 @@ export default function OrderDetailPage({
           <div className="mx-auto flex max-w-2xl gap-2.5 px-1 md:px-0">
             {order.status === "assigned" && (
               <Button
+                size="xl"
                 variant="outline"
-                className="h-12 flex-none px-4 text-muted-foreground"
+                className="flex-none px-4 text-muted-foreground"
                 onClick={handleDecline}
                 disabled={busy}
               >
@@ -356,7 +358,8 @@ export default function OrderDetailPage({
               </Button>
             )}
             <Button
-              className="h-12 flex-1 gap-2 text-base font-semibold"
+              size="xl"
+              className="flex-1 gap-2 text-base font-semibold"
               onClick={handlePrimary}
               disabled={busy}
             >

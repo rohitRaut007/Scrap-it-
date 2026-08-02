@@ -25,7 +25,7 @@ export function LogPickupButton({
   return (
     <>
       <Button
-        size="sm"
+        size="xl"
         variant={variant}
         className={cn("gap-1.5", className)}
         onClick={() => setOpen(true)}
