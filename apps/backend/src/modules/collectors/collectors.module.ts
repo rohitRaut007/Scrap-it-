@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { AuthModule } from "../auth/auth.module";
+import { CategoriesModule } from "../categories/categories.module";
 import { NotificationsModule } from "../notifications/notifications.module";
 import { UploadsModule } from "../uploads/uploads.module";
 import { CollectorPortalService } from "./collector-portal.service";
@@ -13,6 +14,7 @@ import { PublicCollectorsController } from "./public-collectors.controller";
     AuthModule,
     UploadsModule,
     NotificationsModule,
+    CategoriesModule,
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 20 }]),
   ],
   controllers: [CollectorsController, PublicCollectorsController],

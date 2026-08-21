@@ -69,10 +69,10 @@
   --radius-2xl: 0.5rem;
   --radius-3xl: 0.5rem;
 
-  /* Fonts — Rozha One (display), Hind (body), IBM Plex Mono (data) */
-  --font-sans: var(--font-hind);
+  /* Fonts — Rozha One (display), Fira Sans (body/primary), IBM Plex Mono (data) */
+  --font-sans: var(--font-primary);
   --font-display: var(--font-rozha);
-  --font-body: var(--font-hind);
+  --font-body: var(--font-primary);
   --font-mono: var(--font-plexmono);
 }
 

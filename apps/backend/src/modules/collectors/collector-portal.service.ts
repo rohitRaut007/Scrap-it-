@@ -20,6 +20,7 @@ import {
   User,
 } from "@prisma/client";
 import { PrismaService } from "../../database/prisma.service";
+import { CategoriesService } from "../categories/categories.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import { UploadsService } from "../uploads/uploads.service";
 import type { AuthUser } from "../auth/strategies/supabase-jwt.strategy";
@@ -123,12 +124,28 @@ function slugify(input: string): string {
     .slice(0, 60);
 }
 
+// Short-lived cache of the Collector row keyed by userId — collapses the
+// burst of near-simultaneous getOrCreateCollector() calls a single page
+// fires (e.g. the Orders page mounts 2-3 SWR hooks at once, each hitting a
+// different /collectors/me/* endpoint). Profile data changes rarely, so an
+// 8s TTL is imperceptible while still avoiding a DB round trip per call.
+// Single backend instance, no distributed-cache infra in this stack — same
+// architecture as SupabaseJwtStrategy's fingerprint Map. Move to Redis (or
+// drop) if this backend ever runs as more than one instance.
+const COLLECTOR_CACHE_TTL_MS = 8_000;
+
 @Injectable()
 export class CollectorPortalService {
+  private readonly collectorCache = new Map<
+    string,
+    { collector: CollectorWithUser; expiresAt: number }
+  >();
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly uploads: UploadsService,
     private readonly notifications: NotificationsService,
+    private readonly categories: CategoriesService,
   ) {}
 
   /**
@@ -137,16 +154,31 @@ export class CollectorPortalService {
    * on first login — create it so onboarding is zero-touch.
    */
   async getOrCreateCollector(authUser: AuthUser): Promise<CollectorWithUser> {
+    const cached = this.collectorCache.get(authUser.id);
+    if (cached && cached.expiresAt > Date.now()) {
+      if (cached.collector.status === "suspended" || cached.collector.status === "removed") {
+        throw new ForbiddenException(
+          "Your collector account is no longer active. Contact support.",
+        );
+      }
+      return cached.collector;
+    }
+
     const existing = await this.prisma.collector.findUnique({
       where: { userId: authUser.id },
       include: { user: true },
     });
     if (existing) {
-      if (existing.status === "suspended") {
+      if (existing.status === "suspended" || existing.status === "removed") {
+        this.collectorCache.delete(authUser.id);
         throw new ForbiddenException(
-          "Your collector account is suspended. Contact support.",
+          "Your collector account is no longer active. Contact support.",
         );
       }
+      this.collectorCache.set(authUser.id, {
+        collector: existing,
+        expiresAt: Date.now() + COLLECTOR_CACHE_TTL_MS,
+      });
       return existing;
     }
 
@@ -158,10 +190,15 @@ export class CollectorPortalService {
     const slug = await this.generateUniqueSlug(
       user.name ?? user.email.split("@")[0],
     );
-    return this.prisma.collector.create({
+    const created = await this.prisma.collector.create({
       data: { userId: authUser.id, bookingSlug: slug },
       include: { user: true },
     });
+    this.collectorCache.set(authUser.id, {
+      collector: created,
+      expiresAt: Date.now() + COLLECTOR_CACHE_TTL_MS,
+    });
+    return created;
   }
 
   /**
@@ -191,10 +228,7 @@ export class CollectorPortalService {
     if (!collector) throw new NotFoundException("Collector not found");
 
     const [categories, rates] = await Promise.all([
-      this.prisma.category.findMany({
-        where: { active: true },
-        orderBy: { name: "asc" },
-      }),
+      this.categories.listActiveCached(),
       this.prisma.collectorCategoryRate.findMany({
         where: { collectorId: collector.id },
       }),
@@ -323,6 +357,8 @@ export class CollectorPortalService {
         });
       }
     });
+    // Must not read our own stale cache entry back via getProfile() below.
+    this.collectorCache.delete(authUser.id);
 
     return this.getProfile(authUser);
   }
@@ -423,7 +459,7 @@ export class CollectorPortalService {
       status: OrderStatus.scheduled,
       collectorId: null,
     };
-    const [rows, total] = await this.prisma.$transaction([
+    const [rows, total] = await Promise.all([
       this.prisma.pickupOrder.findMany({
         where,
         include: COLLECTOR_ORDER_INCLUDE,
@@ -454,7 +490,7 @@ export class CollectorPortalService {
 
     // A manual log is never "active" — only merge it into history/all.
     if (query.scope === "active") {
-      const [rows, total] = await this.prisma.$transaction([
+      const [rows, total] = await Promise.all([
         this.prisma.pickupOrder.findMany({
           where,
           include: COLLECTOR_ORDER_INCLUDE,
@@ -1102,10 +1138,7 @@ export class CollectorPortalService {
   async getRateCard(authUser: AuthUser): Promise<CollectorRateCardItemDto[]> {
     const collector = await this.getOrCreateCollector(authUser);
     const [categories, rates] = await Promise.all([
-      this.prisma.category.findMany({
-        where: { active: true },
-        orderBy: { name: "asc" },
-      }),
+      this.categories.listActiveCached(),
       this.prisma.collectorCategoryRate.findMany({
         where: { collectorId: collector.id },
       }),

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, Star } from "lucide-react";
+import { AlertTriangle, MoreVertical, Star } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -14,15 +14,35 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useCollectors, updateCollectorStatus } from "@/hooks/use-collectors";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  useCollectors,
+  updateCollectorStatus,
+  type CollectorAdminDto,
+  type CollectorStatus,
+} from "@/hooks/use-collectors";
 import { formatRelative } from "@/lib/order-utils";
+import { AddCollectorDialog } from "@/components/collectors/add-collector-dialog";
+import { RemoveCollectorDialog } from "@/components/collectors/remove-collector-dialog";
 
 export default function CollectorsPage() {
   const { data, isLoading, error, mutate } = useCollectors();
   const collectors = data?.data ?? [];
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const [removeTarget, setRemoveTarget] = useState<CollectorAdminDto | null>(
+    null,
+  );
 
-  const handleToggleStatus = async (id: string, currentStatus: "active" | "suspended") => {
+  const handleToggleStatus = async (
+    id: string,
+    currentStatus: CollectorStatus,
+  ) => {
     const nextStatus = currentStatus === "active" ? "suspended" : "active";
     setPendingId(id);
     try {
@@ -40,7 +60,10 @@ export default function CollectorsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Collectors</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Collectors</h1>
+        <Button onClick={() => setAddOpen(true)}>Add Collector</Button>
+      </div>
 
       <div className="rounded-lg border border-border bg-card overflow-hidden">
         <Table>
@@ -113,19 +136,55 @@ export default function CollectorsPage() {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={c.status === "suspended" ? "destructive" : "secondary"}>
-                      {c.status === "suspended" ? "Suspended" : "Active"}
+                    <Badge
+                      variant={
+                        c.status === "suspended"
+                          ? "destructive"
+                          : c.status === "removed"
+                            ? "outline"
+                            : "secondary"
+                      }
+                    >
+                      {c.status === "suspended"
+                        ? "Suspended"
+                        : c.status === "removed"
+                          ? "Removed"
+                          : "Active"}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Button
-                      size="sm"
-                      variant={c.status === "suspended" ? "outline" : "destructive"}
-                      disabled={pendingId === c.id}
-                      onClick={() => handleToggleStatus(c.id, c.status)}
-                    >
-                      {c.status === "suspended" ? "Reactivate" : "Suspend"}
-                    </Button>
+                    {c.status !== "removed" && (
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          size="sm"
+                          variant={c.status === "suspended" ? "outline" : "destructive"}
+                          disabled={pendingId === c.id}
+                          onClick={() => handleToggleStatus(c.id, c.status)}
+                        >
+                          {c.status === "suspended" ? "Reactivate" : "Suspend"}
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              size="icon-sm"
+                              variant="outline"
+                              disabled={pendingId === c.id}
+                              aria-label="More actions"
+                            >
+                              <MoreVertical size={14} />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              variant="destructive"
+                              onSelect={() => setRemoveTarget(c)}
+                            >
+                              Remove…
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -138,6 +197,20 @@ export default function CollectorsPage() {
           {data.total} collector{data.total !== 1 ? "s" : ""} registered
         </p>
       )}
+
+      <AddCollectorDialog
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        onSuccess={() => mutate()}
+      />
+      <RemoveCollectorDialog
+        collector={removeTarget}
+        onOpenChange={(open) => !open && setRemoveTarget(null)}
+        onSuccess={() => {
+          setRemoveTarget(null);
+          mutate();
+        }}
+      />
     </div>
   );
 }

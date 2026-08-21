@@ -2,6 +2,7 @@ import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { ExpressAdapter } from "@nestjs/platform-express";
 import type { Express } from "express";
+import compression from "compression";
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
@@ -21,6 +22,7 @@ export async function createApp(expressInstance?: Express): Promise<INestApplica
   );
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new LoggingInterceptor());
+  app.use(compression());
 
   const corsOrigins = process.env.CORS_ORIGINS;
   if (!corsOrigins?.length && process.env.NODE_ENV === "production") {

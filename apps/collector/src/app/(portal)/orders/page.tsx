@@ -68,8 +68,13 @@ function OrdersContent() {
     },
   ];
 
-  const available = useAvailableOrders(tab === "new" ? page : 1);
-  const active = useMyOrders("active", tab === "active" ? page : 1);
+  const available = useAvailableOrders(tab === "new" ? page : 1, tab === "new");
+  const active = useMyOrders(
+    "active",
+    tab === "active" ? page : 1,
+    true,
+    tab === "active",
+  );
   const history = useMyOrders(
     "history",
     tab === "done" ? page : 1,

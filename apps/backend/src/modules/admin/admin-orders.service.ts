@@ -99,6 +99,7 @@ export class AdminOrdersService {
       this.prisma.pickupOrder.findMany({
         where,
         include: ADMIN_ORDER_INCLUDE,
+        relationLoadStrategy: "join",
         orderBy: { scheduledAt: "desc" },
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -116,6 +117,7 @@ export class AdminOrdersService {
     const row = await this.prisma.pickupOrder.findUnique({
       where: { id },
       include: ADMIN_ORDER_INCLUDE,
+      relationLoadStrategy: "join",
     });
     if (!row) throw new NotFoundException("Order not found");
     return this.toAdminDto(row as AdminOrderWithRelations);
@@ -129,6 +131,7 @@ export class AdminOrdersService {
     const order = await this.prisma.pickupOrder.findUnique({
       where: { id },
       include: ADMIN_ORDER_INCLUDE,
+      relationLoadStrategy: "join",
     });
     if (!order) throw new NotFoundException("Order not found");
 
@@ -172,6 +175,7 @@ export class AdminOrdersService {
             : {}),
         },
         include: ADMIN_ORDER_INCLUDE,
+        relationLoadStrategy: "join",
       });
       await tx.pickupTimeline.create({
         data: {
@@ -207,6 +211,7 @@ export class AdminOrdersService {
     const order = await this.prisma.pickupOrder.findUnique({
       where: { id },
       include: ADMIN_ORDER_INCLUDE,
+      relationLoadStrategy: "join",
     });
     if (!order) throw new NotFoundException("Order not found");
 
@@ -233,6 +238,7 @@ export class AdminOrdersService {
           status: OrderStatus.assigned,
         },
         include: ADMIN_ORDER_INCLUDE,
+        relationLoadStrategy: "join",
       });
       await tx.pickupTimeline.create({
         data: {

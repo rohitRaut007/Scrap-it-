@@ -30,7 +30,11 @@ export function PortalShell({ userEmail, children }: PortalShellProps) {
   const router = useRouter();
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
-  const { data: summary } = useSummary();
+  // Live counts only matter while dwelling on Dashboard/Orders — everywhere
+  // else the badge still loads once on mount (and updates via the existing
+  // revalidateCollectorData() after accept/decline), it just doesn't poll.
+  const shouldPollSummary = pathname === "/dashboard" || pathname === "/orders";
+  const { data: summary } = useSummary(shouldPollSummary);
 
   const NAV_ITEMS = [
     {

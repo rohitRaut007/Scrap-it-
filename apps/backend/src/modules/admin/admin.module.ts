@@ -6,6 +6,7 @@ import { AdminOrdersController } from "./admin-orders.controller";
 import { AdminCollectorsController } from "./admin-collectors.controller";
 import { AdminOrdersService } from "./admin-orders.service";
 import { AdminCollectorsService } from "./admin-collectors.service";
+import { SupabaseAdminService } from "./supabase-admin.service";
 import { RolesGuard } from "../../common/guards/roles.guard";
 
 @Module({
@@ -15,6 +16,11 @@ import { RolesGuard } from "../../common/guards/roles.guard";
     AdminOrdersController,
     AdminCollectorsController,
   ],
-  providers: [AdminOrdersService, AdminCollectorsService, RolesGuard],
+  providers: [
+    AdminOrdersService,
+    AdminCollectorsService,
+    SupabaseAdminService,
+    RolesGuard,
+  ],
 })
 export class AdminModule {}

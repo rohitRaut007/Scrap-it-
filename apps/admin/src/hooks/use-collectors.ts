@@ -1,7 +1,7 @@
 import useSWR from "swr";
 import { adminApi } from "@/lib/api";
 
-export type CollectorStatus = "active" | "suspended";
+export type CollectorStatus = "active" | "suspended" | "removed";
 
 export interface CollectorAdminDto {
   id: string;
@@ -22,6 +22,19 @@ interface CollectorListResponse {
   total: number;
 }
 
+export interface CollectorInviteInput {
+  name: string;
+  phone: string;
+  email: string;
+  vehicleInfo?: string;
+}
+
+export interface CollectorInviteResponse {
+  collector: CollectorAdminDto;
+  tempPassword: string;
+  isReactivation: boolean;
+}
+
 // pageSize=100 covers MVP scale; TODO: paginate when collector count > 100
 export function useCollectors(enabled = true) {
   return useSWR<CollectorListResponse>(
@@ -30,10 +43,22 @@ export function useCollectors(enabled = true) {
   );
 }
 
-export function updateCollectorStatus(id: string, status: CollectorStatus) {
+export function inviteCollector(input: CollectorInviteInput) {
+  return adminApi.request<CollectorInviteResponse>("/admin/collectors", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateCollectorStatus(
+  id: string,
+  status: CollectorStatus,
+  reason?: string,
+) {
   return adminApi.request<{ ok: true }>(`/admin/collectors/${id}/status`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status, reason }),
   });
 }

@@ -66,6 +66,7 @@ enum TimelineEventType {
 enum CollectorStatus {
   active
   suspended
+  removed
 }
 
 /// How a PickupOrder got its collector assignment. Null means the ordinary
@@ -94,6 +95,7 @@ model User {
   notifications      Notification[]
   idempotencyRecords IdempotencyRecord[]
   ratingsGiven       Rating[]
+  adminAuditLogs     AdminAuditLog[]     @relation("AdminAuditLogActor")
 }
 
 model Address {
@@ -181,6 +183,26 @@ model Collector {
   clients       Client[]
   invoices      Invoice[]
   ratings       Rating[]
+  auditLogs     AdminAuditLog[]
+}
+
+/// Lightweight, append-only log of admin-initiated account-management
+/// actions (invite/reinvite/status changes) on collectors. `action` is a
+/// free-text string rather than an enum — this is a low-volume internal
+/// log, not user-facing data, so new action types shouldn't need a migration.
+model AdminAuditLog {
+  id                String   @id @default(uuid()) @db.Uuid
+  adminUserId       String   @db.Uuid
+  action            String
+  targetCollectorId String?  @db.Uuid
+  metadata          Json?
+  createdAt         DateTime @default(now())
+
+  adminUser       User       @relation("AdminAuditLogActor", fields: [adminUserId], references: [id], onDelete: Restrict)
+  targetCollector Collector? @relation(fields: [targetCollectorId], references: [id], onDelete: SetNull)
+
+  @@index([targetCollectorId, createdAt])
+  @@index([adminUserId, createdAt])
 }
 
 /// A collector's own buy-rate per category, replacing the platform's
@@ -277,6 +299,11 @@ model PickupOrder {
   @@index([customerId, createdAt])
   @@index([customerId, status])
   @@index([collectorId, status])
+  /// Covers the open-order-pool query (status=scheduled, collectorId=null)
+  /// used by listAvailable/getSummary — the global unclaimed-orders feed,
+  /// not scoped to a single collector so the collectorId-leading index above
+  /// doesn't help it. scheduledAt trailing covers the ORDER BY for free.
+  @@index([status, collectorId, scheduledAt])
 }
 
 model PickupOrderCategory {

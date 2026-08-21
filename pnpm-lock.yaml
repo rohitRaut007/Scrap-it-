@@ -141,6 +141,9 @@ importers:
       class-validator:
         specifier: ^0.14.2
         version: 0.14.4
+      compression:
+        specifier: ^1.8.1
+        version: 1.8.1
       express:
         specifier: ^5.2.1
         version: 5.2.1
@@ -172,6 +175,9 @@ importers:
       '@scrap-it/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig
+      '@types/compression':
+        specifier: ^1.8.1
+        version: 1.8.1
       '@types/express':
         specifier: ^5.0.1
         version: 5.0.6
@@ -3448,6 +3454,9 @@ packages:
 
   '@types/canvas-confetti@1.9.0':
     resolution: {integrity: sha512-aBGj/dULrimR1XDZLtG9JwxX1b4HPRF6CX9Yfwh3NvstZEm1ZL7RBnel4keCPSqs1ANRu1u2Aoz9R+VmtjYuTg==}
+
+  '@types/compression@1.8.1':
+    resolution: {integrity: sha512-kCFuWS0ebDbmxs0AXYn6e2r2nrGAb5KwQhknjSPSPgJcGd8+HVSILlUyFhGqML2gk39HcG7D1ydW9/qpYkN00Q==}
 
   '@types/connect@3.4.38':
     resolution: {integrity: sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==}
@@ -11945,6 +11954,11 @@ snapshots:
       '@types/node': 22.19.18
 
   '@types/canvas-confetti@1.9.0': {}
+
+  '@types/compression@1.8.1':
+    dependencies:
+      '@types/express': 5.0.6
+      '@types/node': 22.19.18
 
   '@types/connect@3.4.38':
     dependencies:

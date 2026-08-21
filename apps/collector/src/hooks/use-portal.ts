@@ -6,9 +6,16 @@ import { collectorApi } from "@/lib/api";
 /** Poll interval for lists that change as customers book / others accept. */
 const LIVE_REFRESH_MS = 30_000;
 
-export function useSummary() {
+/** Byte-identical poll results shouldn't force a re-render. */
+function shallowJsonEqual<T>(a: T | undefined, b: T | undefined): boolean {
+  if (a === b) return true;
+  if (a === undefined || b === undefined) return false;
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+export function useSummary(poll = true) {
   return useSWR("collector/summary", () => collectorApi.summary(), {
-    refreshInterval: LIVE_REFRESH_MS,
+    refreshInterval: poll ? LIVE_REFRESH_MS : 0,
   });
 }
 
@@ -16,11 +23,15 @@ export function useProfile() {
   return useSWR("collector/profile", () => collectorApi.profile());
 }
 
-export function useAvailableOrders(page = 1) {
+export function useAvailableOrders(page = 1, poll = true) {
   return useSWR(
     ["collector/available", page],
     () => collectorApi.availableOrders(page),
-    { refreshInterval: LIVE_REFRESH_MS },
+    {
+      refreshInterval: poll ? LIVE_REFRESH_MS : 0,
+      keepPreviousData: true,
+      compare: shallowJsonEqual,
+    },
   );
 }
 
@@ -28,11 +39,16 @@ export function useMyOrders(
   scope: "active" | "history",
   page = 1,
   enabled = true,
+  poll = scope === "active",
 ) {
   return useSWR(
     enabled ? ["collector/orders", scope, page] : null,
     () => collectorApi.myOrders(scope, page),
-    { refreshInterval: scope === "active" ? LIVE_REFRESH_MS : undefined },
+    {
+      refreshInterval: poll ? LIVE_REFRESH_MS : 0,
+      keepPreviousData: true,
+      compare: shallowJsonEqual,
+    },
   );
 }
 
@@ -61,7 +77,11 @@ export function useClients() {
 }
 
 export function useInvoices(page = 1) {
-  return useSWR(["collector/invoices", page], () => collectorApi.invoices(page));
+  return useSWR(
+    ["collector/invoices", page],
+    () => collectorApi.invoices(page),
+    { keepPreviousData: true, compare: shallowJsonEqual },
+  );
 }
 
 export function useInvoice(id: string | null) {

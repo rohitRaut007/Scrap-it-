@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Rozha_One, Hind, IBM_Plex_Mono } from "next/font/google";
+import { Rozha_One, Fira_Sans, IBM_Plex_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Toaster } from "@/components/ui/sonner";
+import { Providers } from "./providers";
 import "./globals.css";
 
 const rozha = Rozha_One({
@@ -12,9 +13,12 @@ const rozha = Rozha_One({
   display: "swap",
 });
 
-const hind = Hind({
-  variable: "--font-hind",
-  subsets: ["latin", "devanagari"],
+// Primary/body font. Note: Fira Sans has no Devanagari subset — hi/mr text
+// gracefully falls back to the browser's default Devanagari font for those
+// glyphs (Hind, the previous choice, covered Devanagari natively).
+const firaSans = Fira_Sans({
+  variable: "--font-primary",
+  subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   display: "swap",
 });
@@ -49,11 +53,13 @@ export default async function RootLayout({
   return (
     <html lang={locale}>
       <body
-        className={`${rozha.variable} ${hind.variable} ${plexMono.variable} antialiased`}
+        className={`${rozha.variable} ${firaSans.variable} ${plexMono.variable} antialiased`}
       >
         <NextIntlClientProvider messages={messages}>
-          {children}
-          <Toaster position="top-center" richColors />
+          <Providers>
+            {children}
+            <Toaster position="top-center" richColors />
+          </Providers>
         </NextIntlClientProvider>
       </body>
     </html>

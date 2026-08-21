@@ -68,7 +68,11 @@ export default function OrderDetailPage({
   const [completeOpen, setCompleteOpen] = useState(false);
   const [celebratedPayout, setCelebratedPayout] = useState<number | null>(null);
 
-  const runAction = async (fn: () => Promise<unknown>, successMsg?: string) => {
+  const runAction = async (
+    fn: () => Promise<unknown>,
+    successMsg?: string,
+    revalidate = true,
+  ) => {
     setBusy(true);
     try {
       await fn();
@@ -82,10 +86,12 @@ export default function OrderDetailPage({
     // shouldn't be reported as if the action had failed.
     if (successMsg) toast.success(successMsg);
     await mutate();
-    try {
-      await revalidateCollectorData();
-    } catch {
-      // Non-fatal — other collector-data views will catch up on next fetch.
+    if (revalidate) {
+      try {
+        await revalidateCollectorData();
+      } catch {
+        // Non-fatal — other collector-data views will catch up on next fetch.
+      }
     }
     setBusy(false);
   };
@@ -142,15 +148,20 @@ export default function OrderDetailPage({
       );
     }
     if (action.next === "en_route") {
+      // Pure status transition — never changes list membership or summary
+      // counts, so skip the broad revalidateCollectorData() sweep; the
+      // local mutate() above already refreshes this order.
       return runAction(
         () => collectorApi.updateStatus(order.id, "en_route"),
         t("toastEnRoute"),
+        false,
       );
     }
     if (action.next === "arriving") {
       return runAction(
         () => collectorApi.updateStatus(order.id, "arriving"),
         t("toastArriving"),
+        false,
       );
     }
     setCompleteOpen(true);
