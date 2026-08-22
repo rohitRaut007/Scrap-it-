@@ -41,6 +41,7 @@ export function InvoiceShareButton({ invoice, profile }: InvoiceShareButtonProps
     const businessName = profile.shopName || profile.name || "";
     const accentColor = profile.accentColor;
     const mobNo = profile.phone;
+    const businessAddressText = profile.shopAddressText;
     const { client } = invoice;
 
     if (invoice.billType === "RESIDENTIAL") {
@@ -52,6 +53,7 @@ export function InvoiceShareButton({ invoice, profile }: InvoiceShareButtonProps
           accentColor={accentColor}
           businessName={businessName}
           businessTagline={profile.businessTagline}
+          businessAddressText={businessAddressText}
           mobNo={mobNo}
           dateText={invoice.issuedAt ? formatBillDate(new Date(invoice.issuedAt)) : formatBillDate(new Date())}
           entityName={client.entityName}
@@ -76,6 +78,7 @@ export function InvoiceShareButton({ invoice, profile }: InvoiceShareButtonProps
         accentColor={accentColor}
         businessName={businessName}
         businessTagline={profile.businessTagline}
+        businessAddressText={businessAddressText}
         mobNo={mobNo}
         billNoText={invoice.billNumber ?? t("invoiceNoDraft")}
         dateText={

@@ -442,7 +442,9 @@
     "slNoHeader": "Sl No",
     "descriptionOfServicesHeader": "Description of Services",
     "perHeader": "Per",
+    "amountHeaderCommercial": "Amount (Rs.)",
     "amountInWordsLabelCommercial": "Amount in Words :",
+    "amountInWordsRupeesPrefix": "Rupees",
     "termsAndConditionsHeading": "Terms & Conditions",
     "noReferencePlaceholder": "—",
     "clientType": {

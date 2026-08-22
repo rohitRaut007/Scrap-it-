@@ -442,7 +442,9 @@
     "slNoHeader": "अ.क्र.",
     "descriptionOfServicesHeader": "सेवांचे वर्णन",
     "perHeader": "प्रति",
+    "amountHeaderCommercial": "रक्कम (रु.)",
     "amountInWordsLabelCommercial": "रक्कम शब्दांत :",
+    "amountInWordsRupeesPrefix": "रुपये",
     "termsAndConditionsHeading": "नियम व अटी",
     "noReferencePlaceholder": "—",
     "clientType": {

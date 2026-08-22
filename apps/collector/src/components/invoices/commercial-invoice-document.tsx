@@ -6,9 +6,10 @@ import {
   formatAmount,
   formatQuantity,
   formatRate,
-  SectionLabel,
   HeaderBand,
-  SignatureBlock,
+  AddressBox,
+  MetaInfoTable,
+  CommercialSignatureBlock,
 } from "./invoice-document-shared";
 import type { InvoiceLineItem } from "./residential-bill-document";
 
@@ -31,8 +32,9 @@ export interface CommercialInvoiceMessages {
   amountHeader: string;
   totalLabel: string;
   amountInWordsLabelCommercial: string; // "Amount in Words :"
+  amountInWordsRupeesPrefix: string; // "Rupees"
+  amountInWordsSuffix: string; // "Only."
   termsAndConditionsHeading: string;
-  forLabel: string;
   authorizedSignatoryLabel: string;
   noReferencePlaceholder: string; // "—"
 }
@@ -43,6 +45,7 @@ export interface CommercialInvoiceDocumentProps {
   accentColor?: string | null;
   businessName: string;
   businessTagline: string | null;
+  businessAddressText?: string | null;
   mobNo: string | null;
   billNoText: string; // e.g. "COM-016" or draft placeholder
   dateText: string;
@@ -64,18 +67,9 @@ export interface CommercialInvoiceDocumentProps {
 const styles = StyleSheet.create({
   titleBlock: { marginTop: 6, alignItems: "center" },
   invoiceTitle: {
-    fontSize: 18,
-    textDecoration: "underline",
+    fontSize: 20,
     fontWeight: "bold",
   },
-  metaRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 14,
-    flexWrap: "wrap",
-  },
-  metaText: { fontSize: 9.5 },
-  metaBold: { fontWeight: "bold" },
   colSlNo: { width: "7%" },
   colDescription: { width: "35%" },
   colQty: { width: "14%" },
@@ -91,9 +85,9 @@ const styles = StyleSheet.create({
 export function CommercialInvoiceDocument({
   locale,
   messages: m,
-  accentColor,
   businessName,
   businessTagline,
+  businessAddressText,
   mobNo,
   billNoText,
   dateText,
@@ -112,71 +106,59 @@ export function CommercialInvoiceDocument({
   termsAndConditions,
 }: CommercialInvoiceDocumentProps) {
   const bodyFont = invoiceBodyFontFamily(locale);
-  const accent = accentColor || colors.rust;
   const displayEntityName = entityName || siteName;
   const shipToAddress = addressText;
   const billToAddress = billToAddressText ?? addressText;
   const termsLines = (termsAndConditions ?? "").split("\n").filter((l) => l.trim());
 
-  const AddressBox = ({ label, address }: { label: string; address: string | null }) => (
-    <View style={[sharedStyles.box, { borderColor: accent }]}>
-      <SectionLabel accent={accent}>{label}</SectionLabel>
-      <Text style={sharedStyles.boxEntityName}>{displayEntityName}</Text>
-      <Text style={sharedStyles.boxLine}>{siteName}</Text>
-      {premisesType && <Text style={sharedStyles.boxLine}>{premisesType}</Text>}
-      {address && <Text style={sharedStyles.boxLine}>{address}</Text>}
-      {gstin && (
-        <Text style={sharedStyles.boxLine}>
-          {m.clientGstinLabel} {gstin}
-        </Text>
-      )}
-    </View>
-  );
-
   return (
     <Document title={m.invoiceTitle}>
       <Page size="A4" style={[sharedStyles.page, { fontFamily: bodyFont }]}>
         <HeaderBand
-          accent={accent}
           businessName={businessName}
           businessTagline={businessTagline}
+          businessAddressText={businessAddressText}
           mobNoLabel={m.mobNoLabel}
           mobNo={mobNo}
         />
         <View style={sharedStyles.body}>
           <View style={styles.titleBlock}>
-            <Text style={[styles.invoiceTitle, { color: accent }]}>{m.invoiceTitle}</Text>
+            <Text style={styles.invoiceTitle}>{m.invoiceTitle}</Text>
           </View>
 
           <View style={sharedStyles.boxesRow}>
-            <AddressBox label={m.billToLabel} address={billToAddress} />
-            <AddressBox label={m.shipToLabel} address={shipToAddress} />
+            <AddressBox
+              label={m.billToLabel}
+              displayEntityName={displayEntityName}
+              siteName={siteName}
+              premisesType={premisesType}
+              address={billToAddress}
+              gstin={gstin}
+              clientGstinLabel={m.clientGstinLabel}
+            />
+            <AddressBox
+              label={m.shipToLabel}
+              displayEntityName={displayEntityName}
+              siteName={siteName}
+              premisesType={premisesType}
+              address={shipToAddress}
+              gstin={gstin}
+              clientGstinLabel={m.clientGstinLabel}
+            />
           </View>
 
-          <View style={styles.metaRow}>
-            <Text style={styles.metaText}>
-              <Text style={styles.metaBold}>{m.invoiceNoDocLabel} </Text>
-              {billNoText}
-            </Text>
-            <Text style={styles.metaText}>
-              <Text style={styles.metaBold}>{m.invoiceDateLabel} </Text>
-              {dateText}
-            </Text>
-            <Text style={styles.metaText}>
-              <Text style={styles.metaBold}>{m.billingPeriodLabel} </Text>
-              {billingPeriodText}
-            </Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Text style={styles.metaText}>
-              <Text style={styles.metaBold}>{m.referencePoDocLabel} </Text>
-              {referencePoNumber || m.noReferencePlaceholder}
-            </Text>
-            <Text style={styles.metaText}>
-              <Text style={styles.metaBold}>{m.termsOfPaymentDocLabel} </Text>
-              {termsOfPayment}
-            </Text>
-          </View>
+          <MetaInfoTable
+            rows={[
+              { label: m.invoiceNoDocLabel, value: billNoText },
+              { label: m.invoiceDateLabel, value: dateText },
+              { label: m.billingPeriodLabel, value: billingPeriodText },
+              {
+                label: m.referencePoDocLabel,
+                value: referencePoNumber || m.noReferencePlaceholder,
+              },
+              { label: m.termsOfPaymentDocLabel, value: termsOfPayment ?? "" },
+            ]}
+          />
 
           <View style={sharedStyles.table}>
             <View style={[sharedStyles.headerRow, { backgroundColor: colors.paper2 }]}>
@@ -231,21 +213,15 @@ export function CommercialInvoiceDocument({
               <Text style={[sharedStyles.cell, styles.colPer, sharedStyles.bold]}>
                 {m.totalLabel}
               </Text>
-              <Text
-                style={[
-                  sharedStyles.cellLast,
-                  styles.colAmount,
-                  sharedStyles.bold,
-                  { color: accent },
-                ]}
-              >
+              <Text style={[sharedStyles.cellLast, styles.colAmount, sharedStyles.bold]}>
                 {formatAmount(total)}
               </Text>
             </View>
           </View>
 
           <Text style={styles.amountInWords}>
-            {m.amountInWordsLabelCommercial} {amountInWords}
+            {m.amountInWordsLabelCommercial} {m.amountInWordsRupeesPrefix} {amountInWords}{" "}
+            {m.amountInWordsSuffix}
           </Text>
 
           {termsLines.length > 0 && (
@@ -259,9 +235,10 @@ export function CommercialInvoiceDocument({
             </View>
           )}
 
-          <SignatureBlock
+          <CommercialSignatureBlock
             businessName={businessName}
-            forLabel={m.forLabel}
+            mobNoLabel={m.mobNoLabel}
+            mobNo={mobNo}
             authorizedSignatoryLabel={m.authorizedSignatoryLabel}
           />
         </View>

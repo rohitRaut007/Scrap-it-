@@ -442,7 +442,9 @@
     "slNoHeader": "क्र.सं.",
     "descriptionOfServicesHeader": "सेवाओं का विवरण",
     "perHeader": "प्रति",
+    "amountHeaderCommercial": "राशि (रु.)",
     "amountInWordsLabelCommercial": "राशि शब्दों में :",
+    "amountInWordsRupeesPrefix": "रुपये",
     "termsAndConditionsHeading": "नियम व शर्तें",
     "noReferencePlaceholder": "—",
     "clientType": {

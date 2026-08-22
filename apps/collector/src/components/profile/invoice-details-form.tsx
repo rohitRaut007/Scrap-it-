@@ -11,9 +11,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { collectorApi, ApiError } from "@/lib/api";
 import type { CollectorProfile } from "@/lib/types";
 
-const DEFAULT_ACCENT = "#B84E1C";
-const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
-
 interface InvoiceDetailsFormProps {
   profile: CollectorProfile;
   onSaved: () => Promise<unknown>;
@@ -27,7 +24,6 @@ export function InvoiceDetailsForm({ profile, onSaved }: InvoiceDetailsFormProps
   const [form, setForm] = useState({
     businessTagline: "",
     payableTo: "",
-    accentColor: "",
     defaultTermsAndConditions: "",
   });
 
@@ -38,24 +34,16 @@ export function InvoiceDetailsForm({ profile, onSaved }: InvoiceDetailsFormProps
       setForm({
         businessTagline: profile.businessTagline ?? "",
         payableTo: profile.payableTo ?? "",
-        accentColor: profile.accentColor ?? "",
         defaultTermsAndConditions: profile.defaultTermsAndConditions ?? "",
       });
     }
   }, [profile, editing]);
 
-  const accentInvalid =
-    form.accentColor.trim() !== "" && !HEX_COLOR_RE.test(form.accentColor.trim());
-
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (accentInvalid) return;
     setSaving(true);
     try {
-      await collectorApi.updateProfile({
-        ...form,
-        accentColor: form.accentColor.trim(),
-      });
+      await collectorApi.updateProfile(form);
       // The save itself succeeded — reflect that regardless of whether the
       // follow-up revalidation below succeeds.
       setEditing(false);
@@ -124,33 +112,6 @@ export function InvoiceDetailsForm({ profile, onSaved }: InvoiceDetailsFormProps
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="accentColor">{t("accentColorLabel")}</Label>
-            <div className="flex items-center gap-2">
-              <div
-                className="h-9 w-9 shrink-0 rounded-lg border"
-                style={{
-                  backgroundColor: HEX_COLOR_RE.test(form.accentColor.trim())
-                    ? form.accentColor.trim()
-                    : DEFAULT_ACCENT,
-                }}
-              />
-              <Input
-                id="accentColor"
-                value={form.accentColor}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, accentColor: e.target.value }))
-                }
-                placeholder={DEFAULT_ACCENT}
-                disabled={saving}
-                className="h-10 flex-1"
-                aria-invalid={accentInvalid}
-              />
-            </div>
-            {accentInvalid && (
-              <p className="text-xs text-destructive">{t("accentColorInvalid")}</p>
-            )}
-          </div>
-          <div className="space-y-1.5">
             <Label htmlFor="defaultTermsAndConditions">{t("termsAndConditionsLabel")}</Label>
             <Textarea
               id="defaultTermsAndConditions"
@@ -175,7 +136,7 @@ export function InvoiceDetailsForm({ profile, onSaved }: InvoiceDetailsFormProps
             >
               {tCommon("cancel")}
             </Button>
-            <Button type="submit" size="xl" className="flex-1" disabled={saving || accentInvalid}>
+            <Button type="submit" size="xl" className="flex-1" disabled={saving}>
               {saving ? t("saving") : t("saveChanges")}
             </Button>
           </div>
@@ -192,16 +153,6 @@ export function InvoiceDetailsForm({ profile, onSaved }: InvoiceDetailsFormProps
             value={profile.payableTo}
             notSetLabel={t("notSet")}
           />
-          <div className="flex items-baseline justify-between gap-4">
-            <dt className="shrink-0 text-muted-foreground">{t("accentColorLabel")}</dt>
-            <dd className="flex items-center gap-2">
-              <div
-                className="h-4 w-4 rounded-full border"
-                style={{ backgroundColor: profile.accentColor ?? DEFAULT_ACCENT }}
-              />
-              <span className="font-medium">{profile.accentColor ?? DEFAULT_ACCENT}</span>
-            </dd>
-          </div>
           <DetailRow
             label={t("termsAndConditionsLabel")}
             value={profile.defaultTermsAndConditions}

@@ -6,8 +6,8 @@ import {
   formatAmount,
   formatQuantity,
   formatRate,
-  SectionLabel,
   HeaderBand,
+  AddressBox,
   SignatureBlock,
 } from "./invoice-document-shared";
 
@@ -44,10 +44,10 @@ export interface ResidentialBillMessages {
 export interface ResidentialBillDocumentProps {
   locale: string;
   messages: ResidentialBillMessages;
-  /** Hex accent color for the letterhead/theme; defaults to the design system's rust. */
   accentColor?: string | null;
   businessName: string;
   businessTagline: string | null;
+  businessAddressText?: string | null;
   mobNo: string | null;
   dateText: string;
   entityName: string | null;
@@ -64,12 +64,14 @@ export interface ResidentialBillDocumentProps {
 }
 
 const styles = StyleSheet.create({
-  titleBlock: { marginTop: 18, alignItems: "center" },
+  titleBlock: { marginTop: 18, alignItems: "center", position: "relative" },
   billOfTitle: {
     fontSize: 16,
+    fontWeight: "bold",
     textDecoration: "underline",
   },
-  billNo: { alignSelf: "flex-end", marginTop: -20, fontSize: 10, fontWeight: "bold" },
+  dateTopRight: { position: "absolute", top: -8, right: 0, fontSize: 9.5, fontWeight: "bold" },
+  billNoTopRight: { position: "absolute", top: 22, right: 0, fontSize: 10, fontWeight: "bold" },
   colSrNo: { width: "8%" },
   colDescription: { width: "42%" },
   colQty: { width: "17%" },
@@ -82,9 +84,9 @@ const styles = StyleSheet.create({
 export function ResidentialBillDocument({
   locale,
   messages: m,
-  accentColor,
   businessName,
   businessTagline,
+  businessAddressText,
   mobNo,
   dateText,
   entityName,
@@ -99,48 +101,48 @@ export function ResidentialBillDocument({
   payableTo,
 }: ResidentialBillDocumentProps) {
   const bodyFont = invoiceBodyFontFamily(locale);
-  const accent = accentColor || colors.rust;
   const displayEntityName = entityName || siteName;
   const shipToAddress = addressText;
   const billToAddress = billToAddressText ?? addressText;
-
-  const AddressBox = ({ label, address }: { label: string; address: string | null }) => (
-    <View style={[sharedStyles.box, { borderColor: accent }]}>
-      <SectionLabel accent={accent}>{label}</SectionLabel>
-      <Text style={sharedStyles.boxEntityName}>{displayEntityName}</Text>
-      <Text style={sharedStyles.boxLine}>{siteName}</Text>
-      {premisesType && <Text style={sharedStyles.boxLine}>{premisesType}</Text>}
-      {address && <Text style={sharedStyles.boxLine}>{address}</Text>}
-      {gstin && (
-        <Text style={sharedStyles.boxLine}>
-          {m.clientGstinLabel} {gstin}
-        </Text>
-      )}
-    </View>
-  );
 
   return (
     <Document title={m.billOfTitle}>
       <Page size="A4" style={[sharedStyles.page, { fontFamily: bodyFont }]}>
         <HeaderBand
-          accent={accent}
           businessName={businessName}
           businessTagline={businessTagline}
+          businessAddressText={businessAddressText}
           mobNoLabel={m.mobNoLabel}
           mobNo={mobNo}
         />
         <View style={sharedStyles.body}>
           <View style={styles.titleBlock}>
-            <Text style={[styles.billOfTitle, { color: accent }]}>{m.billOfTitle}</Text>
-            <Text style={{ fontSize: 9, marginTop: 4 }}>
+            <Text style={styles.dateTopRight}>
               {m.dateLabel} {dateText}
             </Text>
+            <Text style={styles.billOfTitle}>{m.billOfTitle}</Text>
+            <Text style={styles.billNoTopRight}>{m.billNoText}</Text>
           </View>
-          <Text style={styles.billNo}>{m.billNoText}</Text>
 
           <View style={sharedStyles.boxesRow}>
-            <AddressBox label={m.billToLabel} address={billToAddress} />
-            <AddressBox label={m.shipToLabel} address={shipToAddress} />
+            <AddressBox
+              label={m.billToLabel}
+              displayEntityName={displayEntityName}
+              siteName={siteName}
+              premisesType={premisesType}
+              address={billToAddress}
+              gstin={gstin}
+              clientGstinLabel={m.clientGstinLabel}
+            />
+            <AddressBox
+              label={m.shipToLabel}
+              displayEntityName={displayEntityName}
+              siteName={siteName}
+              premisesType={premisesType}
+              address={shipToAddress}
+              gstin={gstin}
+              clientGstinLabel={m.clientGstinLabel}
+            />
           </View>
 
           <View style={sharedStyles.table}>
@@ -191,14 +193,7 @@ export function ResidentialBillDocument({
               <Text style={[sharedStyles.cell, styles.colRate, sharedStyles.bold]}>
                 {m.totalLabel}
               </Text>
-              <Text
-                style={[
-                  sharedStyles.cellLast,
-                  styles.colAmount,
-                  sharedStyles.bold,
-                  { color: accent },
-                ]}
-              >
+              <Text style={[sharedStyles.cellLast, styles.colAmount, sharedStyles.bold]}>
                 {formatAmount(total)}
               </Text>
             </View>

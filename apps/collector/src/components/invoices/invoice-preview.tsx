@@ -13,6 +13,7 @@ import { InvoiceDocument } from "@/components/invoices/invoice-document";
 interface InvoicePreviewInputBase {
   businessName: string;
   businessTagline: string | null;
+  businessAddressText: string | null;
   accentColor: string | null;
   mobNo: string | null;
   billingMonth: number;
@@ -66,6 +67,7 @@ export function InvoicePreview({ data }: { data: InvoicePreviewInput }) {
           accentColor={data.accentColor}
           businessName={data.businessName}
           businessTagline={data.businessTagline}
+          businessAddressText={data.businessAddressText}
           mobNo={data.mobNo}
           dateText={formatBillDate(new Date())}
           entityName={data.entityName}
@@ -87,6 +89,7 @@ export function InvoicePreview({ data }: { data: InvoicePreviewInput }) {
           accentColor={data.accentColor}
           businessName={data.businessName}
           businessTagline={data.businessTagline}
+          businessAddressText={data.businessAddressText}
           mobNo={data.mobNo}
           billNoText={data.billNumber ?? t("invoiceNoDraft")}
           dateText={formatCommercialDate(new Date())}

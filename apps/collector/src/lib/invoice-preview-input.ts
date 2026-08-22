@@ -11,6 +11,7 @@ export function invoiceToPreviewInput(
   const base = {
     businessName: profile?.shopName || profile?.name || "",
     businessTagline: profile?.businessTagline ?? null,
+    businessAddressText: profile?.shopAddressText ?? null,
     accentColor: profile?.accentColor ?? null,
     mobNo: profile?.phone ?? null,
     billingMonth: invoice.billingMonth,

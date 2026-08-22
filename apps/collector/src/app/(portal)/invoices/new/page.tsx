@@ -232,6 +232,7 @@ function NewInvoiceContent() {
     const base = {
       businessName: profile?.shopName || profile?.name || t("yourBusinessPlaceholder"),
       businessTagline: profile?.businessTagline ?? null,
+      businessAddressText: profile?.shopAddressText ?? null,
       accentColor: profile?.accentColor ?? null,
       mobNo: profile?.phone ?? null,
       billingMonth: period.month,
